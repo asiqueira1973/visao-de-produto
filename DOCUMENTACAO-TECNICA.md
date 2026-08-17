@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1 a 8.4 concluídos e verificados. Épicos 8.5 a 8.7 pendentes |
+| Estado | Épicos 8.1 a 8.5 concluídos e verificados. Épicos 8.6 e 8.7 pendentes |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -231,6 +231,13 @@ permissão, não devolve zero linhas.
 | **[Projeto] Atividade** | `projetos`, `eventos`, `definicoes_evento`, `pessoas` (via `fn_atividade` e `fn_opcoes_de_filtro`) | — | `projetos_dono_total`, `eventos_dono_leitura`, `definicoes_dono_total`, `pessoas_dono_leitura` |
 | **[Projeto] Detalhe do evento** | nada de novo: o evento já veio na lista | — | — |
 | **[Projeto] Atividade, estado vazio** | `credenciais` (só `prefixo`) | — | `credenciais_dono_total` |
+| **[Projeto] Uso** | `definicoes_evento`, `eventos` (via `fn_uso_por_evento`) | — | `definicoes_dono_total`, `eventos_dono_leitura` |
+| **[Projeto] Painel** | `paineis`, `paineis_itens`, `definicoes_evento`, `eventos` (via `fn_serie_do_evento`) | `paineis`, `paineis_itens` | `paineis_dono_total`, `paineis_itens_dono_total` |
+| **[Projeto] Pessoas** | `pessoas` (via `fn_pessoas`), `eventos` (via `fn_atividade`) | — | `pessoas_dono_leitura`, `eventos_dono_leitura` |
+| **[Projeto] Catálogo** | `definicoes_evento` (via `fn_catalogo`) | `definicoes_evento.descricao` | `definicoes_dono_total` |
+| **[Projeto] Configurações** | `projetos`, `credenciais` | `projetos`, `credenciais` | `projetos_dono_total`, `credenciais_dono_total` |
+| **Credenciais MCP** | `credenciais` | `credenciais` | `credenciais_dono_total` |
+| **Exportação CSV / JSON** | tudo que é da conta | — | todas as políticas de leitura |
 | **Menu lateral** | `projetos` | — | `projetos_dono_total` |
 
 As funções `fn_resumo_projetos`, `fn_atividade` e `fn_opcoes_de_filtro` são SECURITY
@@ -335,6 +342,8 @@ Numeração estável — não renumere.
 
 | 16 | Chave no estado vazio da Atividade | O mock imprime a chave inteira (`ing_a3f8_9c21d4e77b0a5f36`) | Aparece só o **prefixo**, com o caminho para gerar outra | O valor completo é mostrado uma única vez, na criação (seção 6.3). O banco guarda apenas o hash, então a tela não teria como imprimir a chave nem se quisesse |
 | 17 | Paginação da Atividade | "A lista pagina por rolagem infinita, 50 por página" | Rolagem infinita **mais** um botão "Carregar mais 50 eventos" | A rolagem continua carregando sozinha. O botão foi acrescentado porque rolagem infinita pura é inacessível por teclado (seção 14 exige navegação por teclado na tabela de Atividade) e porque dá um alvo de 44px |
+
+| 18 | Exportação JSON da conta | A seção 13.4 fala em link assinado com validade de 24 h | O arquivo é servido direto no request | No volume da v1 o JSON sai em um request. Link assinado exigiria bucket, expiração e limpeza — peças que só se pagam acima das 100 mil linhas que a própria seção 13.4 usa como divisor (princípio 0.4) |
 
 ### Limitação declarada
 

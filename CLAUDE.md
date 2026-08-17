@@ -163,3 +163,14 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
   no painel do Supabase (Authentication → Providers → Google). Bloqueia o épico 8.4.
 - **Senha do banco**: necessária para `supabase db dump` gerar o `schema.sql` do banco real.
 - **Vercel**: o deploy do site pede login pelo navegador uma vez.
+
+## 10. Backlog conhecido
+
+**A tela do Google mostra `glohvqzopiffdghwppor.supabase.co` em vez de "Visão de Produto".**
+O nome do app, o e-mail de suporte e o contato do desenvolvedor já estão preenchidos na
+Branding do Google Auth Platform, e mesmo assim o Google exibe o domínio. A causa restante
+é o app estar não verificado usando o domínio compartilhado do Supabase: o que aparece é o
+host do `redirect_uri`. **O conserto definitivo é domínio próprio de autenticação no
+Supabase** (add-on pago), que troca o `redirect_uri` para o domínio da Dab Lab. Não afeta o
+funcionamento do login — é só o rótulo na tela de consentimento. Decisão do dono: fica no
+backlog.
