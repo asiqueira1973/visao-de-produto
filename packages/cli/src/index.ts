@@ -29,7 +29,7 @@ import { criarInicializacao, garantirGitignore, gravarNoEnv } from "./arquivos.j
 import { paraSlug, reconhecer, type Repositorio } from "./projeto.js";
 
 /** Site que autoriza a instalação. Trocável por `--site`, para desenvolvimento. */
-const SITE_PADRAO = process.env.VISAO_SITE ?? "http://localhost:3000";
+const SITE_PADRAO = process.env.VISAO_SITE ?? "https://visao-de-produto.vercel.app";
 
 /** Host da ingestão, gravado no `.env` do app. */
 const HOST_PADRAO = process.env.VISAO_HOST ?? "https://glohvqzopiffdghwppor.supabase.co";
