@@ -28,6 +28,9 @@ const ROTAS_PUBLICAS = [
   "/.well-known/",
   "/oauth/registrar",
   "/oauth/token",
+  // Diz para qual ambiente este deploy aponta. Pública de propósito: é o que
+  // permite conferir um deploy sem entrar nele.
+  "/api/saude",
 ];
 
 export default async function proxy(request: NextRequest) {
