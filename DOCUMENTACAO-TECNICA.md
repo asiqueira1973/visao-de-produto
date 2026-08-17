@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1, 8.2 e 8.3 concluídos e verificados. Épicos 8.4 a 8.7 pendentes |
+| Estado | Épicos 8.1 a 8.4 concluídos e verificados. Épicos 8.5 a 8.7 pendentes |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -224,7 +224,18 @@ permissão, não devolve zero linhas.
 
 ## 4. Mapa tela → tabelas
 
-Pendente: será preenchido nos épicos 8.4 e 8.5.
+| Tela | Lê | Escreve | Por quais políticas passa |
+|---|---|---|---|
+| **Login** | — | — | nenhuma. É a única rota pública, junto com o callback do Google |
+| **Projetos** | `projetos`, `eventos` (via `fn_resumo_projetos`) | — | `projetos_dono_total`, `eventos_dono_leitura` |
+| **[Projeto] Atividade** | `projetos`, `eventos`, `definicoes_evento`, `pessoas` (via `fn_atividade` e `fn_opcoes_de_filtro`) | — | `projetos_dono_total`, `eventos_dono_leitura`, `definicoes_dono_total`, `pessoas_dono_leitura` |
+| **[Projeto] Detalhe do evento** | nada de novo: o evento já veio na lista | — | — |
+| **[Projeto] Atividade, estado vazio** | `credenciais` (só `prefixo`) | — | `credenciais_dono_total` |
+| **Menu lateral** | `projetos` | — | `projetos_dono_total` |
+
+As funções `fn_resumo_projetos`, `fn_atividade` e `fn_opcoes_de_filtro` são SECURITY
+INVOKER: rodam com o papel de quem chamou, então as políticas acima continuam valendo
+dentro delas. Nenhuma tela usa `service_role`.
 
 ---
 
@@ -321,6 +332,9 @@ Numeração estável — não renumere.
 
 | 14 | Persistência da fila em React Native | A tabela do épico 8.3 diz "AsyncStorage (RN)", e o mesmo épico exige funcionar no Expo SDK 57 **sem módulo nativo** | O SDK não importa AsyncStorage; `init` aceita um `storage` opcional, e em RN o app passa o AsyncStorage ali. A CLI escreve essa linha sozinha ao detectar Expo | As duas exigências se chocam: AsyncStorage **é** módulo nativo. Recebê-lo do app mantém a persistência pedida e o pacote sem dependência nativa. Sem storage em RN, o SDK avisa no console que a fila é só de memória |
 | 15 | `track` antes de `identify` | O spec não diz o que fazer | O evento **não é enviado**, com erro explicativo no console | A v1 não tem fluxo anônimo (F9 é v2) e o contrato exige `distinct_id`. Gerar um identificador anônimo seria a plataforma criando dado que o app não declarou, contra o princípio 0.1 |
+
+| 16 | Chave no estado vazio da Atividade | O mock imprime a chave inteira (`ing_a3f8_9c21d4e77b0a5f36`) | Aparece só o **prefixo**, com o caminho para gerar outra | O valor completo é mostrado uma única vez, na criação (seção 6.3). O banco guarda apenas o hash, então a tela não teria como imprimir a chave nem se quisesse |
+| 17 | Paginação da Atividade | "A lista pagina por rolagem infinita, 50 por página" | Rolagem infinita **mais** um botão "Carregar mais 50 eventos" | A rolagem continua carregando sozinha. O botão foi acrescentado porque rolagem infinita pura é inacessível por teclado (seção 14 exige navegação por teclado na tabela de Atividade) e porque dá um alvo de 44px |
 
 ### Limitação declarada
 

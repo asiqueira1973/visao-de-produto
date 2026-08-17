@@ -1,0 +1,96 @@
+/*
+ * Tokens visuais da seção 13.2 do spec, copiados literalmente das telas
+ * geradas. Nenhuma cor foi escolhida aqui: as telas prevalecem em paleta
+ * (regra de precedência 4.4).
+ *
+ * O escuro é o padrão (assunção 21.5). O claro entra apenas quando o sistema
+ * do usuário pede claro explicitamente.
+ */
+
+:root {
+  --bg: #0b0c0e;
+  --panel: #101115;
+  --elev: #15171b;
+  --line: #23262c;
+  --line2: #2f333a;
+  --text: #e9eaee;
+  --dim: #9b9ea6;
+  --faint: #6a6d76;
+  --code: #0e0f12;
+  --pri: #6e7cf7;
+  --priSoft: rgba(110, 124, 247, 0.15);
+  --ok: #3fb950;
+  --off: #6a6d76;
+  --err: #f0616d;
+  --errSoft: rgba(240, 97, 109, 0.12);
+  --errLine: rgba(240, 97, 109, 0.32);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff;
+    --panel: #fbfbfc;
+    --elev: #f3f4f6;
+    --line: #e7e8ec;
+    --line2: #d6d8de;
+    --text: #17181c;
+    --dim: #63666e;
+    --faint: #8d9098;
+    --code: #f6f7f9;
+    --pri: #4a56cf;
+    --priSoft: rgba(79, 91, 213, 0.09);
+    --ok: #1a7f37;
+    --off: #8d9098;
+    --err: #c9303d;
+    --errSoft: rgba(201, 48, 61, 0.07);
+    --errLine: rgba(201, 48, 61, 0.28);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--pri);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--text);
+}
+
+/* Skeleton da tela de Atividade: estado de carregamento é skeleton, nunca
+   spinner de tela cheia (critério do épico 8.4). */
+@keyframes sk {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.85; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Acessibilidade: navegação por teclado precisa ser visível (seção 14). */
+:focus-visible {
+  outline: 2px solid var(--pri);
+  outline-offset: 2px;
+}

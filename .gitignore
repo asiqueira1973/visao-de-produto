@@ -24,3 +24,6 @@ supabase/.temp/
 
 # lixo local, não versionar
 _to_delete/
+
+# artefatos de build do TypeScript
+*.tsbuildinfo
