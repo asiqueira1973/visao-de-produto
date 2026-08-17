@@ -383,7 +383,27 @@ o cabeçalho que diz por onde começar.
 
 ### 5.6 — Telas
 
-Pendente: será preenchido nos épicos 8.4 e 8.5.
+As telas de projeto (Atividade, Uso, Painel, Pessoas, Catálogo, Configurações) seguem o
+inventário da seção 10 e o mapa da seção 4 acima. O grupo **Conta** tem cinco telas:
+
+| Tela | Rota | O que faz | O que lê e escreve |
+|---|---|---|---|
+| Perfil | `/conta/perfil` | Quem está logado, dados da conta, medição do mês e a zona de perigo | Lê `usuarios_conta`, `contas`, `projetos`, `eventos` e `uso_mensal`; escreve `contas.nome` e `contas.cancelada_em` |
+| Credenciais MCP | `/conta/credenciais` | Tokens de leitura e as duas formas de conectar o Claude | Lê e escreve `credenciais` |
+| Sobre o produto | `/conta/sobre` | O que a plataforma faz, para quem, e um exemplo de consulta pelo Claude | Nada — conteúdo estático |
+| Como usar | `/conta/como-usar` | Sete passos, do projeto vazio ao primeiro gráfico | Nada do banco; reaproveita `TrechosDeInstalacao` para o contrato de API não divergir entre telas |
+| Termos e privacidade | `/conta/termos` | Termos de uso e política de privacidade | Nada — conteúdo estático |
+
+O texto de **Termos e privacidade** foi redigido a partir do que está implementado: os prazos
+citados são os das regras 11.15, 11.17 e 11.18, a lista de campos é a da seção 17.1 e os
+subprocessadores são os três que existem de fato (Supabase, Vercel e Google). **Não passou por
+revisão jurídica** — a pergunta 22.6 do spec continua aberta e precisa ser fechada antes de o
+cadastro público ser aberto a terceiros.
+
+O **cancelamento da conta** é escrita direta em `contas.cancelada_em` pela sessão, com a
+política `contas_dono_total` limitando o alcance. Nada é apagado no ato: quem apaga é
+`fn_expurga_contas_canceladas()`, 30 dias depois, em cascata. Reativar é a mesma escrita com
+`null`.
 
 ---
 
@@ -427,6 +447,9 @@ Numeração estável — não renumere.
 | 24 | Cor primária | A seção 13.2 fixa índigo `#6e7cf7` no escuro e `#4a56cf` no claro, com a instrução "use exatamente estes valores" | **Azul de sistema da Apple**: `#0a84ff` no escuro, `#007aff` no claro | Decisão do dono, que é quem aprovou a paleta original. Os demais tokens da 13.2 continuam intactos, e a troca foi feita só nas duas variáveis — nenhuma cor foi escolhida fora delas. O ícone acompanha |
 | 25 | A palavra "tile" | O mock e as regras 11.9 e 7.7 usam "tile" | A interface diz **"gráfico"**: "Adicionar gráfico", "Gráficos fixados do catálogo" | A seção 13.3 deixa a copy livre, e "tile" não diz nada para quem chega. No banco e no código o nome continua `paineis_itens`, que é o vocabulário do spec |
 | 26 | Tela de Credenciais MCP | A seção 12.3 pede o bloco de configuração copiável | O bloco continua, agora dentro de um cartão **"Como conectar o Claude"** com dois caminhos em passos: pelo aplicativo (OAuth) e por arquivo, com o caminho do arquivo em cada sistema | Bloco de JSON sem instrução não é autosserviço (princípio 0.6): a tela mostrava a configuração sem dizer o que fazer com ela, e quem não é do ramo não descobria |
+
+| 27 | Telas do grupo Conta | A seção 10 inventaria só "Credenciais MCP" dentro de Conta | O grupo ganhou **Perfil**, **Sobre o produto**, **Como usar** e **Termos e privacidade** | Pedido do dono. Nenhuma delas inventa dado ou regra: "Sobre" e "Como usar" são a seção 1, a 2 e o fluxo 9.1 escritos em linguagem de usuário; "Termos" é a seção 17 na voz de quem lê; e "Perfil" só expõe `contas`, `usuarios_conta` e `uso_mensal`, que já existiam sem tela. O princípio 0.6 pedia isso: cancelar a conta era regra implementada (11.17) sem nenhum caminho na interface — funcionalidade que exigia alguém do outro lado |
+| 28 | Cancelamento da conta | A regra 11.17 descreve o comportamento e o job de expurgo, mas não diz onde a pessoa pede | Zona de perigo no **Perfil**, com confirmação digitada (`APAGAR`), contagem do que será apagado, e faixa de aviso no topo de **todas** as telas enquanto a conta estiver marcada | Os 30 dias existem para a pessoa poder mudar de ideia, e mudar de ideia só é possível se ela lembrar que pediu — daí a faixa global. A confirmação digitada existe porque, depois dos 30 dias, não há ninguém que possa desfazer |
 
 ### Limitação declarada
 

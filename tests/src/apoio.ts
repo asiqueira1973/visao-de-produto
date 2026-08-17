@@ -187,7 +187,8 @@ export async function ingerir(
     body: JSON.stringify({ eventos }),
   });
 
-  return { status: resposta.status, corpo: await resposta.json() };
+  const corpo = (await resposta.json()) as Record<string, unknown>;
+  return { status: resposta.status, corpo };
 }
 
 /** Monta um evento válido, com o que o teste quiser sobrescrito. */

@@ -64,19 +64,9 @@ describe("acesso anônimo", () => {
   it("não lê as partições de eventos direto, contornando o pai", async () => {
     const anonimo = clienteAnonimo();
 
-    const { data: particoes } = await servico.rpc("fn_consulta_leitura", {
-      p_sql: "select 1",
-      p_conta_id: dono.contaId,
-    }).then(() => ({ data: null })).catch(() => ({ data: null }));
-    void particoes;
-
-    // Descobre o nome de uma partição real pelo catálogo do Postgres.
-    const { data: nomes } = await servico
-      .from("eventos")
-      .select("ocorrido_em")
-      .limit(1);
-    void nomes;
-
+    // O nome da partição é derivado da data: `pg_partman` cria uma por semana,
+    // começando no domingo. Testar as três últimas cobre qualquer dia em que a
+    // suíte rode, e a `eventos_default` fecha o caso da linha fora de faixa.
     const hoje = new Date();
     const inicioDaSemana = new Date(hoje);
     inicioDaSemana.setUTCDate(hoje.getUTCDate() - hoje.getUTCDay());

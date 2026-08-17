@@ -9,6 +9,7 @@
 
 import { redirect } from "next/navigation";
 import { MenuLateral } from "@/features/shell/MenuLateral";
+import { AvisoDeCancelamento } from "@/features/perfil/AvisoDeCancelamento";
 import { clienteDaSessao } from "@/lib/supabase/server";
 
 export default async function LayoutDoApp({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,10 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
     .select("nome, slug")
     .is("arquivado_em", null)
     .order("nome");
+
+  // Conta cancelada continua entrando e exportando durante 30 dias (regra
+  // 11.17) — o aviso existe para ela não perder o prazo por esquecimento.
+  const { data: conta } = await supabase.from("contas").select("cancelada_em").maybeSingle();
 
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden" }}>
@@ -40,6 +45,7 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
           position: "relative",
         }}
       >
+        <AvisoDeCancelamento canceladaEm={conta?.cancelada_em ?? null} />
         {children}
       </main>
     </div>

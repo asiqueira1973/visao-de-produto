@@ -32,6 +32,19 @@ const TELAS_DO_PROJETO = [
   { rotulo: "Configurações", caminho: "configuracoes" },
 ] as const;
 
+/**
+ * As telas da conta. "Credenciais MCP" vem do inventário da seção 10; as duas
+ * seguintes são conteúdo do produto — o que ele faz e sob que regras opera —,
+ * e ficam aqui porque valem para a conta inteira, não para um projeto.
+ */
+const TELAS_DA_CONTA = [
+  { rotulo: "Perfil", caminho: "/conta/perfil" },
+  { rotulo: "Credenciais MCP", caminho: "/conta/credenciais" },
+  { rotulo: "Sobre o produto", caminho: "/conta/sobre" },
+  { rotulo: "Como usar", caminho: "/conta/como-usar" },
+  { rotulo: "Termos e privacidade", caminho: "/conta/termos" },
+] as const;
+
 /** Estilo de um item do menu, ativo ou não (seção 13.1). */
 function estiloDoItem(ativo: boolean): React.CSSProperties {
   return {
@@ -151,12 +164,15 @@ export function MenuLateral({
         <div style={estiloDoGrupo}>
           <div style={estiloDoTitulo}>Conta</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Link
-              href="/conta/credenciais"
-              style={estiloDoItem(caminhoAtual === "/conta/credenciais")}
-            >
-              Credenciais MCP
-            </Link>
+            {TELAS_DA_CONTA.map((tela) => (
+              <Link
+                key={tela.caminho}
+                href={tela.caminho}
+                style={estiloDoItem(caminhoAtual === tela.caminho)}
+              >
+                {tela.rotulo}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

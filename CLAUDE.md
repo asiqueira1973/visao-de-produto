@@ -157,6 +157,22 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
 | 22.5 | Segue aberta; só importa quando um app for escolhido |
 | 22.1 / 22.6 | Preço e contrato de operação ficam fora da v1, por decisão do próprio spec |
 
+## 8.1 Telas de conteúdo — o texto é parte do produto
+
+O grupo **Conta** tem cinco telas: Perfil, Credenciais MCP, Sobre o produto, Como usar e
+Termos e privacidade. As três últimas são texto, e texto aqui **descreve o que existe**:
+
+- **Sobre o produto** e **Como usar** derivam das seções 1, 2, 9.1 e 12.1. Se um contrato de
+  API mudar, o trecho de código dessas telas muda junto — ele vem do mesmo componente
+  (`TrechosDeInstalacao`) usado nas Configurações, de propósito.
+- **Termos e privacidade** derivam da seção 17 e das regras 11.15, 11.17 e 11.18. Se um prazo
+  ou uma retenção mudar no banco, **este texto muda no mesmo commit**. Política que descreve
+  outro produto é pior do que política nenhuma. O texto **não passou por revisão jurídica**
+  (pergunta 22.6, ainda aberta).
+- **Perfil** é a única porta para cancelar a conta (regra 11.17). Cancelar é `update` em
+  `contas.cancelada_em`, nunca `delete`: quem apaga é o job, 30 dias depois. Enquanto
+  `cancelada_em` não for nulo, o layout do app mostra a faixa de aviso em todas as telas.
+
 ## 9. Pendências que dependem do dono
 
 - **Google OAuth**: criar o OAuth Client no Google Cloud Console e colar Client ID e Secret
