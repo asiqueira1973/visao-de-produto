@@ -1,0 +1,23 @@
+{
+  "name": "visao-de-produto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visão de Produto — plataforma de product analytics MCP-native",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm --filter @dablab/visao-web dev",
+    "db:schema": "supabase db dump --linked -f schema.sql"
+  },
+  "devDependencies": {
+    "supabase": "2.114.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

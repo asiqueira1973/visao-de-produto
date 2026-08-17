@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "tests"
+# A CLI do Supabase e o esbuild baixam binários no postinstall; sem isso o
+# comando `supabase` não existe e o Vitest não compila.
+allowBuilds:
+  esbuild: true
+  supabase: true
