@@ -1,0 +1,26 @@
+# dependências
+node_modules/
+
+# builds
+.next/
+dist/
+out/
+build/
+.turbo/
+.vercel/
+
+# ambiente — segredos nunca entram no git
+.env
+.env.local
+.env*.local
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# sistema operacional / editores
+.DS_Store
+*.log
+
+# lixo local, não versionar
+_to_delete/

@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#0b0c0e}
+*{box-sizing:border-box}
+input,button,select,textarea{font:inherit;color:inherit}
+a{color:var(--pri);text-decoration:none}
+a:hover{color:var(--text)}
+@keyframes sk{0%{opacity:.4}50%{opacity:.85}100%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+<div style="{{ chromeStyle }}">
+  <span style="font-size:10.5px;color:var(--faint);letter-spacing:0.02em">tema</span>
+  <sc-for list="{{ themeBtns }}" as="b" hint-placeholder-count="2">
+    <button onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button>
+  </sc-for>
+  <span style="width:1px;height:16px;background:var(--line2)"></span>
+  <span style="font-size:10.5px;color:var(--faint);letter-spacing:0.02em">estado</span>
+  <sc-for list="{{ stateBtns }}" as="b" hint-placeholder-count="4">
+    <button onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button>
+  </sc-for>
+</div>
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:352px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:18px;height:18px;border-radius:5px;background:var(--pri);display:block"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">analytics-dablab</span>
+      </div>
+      <div style="margin-top:22px;font-size:20px;font-weight:600;letter-spacing:-0.01em">Entrar</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--dim);line-height:1.5">Painel de uso dos aplicativos.</div>
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:13px">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">E-mail
+          <input value="alexandre@dablab.com.br" style="height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--elev);font-size:13px;outline:none">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">Senha
+          <input type="password" value="............" style="height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--elev);font-size:13px;outline:none">
+        </label>
+        <sc-if value="{{ isErro }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:var(--errSoft);border:1px solid var(--errLine);font-size:12.5px;color:var(--err);line-height:1.45">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--err);margin-top:5px;flex:none"></span>
+            <span>E-mail ou senha inválidos.</span>
+          </div>
+        </sc-if>
+        <button onClick="{{ enter }}" style="height:36px;border-radius:8px;border:none;background:var(--pri);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-top:2px">Entrar</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+<div style="height:100vh;display:flex;overflow:hidden">
+
+  <aside style="width:248px;flex:none;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column">
+    <div style="padding:18px 18px 14px;display:flex;align-items:center;gap:8px">
+      <span style="width:18px;height:18px;border-radius:5px;background:var(--pri);display:block"></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">analytics-dablab</span>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding-bottom:8px">
+      <div style="padding:12px 14px 14px;border-top:1px solid var(--line)">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:6px;padding:0 6px">Projetos</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <sc-for list="{{ navProjects }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.go }}" style="{{ it.style }}">{{ it.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding:12px 14px 14px;border-top:1px solid var(--line)">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:6px;padding:0 6px">Agenda Psi</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <sc-for list="{{ navProject }}" as="it" hint-placeholder-count="6">
+            <button onClick="{{ it.go }}" style="{{ it.style }}">{{ it.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding:12px 14px 14px;border-top:1px solid var(--line)">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:6px;padding:0 6px">Conta</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <sc-for list="{{ navAccount }}" as="it" hint-placeholder-count="1">
+            <button onClick="{{ it.go }}" style="{{ it.style }}">{{ it.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">alexandre@dablab.com.br</div>
+        <button onClick="{{ logout }}" style="margin-top:3px;background:none;border:none;padding:0;font-size:11.5px;color:var(--faint);cursor:pointer" style-hover="color:var(--text)">Sair</button>
+      </div>
+      <span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);border:1px solid var(--line2);border-radius:5px;padding:2px 6px">staging</span>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative">
+
+    <!-- 2. PROJETOS -->
+    <sc-if value="{{ isProjetos }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="max-width:900px;padding:26px 32px 60px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+            <div>
+              <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Projetos</div>
+              <div style="margin-top:5px;font-size:13px;color:var(--dim)">Aplicativos que enviam eventos para esta conta.</div>
+            </div>
+            <button style="height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line2);background:var(--elev);font-size:12.5px;cursor:pointer" style-hover="border-color:var(--pri)">Criar projeto</button>
+          </div>
+
+          <sc-if value="{{ isVazio }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:22px;border:1px solid var(--line);border-radius:12px;padding:24px;background:var(--panel)">
+              <div style="font-size:14px;font-weight:600">Nenhum projeto ainda</div>
+              <div style="margin-top:6px;font-size:13px;color:var(--dim);line-height:1.55;max-width:520px">O projeto é criado pelo comando de inicialização, dentro do repositório do aplicativo. Ele grava a chave de ingestão no <span style="font-family:'JetBrains Mono',monospace;font-size:12px">.env</span> e registra o projeto aqui.</div>
+              <div style="margin-top:16px;border:1px solid var(--line);border-radius:9px;background:var(--code);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px">npx analytics-dablab init</code>
+                <button onClick="{{ copy }}" style="flex:none;background:none;border:1px solid var(--line2);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:var(--faint)">Se o app já estiver instrumentado, <a href="#">crie o projeto manualmente</a>.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isNormal }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:20px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)">
+              <div style="display:grid;grid-template-columns:1fr 120px 180px 132px;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:11px;color:var(--faint)">
+                <div>Projeto</div><div style="text-align:right">Eventos 24 h</div><div style="text-align:right">Último evento</div><div></div>
+              </div>
+              <sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:1fr 120px 180px 132px;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center" style-hover="background:var(--elev)">
+                  <div style="min-width:0">
+                    <div style="font-size:13.5px;font-weight:500">{{ p.name }}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:2px">{{ p.slug }}</div>
+                  </div>
+                  <div style="{{ p.countStyle }}">{{ p.count }}</div>
+                  <div style="text-align:right;font-size:12.5px;color:var(--dim)">{{ p.last }}</div>
+                  <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center">
+                    <button onClick="{{ p.open }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:3px 9px;font-size:11.5px;cursor:pointer" style-hover="border-color:var(--pri);color:var(--pri)">Abrir</button>
+                    <button style="background:none;border:none;font-size:11.5px;color:var(--faint);cursor:pointer" style-hover="color:var(--text)">Arquivar</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 3. ATIVIDADE -->
+    <sc-if value="{{ isAtividade }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;padding:26px 32px 0">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+          <div>
+            <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Atividade</div>
+            <div style="margin-top:5px;font-size:13px;color:var(--dim)">{{ activitySub }}</div>
+          </div>
+          <div style="font-size:12px;color:var(--faint)">Atualizado há 40 segundos</div>
+        </div>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:14px">
+          <select style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:12.5px">
+            <option>Últimos 7 dias</option><option>Hoje</option><option>Últimos 14 dias</option><option>Intervalo personalizado</option>
+          </select>
+          <select value="{{ filterEvent }}" onChange="{{ setFilterEvent }}" style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:12px;font-family:'JetBrains Mono',monospace">
+            <sc-for list="{{ eventOptions }}" as="o" hint-placeholder-count="4">
+              <option value="{{ o.v }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+          <select value="{{ filterPerson }}" onChange="{{ setFilterPerson }}" style="height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:12px;font-family:'JetBrains Mono',monospace">
+            <sc-for list="{{ personOptions }}" as="o" hint-placeholder-count="4">
+              <option value="{{ o.v }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+          <sc-if value="{{ hasFilter }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clearFilters }}" style="height:30px;padding:0 10px;border-radius:7px;border:1px solid var(--pri);background:var(--priSoft);color:var(--pri);font-size:12.5px;cursor:pointer">Limpar filtros</button>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:12px 32px 40px;border-top:1px solid var(--line)">
+        <sc-if value="{{ isCarregando }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <sc-for list="{{ skeleton }}" as="s" hint-placeholder-count="9">
+              <div style="{{ s.rowStyle }}">
+                <div style="flex:1">
+                  <div style="{{ s.barA }}"></div>
+                  <div style="{{ s.barB }}"></div>
+                </div>
+                <div style="height:8px;width:60px;border-radius:4px;background:var(--line)"></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isErro }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:560px;margin-top:8px;border:1px solid var(--errLine);background:var(--errSoft);border-radius:11px;padding:18px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--err)">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--err)"></span>Não foi possível carregar os eventos
+            </div>
+            <div style="margin-top:7px;font-size:12.5px;color:var(--dim);line-height:1.55">A consulta expirou depois de 30 segundos. Os eventos continuam sendo recebidos; nada foi perdido.</div>
+            <button style="margin-top:14px;height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--line2);background:var(--elev);font-size:12.5px;cursor:pointer" style-hover="border-color:var(--pri)">Tentar novamente</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isVazio }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:620px;margin-top:8px">
+            <div style="font-size:14px;font-weight:600">Nenhum evento recebido</div>
+            <div style="margin-top:6px;font-size:13px;color:var(--dim);line-height:1.55">Envie o primeiro evento do aplicativo. Nada é capturado automaticamente: aqui só aparece o que o app enviar de propósito.</div>
+            <div style="margin-top:16px;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)">
+                <span style="font-size:11.5px;color:var(--faint)">Chave de ingestão</span>
+                <button onClick="{{ copy }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+              </div>
+              <div style="padding:11px 12px;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:12.5px">ing_a3f8_9c21d4e77b0a5f36</div>
+            </div>
+            <div style="margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)">
+                <span style="font-size:11.5px;color:var(--faint)">Instrumentação</span>
+                <button onClick="{{ copy }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+              </div>
+              <pre style="margin:0;padding:13px;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:var(--dim);overflow-x:auto">{{ snippet }}</pre>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isNormal }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <sc-for list="{{ activity }}" as="g" hint-placeholder-count="2">
+              <div style="margin-bottom:4px">
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 2px 8px">
+                  <span style="font-size:11.5px;font-weight:600;color:var(--dim)">{{ g.date }}</span>
+                  <span style="flex:1;height:1px;background:var(--line)"></span>
+                  <span style="font-size:11px;color:var(--faint)">{{ g.count }}</span>
+                </div>
+                <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="6">
+                  <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:1fr 148px 132px 88px;gap:14px;align-items:center;padding:9px 8px;border-bottom:1px solid var(--line);cursor:pointer" style-hover="background:var(--elev)">
+                    <div style="min-width:0">
+                      <div style="font-size:13.5px;font-weight:500;line-height:1.35">{{ r.desc }}</div>
+                      <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:2px">{{ r.tech }}</div>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.person }}</div>
+                    <div style="font-size:12px;color:var(--dim)">{{ r.screen }}</div>
+                    <div style="font-size:12px;color:var(--faint);text-align:right">{{ r.ago }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="padding:18px 2px;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--faint)">
+              <span style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--line2);border-top-color:var(--dim);display:block;animation:spin 0.9s linear infinite"></span>
+              Carregando mais 50 eventos
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- 4. DETALHE DO EVENTO -->
+      <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex;justify-content:flex-end">
+          <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.34)"></div>
+          <div style="position:relative;width:420px;height:100%;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(0,0,0,0.28)">
+            <div style="flex:none;padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div style="min-width:0">
+                <div style="font-size:15px;font-weight:600;line-height:1.35">{{ ev.desc }}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--faint);margin-top:4px">{{ ev.tech }}</div>
+              </div>
+              <button onClick="{{ closeDrawer }}" style="flex:none;background:none;border:none;font-size:16px;color:var(--faint);cursor:pointer;line-height:1" style-hover="color:var(--text)">×</button>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:6px 20px 20px">
+              <sc-for list="{{ ev.fields }}" as="f" hint-placeholder-count="5">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line)">
+                  <span style="flex:none;font-size:12px;color:var(--faint)">{{ f.k }}</span>
+                  <span style="{{ f.valStyle }}">{{ f.v }}</span>
+                </div>
+              </sc-for>
+              <div style="margin-top:18px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <span style="font-size:12px;color:var(--faint)">Propriedades declaradas pelo app</span>
+                  <button onClick="{{ copy }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar valor</button>
+                </div>
+                <pre style="margin:9px 0 0;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;overflow-x:auto">{{ ev.json }}</pre>
+              </div>
+              <div style="margin-top:16px;font-size:11.5px;color:var(--faint);line-height:1.55">Estes são todos os campos deste evento. Nada é capturado automaticamente.</div>
+              <button onClick="{{ filterByPerson }}" style="margin-top:16px;width:100%;height:32px;border-radius:8px;border:1px solid var(--line2);background:var(--elev);font-size:12.5px;cursor:pointer" style-hover="border-color:var(--pri);color:var(--pri)">Filtrar Atividade por {{ ev.person }}</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- 5. USO -->
+    <sc-if value="{{ isUso }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px">
+          <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Uso</div>
+          <div style="margin-top:5px;font-size:13px;color:var(--dim);max-width:640px">Todos os eventos do catálogo, inclusive os que não ocorreram nenhuma vez no período.</div>
+          <div style="margin-top:16px;display:flex;gap:6px;align-items:center">
+            <sc-for list="{{ periods }}" as="p" hint-placeholder-count="4">
+              <button onClick="{{ p.set }}" style="{{ p.style }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+          <div style="margin-top:18px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)">
+            <div style="display:grid;grid-template-columns:1fr 92px 116px 148px;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line)">
+              <sc-for list="{{ usoCols }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.sort }}" style="{{ c.style }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <sc-for list="{{ usoRows }}" as="r" hint-placeholder-count="8">
+              <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:1fr 92px 116px 148px;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line);align-items:center;cursor:pointer" style-hover="background:var(--elev)">
+                <div style="min-width:0;display:flex;gap:9px;align-items:flex-start">
+                  <span style="{{ r.dotStyle }}"></span>
+                  <div style="min-width:0">
+                    <div style="{{ r.descStyle }}">{{ r.desc }}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:2px">{{ r.tech }}</div>
+                  </div>
+                </div>
+                <div style="{{ r.numStyle }}">{{ r.total }}</div>
+                <div style="{{ r.numStyle }}">{{ r.users }}</div>
+                <div style="{{ r.lastStyle }}">{{ r.last }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--faint)">{{ usoFoot }}</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 6. PAINEL -->
+    <sc-if value="{{ isPainel }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Painel</div>
+              <div style="margin-top:5px;font-size:13px;color:var(--dim)">Tiles fixados do catálogo. O período vale para o painel inteiro.</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <sc-for list="{{ periods }}" as="p" hint-placeholder-count="4">
+                <button onClick="{{ p.set }}" style="{{ p.style }}">{{ p.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:14px">
+            <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="4">
+              <div style="border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px 12px;display:flex;flex-direction:column;min-height:196px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="min-width:0">
+                    <div style="font-size:13px;font-weight:500;line-height:1.35">{{ t.title }}</div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);margin-top:3px">{{ t.tech }}</div>
+                  </div>
+                  <div style="display:flex;gap:4px;flex:none;align-items:center">
+                    <button style="background:none;border:none;color:var(--faint);font-size:12px;cursor:grab;padding:0 3px" style-hover="color:var(--text)">⠿</button>
+                    <button style="background:none;border:none;color:var(--faint);font-size:15px;cursor:pointer;padding:0 3px;line-height:1" style-hover="color:var(--err)">×</button>
+                  </div>
+                </div>
+                <sc-if value="{{ t.never }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;margin-top:12px;border:1px dashed var(--line2);border-radius:9px;padding:16px">
+                    <div style="font-size:12.5px;color:var(--dim)">Este evento nunca foi recebido</div>
+                    <div style="font-size:11.5px;color:var(--faint);line-height:1.5">Confira se a chamada existe no app e se o nome está escrito exatamente assim.</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ t.has }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;margin-top:14px">
+                    <div style="display:flex;align-items:baseline;gap:7px">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-0.02em">{{ t.total }}</span>
+                      <span style="font-size:11.5px;color:var(--faint)">{{ t.unit }}</span>
+                    </div>
+                    <div style="margin-top:14px;display:flex;align-items:flex-end;gap:5px;height:68px">
+                      <sc-for list="{{ t.bars }}" as="b" hint-placeholder-count="7">
+                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-end">
+                          <span style="{{ b.labelStyle }}">{{ b.v }}</span>
+                          <span style="{{ b.style }}"></span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="margin-top:7px;display:flex;justify-content:space-between;font-size:10px;color:var(--faint)">
+                      <span>{{ t.from }}</span><span>{{ t.to }}</span>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <button style="border:1px dashed var(--line2);border-radius:12px;background:none;min-height:196px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--dim)" style-hover="border-color:var(--pri);color:var(--pri)">
+              <span style="font-size:18px;line-height:1">+</span>
+              <span style="font-size:12.5px">Adicionar tile</span>
+              <span style="font-size:11px;color:var(--faint)">do catálogo ou digitando um evento</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 7. PESSOAS -->
+    <sc-if value="{{ isPessoas }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px;max-width:900px">
+          <sc-if value="{{ noPerson }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Pessoas</div>
+              <div style="margin-top:5px;font-size:13px;color:var(--dim)">Identificadores enviados pelo aplicativo. 3 pessoas nos últimos 30 dias.</div>
+              <div style="margin-top:18px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)">
+                <div style="display:grid;grid-template-columns:1fr 88px 140px 140px;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:11px;color:var(--faint)">
+                  <div>Pessoa</div><div style="text-align:right">Eventos</div><div style="text-align:right">Primeiro acesso</div><div style="text-align:right">Último acesso</div>
+                </div>
+                <sc-for list="{{ people }}" as="p" hint-placeholder-count="3">
+                  <div onClick="{{ p.open }}" style="display:grid;grid-template-columns:1fr 88px 140px 140px;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center;cursor:pointer" style-hover="background:var(--elev)">
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:13px">{{ p.id }}</div>
+                    <div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px">{{ p.total }}</div>
+                    <div style="text-align:right;font-size:12.5px;color:var(--dim)">{{ p.first }}</div>
+                    <div style="text-align:right;font-size:12.5px;color:var(--dim)">{{ p.last }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hasPerson }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <button onClick="{{ backPeople }}" style="background:none;border:none;padding:0;font-size:12px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">← Pessoas</button>
+              <div style="margin-top:12px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500">{{ personId }}</div>
+                  <div style="margin-top:5px;font-size:13px;color:var(--dim)">{{ personMeta }}</div>
+                </div>
+                <button onClick="{{ goActivityPerson }}" style="height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:var(--elev);font-size:12.5px;cursor:pointer" style-hover="border-color:var(--pri);color:var(--pri)">Ver na Atividade</button>
+              </div>
+              <div style="margin-top:20px;border-left:1px solid var(--line);padding-left:20px">
+                <sc-for list="{{ personTimeline }}" as="e" hint-placeholder-count="6">
+                  <div style="position:relative;padding:11px 0;border-bottom:1px solid var(--line)">
+                    <span style="position:absolute;left:-24px;top:17px;width:7px;height:7px;border-radius:50%;background:var(--pri)"></span>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+                      <div style="min-width:0">
+                        <div style="font-size:13.5px;font-weight:500">{{ e.desc }}</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:2px">{{ e.tech }} · {{ e.screen }}</div>
+                      </div>
+                      <div style="flex:none;font-size:12px;color:var(--faint)">{{ e.ago }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 8. CATÁLOGO -->
+    <sc-if value="{{ isCatalogo }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px">
+          <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Catálogo</div>
+          <div style="margin-top:5px;font-size:13px;color:var(--dim);max-width:660px">Todos os eventos que este projeto já registrou. A descrição é editada aqui e passa a aparecer em todas as telas.</div>
+          <div style="margin-top:14px;font-size:12px;color:var(--pri)">{{ pendingLabel }}</div>
+          <div style="margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow-x:auto">
+            <div style="display:grid;grid-template-columns:minmax(280px,1fr) 150px 72px 96px 96px;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:11px;color:var(--faint);min-width:760px">
+              <div>Evento e descrição</div><div>Telas</div><div style="text-align:right">Total</div><div style="text-align:right">Primeira</div><div style="text-align:right">Última</div>
+            </div>
+            <sc-for list="{{ catalog }}" as="c" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:minmax(280px,1fr) 150px 72px 96px 96px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);align-items:center;min-width:760px">
+                <div style="min-width:0">
+                  <input value="{{ c.desc }}" onChange="{{ c.edit }}" placeholder="Descreva o que este evento significa" style="{{ c.inputStyle }}">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:3px;padding-left:8px">{{ c.tech }}</div>
+                </div>
+                <div style="font-size:11.5px;color:var(--dim);line-height:1.45">{{ c.screens }}</div>
+                <div style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px">{{ c.total }}</div>
+                <div style="text-align:right;font-size:12px;color:var(--dim)">{{ c.first }}</div>
+                <div style="text-align:right;font-size:12px;color:var(--dim)">{{ c.last }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 9. CONFIGURAÇÕES -->
+    <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px;max-width:720px">
+          <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Configurações</div>
+          <div style="margin-top:5px;font-size:13px;color:var(--dim)">Agenda Psi</div>
+
+          <div style="margin-top:22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 18px 6px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">Nome
+                <input value="Agenda Psi" style="height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:13px;outline:none">
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">Slug
+                <input value="agenda-psi" style="height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none">
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">Prefixo de evento
+                <input value="psi_" style="height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none">
+              </label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim)">Fuso de exibição
+                <select style="height:32px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--elev);font-size:13px">
+                  <option>America/Sao_Paulo (UTC−3)</option><option>UTC</option>
+                </select>
+              </label>
+            </div>
+            <div style="margin-top:16px;padding:12px 0 12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end">
+              <button style="height:30px;padding:0 12px;border-radius:7px;border:none;background:var(--pri);color:#fff;font-size:12.5px;font-weight:500;cursor:pointer">Salvar</button>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+              <div>
+                <div style="font-size:13.5px;font-weight:600">Chave de ingestão</div>
+                <div style="margin-top:5px;font-size:12.5px;color:var(--dim);line-height:1.5">Usada pelo app para enviar eventos. O valor completo não fica armazenado.</div>
+              </div>
+              <div style="display:flex;gap:8px;flex:none">
+                <button onClick="{{ genKey }}" style="height:29px;padding:0 11px;border-radius:7px;border:1px solid var(--line2);background:var(--elev);font-size:12px;cursor:pointer" style-hover="border-color:var(--pri);color:var(--pri)">Gerar nova</button>
+                <button style="height:29px;padding:0 11px;border-radius:7px;border:1px solid var(--errLine);background:var(--errSoft);color:var(--err);font-size:12px;cursor:pointer">Revogar</button>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--code)">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">ing_a3f8…</span>
+              <span style="font-size:11.5px;color:var(--faint)">último uso há 21 minutos</span>
+            </div>
+            <sc-if value="{{ keyShown }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:12px;border:1px solid var(--pri);border-radius:10px;background:var(--priSoft);padding:14px">
+                <div style="font-size:12.5px;font-weight:600;color:var(--pri)">Copie agora. Esta chave não será mostrada de novo.</div>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:8px;background:var(--code);padding:10px 12px">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all">ing_c7b1_5e04af92d3186c40</span>
+                  <button onClick="{{ copy }}" style="flex:none;background:none;border:1px solid var(--line2);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+                </div>
+                <button onClick="{{ hideKey }}" style="margin-top:10px;background:none;border:none;padding:0;font-size:11.5px;color:var(--faint);cursor:pointer" style-hover="color:var(--text)">Já copiei, ocultar</button>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden">
+            <div style="padding:14px 18px 12px">
+              <div style="font-size:13.5px;font-weight:600">Instalação</div>
+              <div style="margin-top:5px;font-size:12.5px;color:var(--dim)">Trecho pronto para copiar, com a chave deste projeto.</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint)">analytics.ts</span>
+              <button onClick="{{ copy }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+            </div>
+            <pre style="margin:0;padding:14px;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:var(--dim);overflow-x:auto">{{ install }}</pre>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 10. CREDENCIAIS MCP -->
+    <sc-if value="{{ isMcp }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto">
+        <div style="padding:26px 32px 60px;max-width:800px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+            <div>
+              <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em">Credenciais MCP</div>
+              <div style="margin-top:5px;font-size:13px;color:var(--dim)">Tokens de leitura usados pelo Claude para consultar os projetos desta conta.</div>
+            </div>
+            <button onClick="{{ genToken }}" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line2);background:var(--elev);font-size:12.5px;cursor:pointer" style-hover="border-color:var(--pri);color:var(--pri)">Gerar token</button>
+          </div>
+
+          <sc-if value="{{ tokenShown }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:18px;border:1px solid var(--pri);border-radius:10px;background:var(--priSoft);padding:14px">
+              <div style="font-size:12.5px;font-weight:600;color:var(--pri)">Copie agora. Este token não será mostrado de novo.</div>
+              <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:8px;background:var(--code);padding:10px 12px">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all">mcp_4f77_18ba0e5c92d7361f</span>
+                <button onClick="{{ copy }}" style="flex:none;background:none;border:1px solid var(--line2);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+              </div>
+              <button onClick="{{ hideToken }}" style="margin-top:10px;background:none;border:none;padding:0;font-size:11.5px;color:var(--faint);cursor:pointer" style-hover="color:var(--text)">Já copiei, ocultar</button>
+            </div>
+          </sc-if>
+
+          <div style="margin-top:18px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)">
+            <div style="display:grid;grid-template-columns:1fr 132px 116px 132px 88px;gap:12px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:11px;color:var(--faint)">
+              <div>Nome</div><div>Prefixo</div><div style="text-align:right">Criado</div><div style="text-align:right">Último uso</div><div></div>
+            </div>
+            <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:1fr 132px 116px 132px 88px;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line);align-items:center">
+                <div style="display:flex;align-items:center;gap:9px;min-width:0">
+                  <span style="{{ t.dotStyle }}"></span>
+                  <span style="{{ t.nameStyle }}">{{ t.name }}</span>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">{{ t.prefix }}</div>
+                <div style="text-align:right;font-size:12px;color:var(--dim)">{{ t.created }}</div>
+                <div style="{{ t.usedStyle }}">{{ t.used }}</div>
+                <div style="text-align:right">
+                  <button style="{{ t.actionStyle }}">{{ t.action }}</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden">
+            <div style="padding:14px 18px 12px">
+              <div style="font-size:13.5px;font-weight:600">Configuração do servidor MCP</div>
+              <div style="margin-top:5px;font-size:12.5px;color:var(--dim)">Cole no arquivo de configuração do cliente.</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint)">claude_desktop_config.json</span>
+              <button onClick="{{ copy }}" style="background:none;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--dim);cursor:pointer" style-hover="color:var(--text)">Copiar</button>
+            </div>
+            <pre style="margin:0;padding:14px;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:var(--dim);overflow-x:auto">{{ mcpConfig }}</pre>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);border-radius:8px;padding:8px 14px;font-size:12.5px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.3)">Copiado</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;},&quot;corPrimaria&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#6e7cf7&quot;,&quot;options&quot;:[&quot;#6e7cf7&quot;,&quot;#5b8def&quot;,&quot;#7c6cf0&quot;,&quot;#4f5bd5&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const DARK = {
+  '--bg':'#0b0c0e','--panel':'#101115','--elev':'#15171b','--line':'#23262c','--line2':'#2f333a',
+  '--text':'#e9eaee','--dim':'#9b9ea6','--faint':'#6a6d76','--code':'#0e0f12',
+  '--ok':'#3fb950','--off':'#6a6d76','--err':'#f0616d','--errSoft':'rgba(240,97,109,0.12)','--errLine':'rgba(240,97,109,0.32)'
+};
+const LIGHT = {
+  '--bg':'#ffffff','--panel':'#fbfbfc','--elev':'#f3f4f6','--line':'#e7e8ec','--line2':'#d6d8de',
+  '--text':'#17181c','--dim':'#63666e','--faint':'#8d9098','--code':'#f6f7f9',
+  '--ok':'#1a7f37','--off':'#8d9098','--err':'#c9303d','--errSoft':'rgba(201,48,61,0.07)','--errLine':'rgba(201,48,61,0.28)'
+};
+
+const EVENTS = [
+  {tech:'psi_novo_pagamento', desc:'usuário registrou um pagamento de um paciente'},
+  {tech:'psi_sessao_agendada', desc:'usuário agendou uma sessão na agenda'},
+  {tech:'psi_sessao_concluida', desc:'usuário marcou uma sessão como concluída'},
+  {tech:'psi_paciente_criado', desc:'usuário cadastrou um novo paciente'},
+  {tech:'psi_relatorio_exportado', desc:'usuário exportou o relatório mensal em PDF'},
+  {tech:'psi_login', desc:'usuário entrou no aplicativo'},
+  {tech:'psi_prontuario_editado', desc:'usuário editou a evolução de um prontuário'},
+  {tech:'psi_backup_restaurado', desc:'usuário restaurou os dados a partir de um backup'}
+];
+
+const ACTIVITY = [
+  {date:'Hoje · 17 de agosto', count:'9 eventos', rows:[
+    {desc:'usuário registrou um pagamento de um paciente', tech:'psi_novo_pagamento', person:'user_8f21c4', screen:'PagamentosView', ago:'há 21 minutos'},
+    {desc:'usuário marcou uma sessão como concluída', tech:'psi_sessao_concluida', person:'user_8f21c4', screen:'SessaoDetalhe', ago:'há 34 minutos'},
+    {desc:'usuário agendou uma sessão na agenda', tech:'psi_sessao_agendada', person:'user_2ab907', screen:'AgendaSemana', ago:'há 1 hora'},
+    {desc:'usuário editou a evolução de um prontuário', tech:'psi_prontuario_editado', person:'user_8f21c4', screen:'ProntuarioEditor', ago:'há 2 horas'},
+    {desc:'usuário cadastrou um novo paciente', tech:'psi_paciente_criado', person:'user_2ab907', screen:'PacienteNovo', ago:'há 3 horas'},
+    {desc:'usuário entrou no aplicativo', tech:'psi_login', person:'user_2ab907', screen:'Login', ago:'há 3 horas'},
+    {desc:'usuário exportou o relatório mensal em PDF', tech:'psi_relatorio_exportado', person:'user_c53e10', screen:'Relatorios', ago:'há 5 horas'},
+    {desc:'usuário registrou um pagamento de um paciente', tech:'psi_novo_pagamento', person:'user_c53e10', screen:'PagamentosView', ago:'há 6 horas'},
+    {desc:'usuário entrou no aplicativo', tech:'psi_login', person:'user_8f21c4', screen:'Login', ago:'há 8 horas'}
+  ]},
+  {date:'Ontem · 16 de agosto', count:'3 eventos', rows:[
+    {desc:'usuário agendou uma sessão na agenda', tech:'psi_sessao_agendada', person:'user_8f21c4', screen:'AgendaSemana', ago:'há 1 dia'},
+    {desc:'usuário marcou uma sessão como concluída', tech:'psi_sessao_concluida', person:'user_2ab907', screen:'SessaoDetalhe', ago:'há 1 dia'},
+    {desc:'usuário entrou no aplicativo', tech:'psi_login', person:'user_c53e10', screen:'Login', ago:'há 1 dia'}
+  ]}
+];
+
+const USO = [
+  {tech:'psi_login', total:6, users:3, last:'há 21 minutos'},
+  {tech:'psi_sessao_agendada', total:5, users:2, last:'há 1 hora'},
+  {tech:'psi_novo_pagamento', total:4, users:2, last:'há 21 minutos'},
+  {tech:'psi_sessao_concluida', total:3, users:2, last:'há 34 minutos'},
+  {tech:'psi_paciente_criado', total:2, users:1, last:'há 3 horas'},
+  {tech:'psi_prontuario_editado', total:1, users:1, last:'há 2 horas'},
+  {tech:'psi_relatorio_exportado', total:0, users:0, last:'12 de julho'},
+  {tech:'psi_backup_restaurado', total:0, users:0, last:'nunca'}
+];
+
+const PEOPLE = [
+  {id:'user_8f21c4', total:14, first:'2 de junho', last:'há 21 minutos'},
+  {id:'user_2ab907', total:9, first:'19 de julho', last:'há 1 hora'},
+  {id:'user_c53e10', total:5, first:'11 de agosto', last:'há 5 horas'}
+];
+
+const CATALOG = [
+  {tech:'psi_login', desc:'usuário entrou no aplicativo', screens:'Login', total:214, first:'2 de junho', last:'há 21 min'},
+  {tech:'psi_sessao_agendada', desc:'usuário agendou uma sessão na agenda', screens:'AgendaSemana, AgendaDia', total:96, first:'2 de junho', last:'há 1 h'},
+  {tech:'psi_novo_pagamento', desc:'usuário registrou um pagamento de um paciente', screens:'PagamentosView', total:71, first:'4 de junho', last:'há 21 min'},
+  {tech:'psi_sessao_concluida', desc:'usuário marcou uma sessão como concluída', screens:'SessaoDetalhe', total:64, first:'4 de junho', last:'há 34 min'},
+  {tech:'psi_paciente_criado', desc:'usuário cadastrou um novo paciente', screens:'PacienteNovo', total:38, first:'2 de junho', last:'há 3 h'},
+  {tech:'psi_prontuario_editado', desc:'', screens:'ProntuarioEditor', total:22, first:'9 de junho', last:'há 2 h'},
+  {tech:'psi_relatorio_exportado', desc:'usuário exportou o relatório mensal em PDF', screens:'Relatorios', total:11, first:'1 de julho', last:'12 de julho'},
+  {tech:'psi_backup_restaurado', desc:'', screens:'Ajustes', total:2, first:'20 de junho', last:'23 de junho'}
+];
+
+const TILES = [
+  {tech:'psi_novo_pagamento', title:'usuário registrou um pagamento de um paciente', total:12, bars:[1,2,0,3,1,2,3]},
+  {tech:'psi_sessao_agendada', title:'Sessões agendadas na semana', total:5, bars:[0,1,1,0,2,0,1]},
+  {tech:'psi_paciente_criado', title:'usuário cadastrou um novo paciente', total:2, bars:[0,0,1,0,0,0,1]},
+  {tech:'psi_exportar_csv', title:'usuário exportou os dados em CSV', total:0, bars:[], never:true}
+];
+
+const SNIPPET = 'import { track } from "@dablab/analytics";\n\ntrack("psi_novo_pagamento", {\n  descricao: "usuário registrou um pagamento de um paciente",\n  tela: "PagamentosView",\n  props: { valor: 250, forma: "pix" }\n});';
+
+const INSTALL = 'import { init } from "@dablab/analytics";\n\ninit({\n  key: "ing_a3f8_9c21d4e77b0a5f36",\n  projeto: "agenda-psi"\n});';
+
+const MCPCFG = '{\n  "mcpServers": {\n    "analytics-dablab": {\n      "command": "npx",\n      "args": ["-y", "@dablab/analytics-mcp"],\n      "env": { "DABLAB_MCP_TOKEN": "mcp_9d21…" }\n    }\n  }\n}';
+
+class Component extends DCLogic {
+  state = {
+    screen: 'atividade', estado: 'normal', theme: null,
+    drawer: null, period: 7, sort: 'total',
+    filterEvent: '', filterPerson: '', personId: null,
+    keyShown: false, tokenShown: false, toast: false,
+    descs: CATALOG.map(c => c.desc)
+  };
+
+  theme() { return this.state.theme || this.props.tema || 'dark'; }
+  isDark() { return this.theme() === 'dark'; }
+
+  go(screen) {
+    const st = this.statesFor(screen);
+    this.setState({ screen, drawer: null, personId: null,
+      estado: st.includes(this.state.estado) ? this.state.estado : 'normal' });
+  }
+  statesFor(screen) {
+    if (screen === 'login') return ['normal','erro'];
+    if (screen === 'projetos') return ['normal','vazio'];
+    if (screen === 'atividade') return ['normal','vazio','carregando','erro'];
+    return ['normal'];
+  }
+  flash() {
+    this.setState({ toast: true });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: false }), 1300);
+  }
+
+  navItem(label, screen, extra) {
+    const active = this.state.screen === screen && (!extra || extra());
+    return {
+      label, go: () => this.go(screen),
+      style: {
+        textAlign: 'left', border: 'none', cursor: 'pointer', borderRadius: '7px',
+        padding: '6px 10px 6px 14px', fontSize: '13px',
+        fontWeight: active ? 500 : 400,
+        color: active ? 'var(--pri)' : 'var(--dim)',
+        background: active ? 'var(--priSoft)' : 'transparent'
+      }
+    };
+  }
+
+  pill(active) {
+    return {
+      height: '28px', padding: '0 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px',
+      border: '1px solid ' + (active ? 'var(--pri)' : 'var(--line)'),
+      background: active ? 'var(--priSoft)' : 'var(--elev)',
+      color: active ? 'var(--pri)' : 'var(--dim)'
+    };
+  }
+  chip(active) {
+    return {
+      padding: '3px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px',
+      border: '1px solid ' + (active ? 'var(--pri)' : 'var(--line)'),
+      background: active ? 'var(--priSoft)' : 'transparent',
+      color: active ? 'var(--pri)' : 'var(--dim)'
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const vars = Object.assign({}, this.isDark() ? DARK : LIGHT);
+    const pri = this.props.corPrimaria || '#6e7cf7';
+    vars['--pri'] = pri;
+    vars['--priSoft'] = this.isDark() ? 'rgba(110,124,247,0.15)' : 'rgba(79,91,213,0.09)';
+    if (!this.isDark() && !this.props.corPrimaria) vars['--pri'] = '#4a56cf';
+
+    const rootStyle = Object.assign({
+      fontFamily: "Inter, system-ui, sans-serif", background: 'var(--bg)', color: 'var(--text)',
+      minHeight: '100vh', WebkitFontSmoothing: 'antialiased'
+    }, vars);
+
+    const screen = s.screen;
+    const states = this.statesFor(screen);
+    const estado = states.includes(s.estado) ? s.estado : 'normal';
+
+    // uso rows
+    const period = s.period;
+    const scale = period === 7 ? 1 : period === 14 ? 1.7 : period === 30 ? 3 : 7;
+    const usoRows = USO.slice().map(r => {
+      const total = r.total === 0 ? 0 : Math.round(r.total * scale);
+      const users = r.users === 0 ? 0 : Math.min(3, r.users);
+      const ev = EVENTS.find(e => e.tech === r.tech) || {};
+      const off = total === 0;
+      return {
+        tech: r.tech, desc: ev.desc || r.tech, total, users, last: r.last, off,
+        dotStyle: { width:'6px', height:'6px', borderRadius:'50%', flex:'none', marginTop:'6px', background: off ? 'var(--off)' : 'var(--ok)' },
+        descStyle: { fontSize:'13.5px', fontWeight:500, color: off ? 'var(--faint)' : 'var(--text)', lineHeight:1.35 },
+        numStyle: { textAlign:'right', fontFamily:"'JetBrains Mono',monospace", fontSize:'13px', color: off ? 'var(--off)' : 'var(--text)' },
+        lastStyle: { textAlign:'right', fontSize:'12.5px', color: off ? 'var(--faint)' : 'var(--dim)' },
+        open: () => this.setState({ screen:'atividade', estado:'normal', filterEvent: r.tech, drawer: null })
+      };
+    });
+    const sortKey = s.sort;
+    usoRows.sort((a,b) => {
+      if (sortKey === 'desc') return a.desc.localeCompare(b.desc);
+      if (sortKey === 'users') return b.users - a.users;
+      if (sortKey === 'last') return (a.off?1:0) - (b.off?1:0);
+      return b.total - a.total;
+    });
+    const zeros = usoRows.filter(r => r.off).length;
+    const periodLabel = period + ' dias';
+
+    // activity
+    let activity = ACTIVITY.map(g => ({
+      date: g.date,
+      rows: g.rows.filter(r => (!s.filterEvent || r.tech === s.filterEvent) && (!s.filterPerson || r.person === s.filterPerson))
+    })).filter(g => g.rows.length);
+    activity = activity.map(g => ({
+      date: g.date,
+      count: g.rows.length === 1 ? '1 evento' : g.rows.length + ' eventos',
+      rows: g.rows.map(r => Object.assign({}, r, { open: () => this.setState({ drawer: r }) }))
+    }));
+    const shown = activity.reduce((n,g) => n + g.rows.length, 0);
+
+    const drawer = s.drawer;
+    const ev = drawer ? {
+      desc: drawer.desc, tech: drawer.tech, person: drawer.person,
+      fields: [
+        { k:'Evento', v: drawer.tech, mono:true },
+        { k:'Descrição', v: drawer.desc },
+        { k:'Pessoa', v: drawer.person, mono:true },
+        { k:'Tela', v: drawer.screen },
+        { k:'Horário do dispositivo', v: '17/08/2026 14:38:02 (UTC−3)' },
+        { k:'Horário de recebimento', v: '17/08/2026 14:38:04 (UTC−3)' }
+      ].map(f => Object.assign(f, { valStyle: {
+        fontSize: f.mono ? '12.5px' : '13px', textAlign: 'right',
+        fontFamily: f.mono ? "'JetBrains Mono',monospace" : 'inherit',
+        color: 'var(--text)', lineHeight: 1.45
+      }})),
+      json: '{\n  "valor": 250,\n  "forma": "pix"\n}'
+    } : null;
+
+    // painel tiles
+    const tiles = TILES.map(t => {
+      const mult = period === 7 ? 1 : period === 14 ? 2 : period === 30 ? 4 : 9;
+      const bars = t.bars.map(v => v === 0 ? 0 : Math.max(1, Math.round(v * (mult > 1 ? 1.6 : 1))));
+      const max = Math.max.apply(null, bars.concat([1]));
+      return {
+        title: t.title, tech: t.tech, never: !!t.never, has: !t.never,
+        total: t.never ? 0 : Math.round(t.total * (mult > 1 ? 1.6 : 1)),
+        unit: 'ocorrências em ' + periodLabel,
+        from: period === 7 ? '11 ago' : '18 jul', to: '17 ago',
+        bars: bars.map(v => ({
+          v,
+          labelStyle: { fontFamily:"'JetBrains Mono',monospace", fontSize:'9.5px', color: v === 0 ? 'var(--faint)' : 'var(--dim)' },
+          style: { width:'100%', borderRadius:'3px 3px 0 0', background: v === 0 ? 'var(--line2)' : 'var(--ok)',
+                   height: (v === 0 ? 2 : Math.max(6, Math.round(v / max * 46))) + 'px' }
+        }))
+      };
+    });
+
+    // catálogo
+    const catalog = CATALOG.map((c, i) => {
+      const desc = s.descs[i];
+      const missing = !desc;
+      return {
+        tech: c.tech, desc, screens: c.screens, total: c.total, first: c.first, last: c.last,
+        edit: (e) => { const d = s.descs.slice(); d[i] = e.target.value; this.setState({ descs: d }); },
+        inputStyle: {
+          width:'100%', height:'30px', padding:'0 8px', fontSize:'13.5px', fontWeight:500, outline:'none',
+          borderRadius:'7px', background:'transparent',
+          border: '1px ' + (missing ? 'dashed var(--pri)' : 'solid transparent'),
+          color: 'var(--text)'
+        }
+      };
+    });
+    const pending = s.descs.filter(d => !d).length;
+
+    const tokens = [
+      { name:'Claude Code do notebook', prefix:'mcp_9d21…', created:'2 de junho', used:'há 2 horas', revoked:false },
+      { name:'Claude Desktop', prefix:'mcp_5c07…', created:'19 de julho', used:'há 6 dias', revoked:false },
+      { name:'Notebook antigo', prefix:'mcp_1e88…', created:'2 de junho', used:'revogado em 4 de agosto', revoked:true }
+    ].map(t => ({
+      name: t.name, prefix: t.prefix, created: t.created, used: t.used,
+      dotStyle: { width:'6px', height:'6px', borderRadius:'50%', flex:'none', background: t.revoked ? 'var(--err)' : 'var(--ok)' },
+      nameStyle: { fontSize:'13px', color: t.revoked ? 'var(--faint)' : 'var(--text)', textDecoration: t.revoked ? 'line-through' : 'none' },
+      usedStyle: { textAlign:'right', fontSize:'12px', color: t.revoked ? 'var(--err)' : 'var(--dim)' },
+      action: t.revoked ? '' : 'Revogar',
+      actionStyle: { background:'none', border:'none', padding:0, fontSize:'11.5px', cursor:'pointer',
+                     color:'var(--err)', visibility: t.revoked ? 'hidden' : 'visible' }
+    }));
+
+    const stateLabels = { normal:'normal', vazio:'vazio', carregando:'carregando', erro:'erro' };
+
+    return {
+      rootStyle,
+      chromeStyle: {
+        position:'fixed', top:'12px', right:'16px', zIndex:50, display:'flex', alignItems:'center', gap:'6px',
+        padding:'6px 10px', borderRadius:'9px', border:'1px solid var(--line)', background:'var(--panel)',
+        boxShadow:'0 6px 20px rgba(0,0,0,0.18)'
+      },
+      themeBtns: [['dark','escuro'],['light','claro']].map(([v,l]) => ({
+        label: l, style: this.chip(this.theme() === v), go: () => this.setState({ theme: v })
+      })),
+      stateBtns: states.map(v => ({
+        label: stateLabels[v], style: this.chip(estado === v), go: () => this.setState({ estado: v, drawer: null })
+      })),
+
+      isLogin: screen === 'login',
+      isApp: screen !== 'login',
+      isProjetos: screen === 'projetos',
+      isAtividade: screen === 'atividade',
+      isUso: screen === 'uso',
+      isPainel: screen === 'painel',
+      isPessoas: screen === 'pessoas',
+      isCatalogo: screen === 'catalogo',
+      isConfig: screen === 'config',
+      isMcp: screen === 'mcp',
+      isNormal: estado === 'normal',
+      isVazio: estado === 'vazio',
+      isCarregando: estado === 'carregando',
+      isErro: estado === 'erro',
+
+      enter: () => this.go('projetos'),
+      logout: () => this.setState({ screen:'login', estado:'normal', drawer:null }),
+      copy: () => this.flash(),
+      toast: s.toast,
+
+      navProjects: [
+        this.navItem('Agenda Psi', 'atividade', () => false),
+        this.navItem('Swim', 'projetos', () => false),
+        this.navItem('Portal BBZ', 'projetos', () => false)
+      ].map((it, i) => i === 0 ? it : it),
+      navProject: [
+        this.navItem('Atividade','atividade'), this.navItem('Uso','uso'),
+        this.navItem('Painel','painel'), this.navItem('Pessoas','pessoas'),
+        this.navItem('Catálogo','catalogo'), this.navItem('Configurações','config')
+      ],
+      navAccount: [ this.navItem('Credenciais MCP','mcp') ],
+
+      projects: [
+        { name:'Agenda Psi', slug:'agenda-psi', count:12, last:'há 21 minutos', open: () => this.go('atividade') },
+        { name:'Swim', slug:'swim', count:4, last:'há 2 horas', open: () => this.go('atividade') },
+        { name:'Portal BBZ', slug:'portal-bbz', count:0, last:'23 de junho', open: () => this.go('atividade') }
+      ].map(p => Object.assign(p, { countStyle: {
+        textAlign:'right', fontFamily:"'JetBrains Mono',monospace", fontSize:'13px',
+        color: p.count === 0 ? 'var(--off)' : 'var(--text)'
+      }})),
+
+      activitySub: s.filterEvent || s.filterPerson
+        ? shown + ' eventos · filtro ativo'
+        : '12 eventos nos últimos 7 dias · descrição primeiro, nome técnico depois',
+      filterEvent: s.filterEvent, filterPerson: s.filterPerson,
+      hasFilter: !!(s.filterEvent || s.filterPerson),
+      setFilterEvent: (e) => this.setState({ filterEvent: e.target.value }),
+      setFilterPerson: (e) => this.setState({ filterPerson: e.target.value }),
+      clearFilters: () => this.setState({ filterEvent:'', filterPerson:'' }),
+      eventOptions: [{ v:'', label:'todos os eventos' }].concat(EVENTS.map(e => ({ v:e.tech, label:e.tech }))),
+      personOptions: [{ v:'', label:'todas as pessoas' }].concat(PEOPLE.map(p => ({ v:p.id, label:p.id }))),
+      activity,
+      snippet: SNIPPET,
+      skeleton: [70,58,80,64,74,52,68,60,76].map((w,i) => ({
+        rowStyle: { display:'flex', alignItems:'center', justifyContent:'space-between', gap:'16px',
+                    padding:'11px 2px', borderBottom:'1px solid var(--line)',
+                    animation:'sk 1.4s ease-in-out infinite', animationDelay: (i*0.08) + 's' },
+        barA: { height:'9px', borderRadius:'4px', background:'var(--line2)', width: w + '%' },
+        barB: { height:'8px', borderRadius:'4px', background:'var(--line)', width:'170px', marginTop:'7px' }
+      })),
+
+      drawerOpen: !!drawer, ev: ev || {}, closeDrawer: () => this.setState({ drawer:null }),
+      filterByPerson: () => this.setState({ filterPerson: drawer.person, drawer:null }),
+
+      periods: [7,14,30,90].map(p => ({
+        label: p + ' dias', style: this.pill(period === p), set: () => this.setState({ period: p })
+      })),
+      usoCols: [
+        { k:'desc', label:'Evento e descrição', align:'left' },
+        { k:'total', label:'Total', align:'right' },
+        { k:'users', label:'Usuários únicos', align:'right' },
+        { k:'last', label:'Última ocorrência', align:'right' }
+      ].map(c => ({
+        label: sortKey === c.k ? c.label + ' ↓' : c.label,
+        sort: () => this.setState({ sort: c.k }),
+        style: { background:'none', border:'none', padding:0, cursor:'pointer', fontSize:'11px',
+                 textAlign: c.align, color: sortKey === c.k ? 'var(--text)' : 'var(--faint)' }
+      })),
+      usoRows, periodLabel,
+      usoFoot: '8 eventos no catálogo · ' + zeros + ' sem nenhuma ocorrência em ' + periodLabel,
+
+      tiles,
+
+      people: PEOPLE.map(p => Object.assign({}, p, { open: () => this.setState({ personId: p.id }) })),
+      noPerson: !s.personId, hasPerson: !!s.personId,
+      personId: s.personId,
+      personMeta: '14 eventos · primeiro acesso em 2 de junho · último há 21 minutos',
+      backPeople: () => this.setState({ personId:null }),
+      goActivityPerson: () => this.setState({ screen:'atividade', estado:'normal', filterPerson: s.personId, personId:null }),
+      personTimeline: [
+        {desc:'usuário registrou um pagamento de um paciente', tech:'psi_novo_pagamento', screen:'PagamentosView', ago:'há 21 minutos'},
+        {desc:'usuário marcou uma sessão como concluída', tech:'psi_sessao_concluida', screen:'SessaoDetalhe', ago:'há 34 minutos'},
+        {desc:'usuário editou a evolução de um prontuário', tech:'psi_prontuario_editado', screen:'ProntuarioEditor', ago:'há 2 horas'},
+        {desc:'usuário entrou no aplicativo', tech:'psi_login', screen:'Login', ago:'há 8 horas'},
+        {desc:'usuário agendou uma sessão na agenda', tech:'psi_sessao_agendada', screen:'AgendaSemana', ago:'há 1 dia'},
+        {desc:'usuário cadastrou um novo paciente', tech:'psi_paciente_criado', screen:'PacienteNovo', ago:'há 4 dias'}
+      ],
+
+      catalog,
+      pendingLabel: pending === 0 ? 'Todos os eventos têm descrição.'
+        : pending + (pending === 1 ? ' evento sem descrição' : ' eventos sem descrição') + ' — o contorno tracejado marca o que falta curar.',
+
+      install: INSTALL,
+      keyShown: s.keyShown,
+      genKey: () => this.setState({ keyShown:true }),
+      hideKey: () => this.setState({ keyShown:false }),
+
+      tokens, mcpConfig: MCPCFG,
+      tokenShown: s.tokenShown,
+      genToken: () => this.setState({ tokenShown:true }),
+      hideToken: () => this.setState({ tokenShown:false })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+// ============================================================
+// Visão de Produto — modelo de dados
+// Espelha literalmente a seção 7 do spec.md (v1.2, 17/08/2026)
+// Postgres 17 (Supabase). Nomes em português, snake_case.
+// Cole em https://dbdiagram.io
+//
+// v1.2: multi-tenancy desde a primeira migration (D8) —
+// contas, usuarios_conta, uso_mensal e a coluna conta_id.
+// ============================================================
+
+// ------------------------------------------------------------
+// Enums — seção 7.2
+// ------------------------------------------------------------
+
+enum plano_conta {
+  gratuito
+  pago
+}
+
+enum papel_conta {
+  dono
+  membro
+  leitor
+}
+
+enum tipo_credencial {
+  ingestao
+  leitura
+}
+
+enum tipo_visualizacao {
+  serie_temporal
+  total_periodo
+  usuarios_unicos
+}
+
+enum janela_periodo {
+  "7d"
+  "14d"
+  "30d"
+  "90d"
+}
+
+// ------------------------------------------------------------
+// contas — seção 7.9
+// A raiz do isolamento. Criada automaticamente no primeiro login
+// com Google (seção 5.2). Autosserviço: nenhum passo depende do
+// dono da plataforma (princípio 0.6).
+// EXCLUSÃO: soft delete via cancelada_em; expurgo definitivo após
+// 30 dias por fn_expurga_contas_canceladas() (regra 11.17).
+// ------------------------------------------------------------
+
+Table contas {
+  id uuid [pk, default: `gen_random_uuid()`]
+  nome text [not null, note: 'preenchido com o nome da conta Google no cadastro; editável']
+  plano plano_conta [not null, default: 'gratuito', note: 'ver regra 11.15']
+  retencao_meses integer [not null, default: 1, note: '1 no gratuito, 12 no pago']
+  limite_projetos integer [not null, default: 1, note: '1 no gratuito; null = sem limite no pago']
+  stripe_cliente_id text [note: 'nulo até a conta virar paga. Coluna criada na v1 e NÃO usada até a v2, para não exigir migration na tabela raiz depois']
+  criada_em timestamptz [not null, default: `now()`]
+  cancelada_em timestamptz [note: 'nulo = ativa. Soft delete (regra 11.17)']
+}
+
+// ------------------------------------------------------------
+// usuarios_conta — seção 7.9.1
+// Na v1 há sempre exatamente uma linha por conta. A tabela existe
+// agora para que os convites da v2 (F4) sejam inserção de linha,
+// não mudança de esquema.
+// ------------------------------------------------------------
+
+Table usuarios_conta {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  usuario_id uuid [not null, unique, note: 'usuário do Supabase Auth. Unique: na v1 uma pessoa pertence a uma conta só']
+  papel papel_conta [not null, default: 'dono', note: 'v1 só usa dono']
+  criado_em timestamptz [not null, default: `now()`]
+}
+
+// ------------------------------------------------------------
+// uso_mensal — seção 7.9.2
+// Precondição de qualquer cobrança: não dá para faturar um mês que
+// nunca foi contado. Populada por fn_agrega_uso_mensal() (pg_cron,
+// diário). Mede quatro dimensões mesmo que a regra 11.15 só cobre
+// por duas — medir é barato.
+// ------------------------------------------------------------
+
+Table uso_mensal {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  competencia date [not null, note: 'primeiro dia do mês de referência']
+  eventos_recebidos bigint [not null, default: 0]
+  projetos_ativos integer [not null, default: 0, note: 'projetos com ao menos um evento no mês']
+  pessoas_distintas integer [not null, default: 0]
+  consultas_mcp integer [not null, default: 0]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (conta_id, competencia) [unique, name: 'uq_uso_conta_competencia']
+  }
+}
+
+// ------------------------------------------------------------
+// projetos — seção 7.3
+// Um projeto por aplicativo (Agenda Psi, Swim, apps da BBZ).
+// ------------------------------------------------------------
+
+Table projetos {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null, note: 'presente desde a v1 mesmo com uma conta só (D8)']
+  nome text [not null]
+  slug text [not null, unique, note: 'formato ^[a-z0-9-]+$, usado na URL e na CLI']
+  descricao text [note: 'nulo quando o dono não escreveu descrição']
+  prefixo_evento text [note: 'convenção de nome do projeto, ex. psi_. Nulo quando o projeto não adota prefixo. Usado pela skill de instrumentação (regra 11.1)']
+  fuso_exibicao text [not null, default: 'America/Sao_Paulo']
+  criado_em timestamptz [not null, default: `now()`]
+  arquivado_em timestamptz [note: 'nulo = ativo. Soft delete: preserva os eventos']
+}
+
+// ------------------------------------------------------------
+// eventos — seção 7.4
+// Tabela de maior escrita.
+//
+// PARTICIONAMENTO: partition by range (ocorrido_em), intervalo de
+// 7 dias, mantido por pg_partman via pg_cron (seção 7.10).
+// A PK é composta (ocorrido_em, id) porque a coluna de partição
+// precisa estar em todo índice único.
+//
+// conta_id é DESNORMALIZADO de propósito: permite que a política de
+// RLS filtre sem join numa tabela particionada de alta escrita
+// (seção 6.2).
+//
+// EXCLUSÃO: drop de partição. Janela física = conta mais generosa;
+// janela visível por conta = contas.retencao_meses (regras 11.8 e 11.18).
+//
+// ÍNDICES (seção 7.4):
+//   using brin (ocorrido_em)  -- coluna sempre-crescente, append-only
+//   btree (conta_id, ocorrido_em desc)          -- predicado de RLS
+//   btree (projeto_id, ocorrido_em desc)
+//   btree (projeto_id, nome, ocorrido_em desc)
+//   btree (projeto_id, distinct_id, ocorrido_em desc)
+//   Deliberadamente SEM índice GIN em propriedades.
+//
+// CHECK: chk_nome_evento -- ^[a-z][a-z0-9_]{2,63}$ (regra 11.1)
+// DEDUPE: ON CONFLICT DO NOTHING sobre a PK (regra 11.4)
+// ------------------------------------------------------------
+
+Table eventos {
+  id uuid [not null, note: 'gerado no CLIENTE, não no banco — chave de deduplicação (regra 11.4)']
+  conta_id uuid [not null, note: 'desnormalizado para a política de RLS não precisar de join. Preenchido pela ingestão a partir do projeto da chave']
+  projeto_id uuid [not null]
+  nome text [not null, note: 'formato validado pela regra 11.1']
+  distinct_id text [not null, note: 'identificador do usuário no app do cliente']
+  tela text [note: 'nulo em evento disparado do backend, que não tem tela']
+  descricao text [note: 'o que o evento significa, em português. Nulo quando o SDK não enviou e o catálogo ainda não tem entrada']
+  propriedades jsonb [not null, default: `'{}'::jsonb`]
+  ocorrido_em timestamptz [not null, note: 'quando aconteceu no dispositivo. COLUNA DE PARTIÇÃO']
+  recebido_em timestamptz [not null, default: `now()`, note: 'quando chegou no servidor; a diferença revela fila offline']
+
+  indexes {
+    (ocorrido_em, id) [pk]
+    (conta_id, ocorrido_em) [name: 'idx_eventos_conta_data']
+    (projeto_id, ocorrido_em) [name: 'idx_eventos_projeto_data']
+    (projeto_id, nome, ocorrido_em) [name: 'idx_eventos_projeto_nome_data']
+    (projeto_id, distinct_id, ocorrido_em) [name: 'idx_eventos_projeto_pessoa_data']
+    ocorrido_em [name: 'idx_eventos_ocorrido_brin', type: brin]
+  }
+
+  Note: 'Particionada por range em ocorrido_em (7 dias). tela e descricao são colunas próprias por decisão de desnormalização declarada na seção 7.4.'
+}
+
+// ------------------------------------------------------------
+// definicoes_evento — seção 7.5
+// O catálogo. Se popula sozinho pela trigger trg_eventos_definicao.
+// EXCLUSÃO: não há. Evento que parou de disparar continua listado —
+// é justamente essa a informação útil.
+// ------------------------------------------------------------
+
+Table definicoes_evento {
+  id uuid [pk, default: `gen_random_uuid()`]
+  projeto_id uuid [not null]
+  nome text [not null]
+  descricao text [note: 'fonte de verdade EDITÁVEL. Nulo até o primeiro evento chegar com descrição ou o dono escrever. Nunca sobrescrita pela trigger (regra 11.2)']
+  telas "text[]" [not null, default: `'{}'`, note: 'todas as telas em que este evento já foi visto']
+  total_ocorrencias bigint [not null, default: 0, note: 'mantido por fn_atualiza_definicao_evento()']
+  primeira_ocorrencia_em timestamptz [note: 'nulo em definição criada à mão antes do primeiro evento']
+  ultima_ocorrencia_em timestamptz [note: 'nulo pelo mesmo motivo']
+  criado_em timestamptz [not null, default: `now()`]
+
+  indexes {
+    (projeto_id, nome) [unique, name: 'uq_definicoes_projeto_nome']
+  }
+}
+
+// ------------------------------------------------------------
+// pessoas — seção 7.6
+// Mantida pela trigger trg_eventos_pessoa.
+// ------------------------------------------------------------
+
+Table pessoas {
+  id uuid [pk, default: `gen_random_uuid()`]
+  projeto_id uuid [not null]
+  distinct_id text [not null]
+  propriedades jsonb [not null, default: `'{}'::jsonb`, note: 'merge das propriedades marcadas como de pessoa pelo SDK']
+  total_eventos bigint [not null, default: 0, note: 'mantido por fn_atualiza_pessoa()']
+  primeiro_visto_em timestamptz [not null]
+  ultimo_visto_em timestamptz [not null]
+
+  indexes {
+    (projeto_id, distinct_id) [unique, name: 'uq_pessoas_projeto_distinct']
+  }
+}
+
+// ------------------------------------------------------------
+// paineis — seção 7.7
+// ------------------------------------------------------------
+
+Table paineis {
+  id uuid [pk, default: `gen_random_uuid()`]
+  projeto_id uuid [not null]
+  nome text [not null]
+  janela_padrao janela_periodo [not null, default: '30d']
+  criado_em timestamptz [not null, default: `now()`]
+}
+
+// ------------------------------------------------------------
+// paineis_itens — seção 7.7
+// Referencia o evento POR NOME, não por FK para definicoes_evento:
+// permite montar tile para evento que ainda não disparou nenhuma vez
+// (assunção 21.6). Tile de evento inexistente exibe aviso (regra 11.9).
+// FK painel_id com ON DELETE CASCADE.
+// ------------------------------------------------------------
+
+Table paineis_itens {
+  id uuid [pk, default: `gen_random_uuid()`]
+  painel_id uuid [not null]
+  nome_evento text [not null, note: 'referência por nome, não por FK — ver assunção 21.6']
+  titulo text [note: 'nulo = usa a descrição do catálogo']
+  tipo_visualizacao tipo_visualizacao [not null, default: 'serie_temporal']
+  posicao integer [not null, default: 0]
+}
+
+// ------------------------------------------------------------
+// credenciais — seção 7.8
+// Só o hash SHA-256 é armazenado; o valor completo aparece uma vez.
+// EXCLUSÃO: soft delete via revogada_em — preserva o rastro de qual
+// chave escreveu o quê.
+// CHECK chk_credencial_projeto:
+//   (tipo = 'ingestao' and projeto_id is not null)
+//   or (tipo = 'leitura' and projeto_id is null)
+// ------------------------------------------------------------
+
+Table credenciais {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null, note: 'a credencial pertence à conta, não só ao projeto']
+  tipo tipo_credencial [not null]
+  projeto_id uuid [note: 'obrigatório em ingestao; NULO em leitura, que vale para todos os projetos da conta (check chk_credencial_projeto)']
+  nome text [not null, note: '"Agenda Psi produção", "Claude Code do notebook"']
+  prefixo text [not null, note: '8 primeiros caracteres, para exibição na tela']
+  valor_hash text [not null, unique, note: 'SHA-256 do valor completo']
+  criada_em timestamptz [not null, default: `now()`]
+  ultimo_uso_em timestamptz [note: 'nulo enquanto nunca usada. Atualizado no máximo 1x por minuto por credencial']
+  revogada_em timestamptz [note: 'nulo = ativa. Credencial revogada nunca é reativada']
+
+  indexes {
+    (tipo, revogada_em) [name: 'idx_credenciais_tipo_ativa']
+  }
+}
+
+// ------------------------------------------------------------
+// Relacionamentos — seção 7.1
+// ------------------------------------------------------------
+
+Ref: usuarios_conta.conta_id > contas.id
+Ref: uso_mensal.conta_id > contas.id
+Ref: projetos.conta_id > contas.id
+Ref: eventos.conta_id > contas.id
+Ref: eventos.projeto_id > projetos.id
+Ref: definicoes_evento.projeto_id > projetos.id
+Ref: pessoas.projeto_id > projetos.id
+Ref: paineis.projeto_id > projetos.id
+Ref: paineis_itens.painel_id > paineis.id
+Ref: credenciais.conta_id > contas.id
+Ref: credenciais.projeto_id > projetos.id
