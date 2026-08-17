@@ -84,9 +84,13 @@ export function ChaveDeIngestao({
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
         <div>
-          <div style={{ fontSize: 13.5, fontWeight: 600 }}>Chave de ingestão</div>
+          <div style={{ fontSize: 13.5, fontWeight: 600 }}>Chave de ingestão (API key)</div>
           <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.5 }}>
-            Usada pelo app para enviar eventos. O valor completo não fica armazenado.
+            É a API key deste projeto: vai no header{" "}
+            <code style={{ fontFamily: "var(--fonte-mono), monospace" }}>x-api-key</code> e na
+            variável{" "}
+            <code style={{ fontFamily: "var(--fonte-mono), monospace" }}>VISAO_API_KEY</code>. Ela
+            só escreve, e só neste projeto. O valor completo não fica armazenado.
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flex: "none" }}>

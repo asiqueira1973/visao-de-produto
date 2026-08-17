@@ -31,6 +31,36 @@ import {
 /** Identidade anunciada no handshake do protocolo. */
 const IDENTIDADE = { name: "visao-de-produto", version: "0.1.0" };
 
+/**
+ * O site, que faz o papel de servidor de autorização OAuth (épico 8.8).
+ * É para lá que o cliente de agente vai se registrar e pedir autorização
+ * quando não tiver token — é o que faz o Claude Desktop instalar sozinho.
+ */
+const SERVIDOR_DE_AUTORIZACAO =
+  Deno.env.get("VISAO_SITE") ?? "https://visao-de-produto.vercel.app";
+
+/**
+ * A origem pública desta função.
+ *
+ * Nem `req.url` nem o header `host` servem aqui: dentro do runtime a requisição
+ * chega como `http://edge-runtime.supabase.com`, que é o nome interno. Quem
+ * sabe o endereço público é a própria plataforma, pela variável `SUPABASE_URL`.
+ * Anunciar o host errado num documento de OAuth quebra a conexão do cliente.
+ */
+function origemPublica(): string {
+  return (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/+$/, "");
+}
+
+/** Endereço deste recurso protegido, como o cliente o conhece. */
+function urlDoRecurso(): string {
+  return `${origemPublica()}/functions/v1/mcp/mcp`;
+}
+
+/** Endereço do documento que descreve este recurso (RFC 9728). */
+function urlDoMetadata(): string {
+  return `${origemPublica()}/functions/v1/mcp/.well-known/oauth-protected-resource`;
+}
+
 /** Calcula o SHA-256 do token, que é o que o banco guarda (seção 6.3). */
 async function hashDoToken(valor: string): Promise<string> {
   const bytes = new TextEncoder().encode(valor);
@@ -137,10 +167,31 @@ Deno.serve(async (req: Request) => {
     "access-control-allow-origin": "*",
     "access-control-allow-headers": "authorization, content-type, mcp-protocol-version",
     "access-control-allow-methods": "POST, GET, DELETE, OPTIONS",
+    // O cliente precisa LER o www-authenticate para descobrir o servidor de
+    // autorização; sem expor, o navegador esconde o cabeçalho dele.
+    "access-control-expose-headers": "www-authenticate",
   };
 
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cabecalhosCors });
+  }
+
+  // RFC 9728: quem chega sem token descobre por aqui qual servidor de
+  // autorização usar. Precisa responder sem autenticação nenhuma.
+  if (new URL(req.url).pathname.endsWith("/.well-known/oauth-protected-resource")) {
+    return new Response(
+      JSON.stringify({
+        resource: urlDoRecurso(),
+        authorization_servers: [SERVIDOR_DE_AUTORIZACAO],
+        bearer_methods_supported: ["header"],
+        scopes_supported: ["leitura"],
+        resource_documentation: `${SERVIDOR_DE_AUTORIZACAO}/conta/credenciais`,
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json", ...cabecalhosCors },
+      },
+    );
   }
 
   // Regra 5.1.2: todo request precisa de token de leitura válido.
@@ -150,7 +201,11 @@ Deno.serve(async (req: Request) => {
   if (!token) {
     return new Response(JSON.stringify({ codigo: "credencial_invalida" }), {
       status: 401,
-      headers: { "content-type": "application/json", "www-authenticate": "Bearer", ...cabecalhosCors },
+      headers: {
+        "content-type": "application/json",
+        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata()}"`,
+        ...cabecalhosCors,
+      },
     });
   }
 
@@ -175,7 +230,11 @@ Deno.serve(async (req: Request) => {
   if (!credencial || credencial.length === 0) {
     return new Response(JSON.stringify({ codigo: "credencial_invalida" }), {
       status: 401,
-      headers: { "content-type": "application/json", "www-authenticate": "Bearer", ...cabecalhosCors },
+      headers: {
+        "content-type": "application/json",
+        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata()}"`,
+        ...cabecalhosCors,
+      },
     });
   }
 

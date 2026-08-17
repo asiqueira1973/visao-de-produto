@@ -166,6 +166,17 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
 
 ## 10. Backlog conhecido
 
+**A palavra "tile" na tela de Painel não comunica.** O termo vem do mock e do spec
+(regra 11.9, seção 7.7), mas para quem chega não diz nada — "Adicionar tile", "Tiles
+fixados do catálogo". A seção 13.3 deixa a copy livre, então dá para trocar por algo como
+"gráfico fixado" ou "cartão" sem violar nada; o nome da tabela `paineis_itens` continua
+como está. **Pendente de decisão do dono.**
+
+**O Painel poderia ter filtro.** Hoje só existe o seletor de período, que vale para o
+painel inteiro. Filtrar por pessoa ou por tela dentro do painel é possível — as funções de
+série já recebem projeto e evento, e aceitariam mais um parâmetro —, mas muda o significado
+dos números de cada cartão e precisa de desenho antes de código. **Pendente de decisão.**
+
 **Faltam as duas portas de entrada do MCP.** Hoje só existe uma: token Bearer colado num
 arquivo de configuração (seção 12.3 do spec). Ela serve quem usa terminal e sabe editar
 JSON. Quem usa o **app do Claude Desktop** clica em "Add custom connector", e aquela janela

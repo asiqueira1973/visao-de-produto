@@ -34,6 +34,8 @@ export function LinhasDoCatalogo({
   );
   const [salvando, setSalvando] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [sobreMouse, setSobreMouse] = useState<string | null>(null);
+  const [comFoco, setComFoco] = useState<string | null>(null);
 
   const pendentes = Object.values(descricoes).filter((d) => !d.trim()).length;
 
@@ -63,6 +65,11 @@ export function LinhasDoCatalogo({
         </div>
       )}
 
+      <div style={{ marginTop: 4, fontSize: 11.5, color: "var(--faint)" }}>
+        A descrição é salva quando você sai do campo, e passa a valer em todas as telas e nas
+        respostas do MCP. O que o app envia não precisa mudar.
+      </div>
+
       <div
         style={{
           marginTop: 16,
@@ -84,7 +91,7 @@ export function LinhasDoCatalogo({
             minWidth: 760,
           }}
         >
-          <div>Evento e descrição</div>
+          <div>Evento e descrição (clique para editar)</div>
           <div>Telas</div>
           <div style={{ textAlign: "right" }}>Total</div>
           <div style={{ textAlign: "right" }}>Primeira</div>
@@ -112,10 +119,17 @@ export function LinhasDoCatalogo({
                   value={valor}
                   placeholder="Descreva o que este evento significa"
                   aria-label={`Descrição de ${linha.nome}`}
+                  title="Clique para editar a descrição"
                   onChange={(e) =>
                     setDescricoes((atuais) => ({ ...atuais, [linha.nome]: e.target.value }))
                   }
-                  onBlur={() => void salvar(linha.nome)}
+                  onMouseEnter={() => setSobreMouse(linha.nome)}
+                  onMouseLeave={() => setSobreMouse(null)}
+                  onFocus={() => setComFoco(linha.nome)}
+                  onBlur={() => {
+                    setComFoco(null);
+                    void salvar(linha.nome);
+                  }}
                   style={{
                     width: "100%",
                     height: 30,
@@ -124,8 +138,22 @@ export function LinhasDoCatalogo({
                     fontWeight: 500,
                     outline: "none",
                     borderRadius: 7,
-                    background: "transparent",
-                    border: `1px ${faltando ? "dashed var(--pri)" : "solid transparent"}`,
+                    cursor: "text",
+                    // O campo precisa se anunciar: sem borda no hover e no foco
+                    // ele parece texto e ninguém descobre que dá para editar.
+                    background:
+                      comFoco === linha.nome || sobreMouse === linha.nome
+                        ? "var(--elev)"
+                        : "transparent",
+                    border: `1px ${
+                      faltando
+                        ? "dashed var(--pri)"
+                        : comFoco === linha.nome
+                          ? "solid var(--pri)"
+                          : sobreMouse === linha.nome
+                            ? "solid var(--line2)"
+                            : "solid transparent"
+                    }`,
                     color: "var(--text)",
                     opacity: salvando === linha.nome ? 0.6 : 1,
                   }}

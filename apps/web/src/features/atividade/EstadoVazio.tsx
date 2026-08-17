@@ -54,7 +54,7 @@ export async function EstadoVazio({ projetoId, slug }: { projetoId: string; slug
                   background: "var(--panel)",
                 }}
               >
-                <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Chave de ingestão</span>
+                <span style={{ fontSize: 11.5, color: "var(--faint)" }}>Chave de ingestão (API key)</span>
                 <Link
                   href={`/p/${slug}/configuracoes`}
                   style={{ fontSize: 11, color: "var(--dim)" }}
