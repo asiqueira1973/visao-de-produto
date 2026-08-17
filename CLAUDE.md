@@ -41,6 +41,59 @@ colar uma chave no chat, use e não escreva em lugar nenhum além do `.env`.
 
 ---
 
+## 0.1 Dois ambientes — dev e produção
+
+Existem **dois projetos Supabase**, e eles não se misturam:
+
+| | Projeto Supabase | Para que serve |
+|---|---|---|
+| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
+| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | Os dados reais do dono. Só recebe o que já passou por dev |
+
+O `.env` local aponta para **dev**. Os dois arquivos completos ficam lado a lado na
+máquina, fora do git: `.env.dev` e `.env.producao`. Trocar de ambiente é copiar um por
+cima do `.env` e reiniciar o servidor.
+
+### Regra de migration — não tem exceção
+
+1. Escreva o `.sql` em `supabase/migrations/`.
+2. Aplique em **dev** com `apply_migration`, rode `get_advisors` (segurança e performance)
+   e verifique o efeito de verdade.
+3. Só então aplique **o mesmo arquivo** em prod, e rode os advisors lá também.
+4. Commit do `.sql` junto da mudança de código que depende dele.
+
+**Nunca** rode SQL solto em produção. Se um ajuste precisou ser feito à mão para uma
+migration passar, ele vira linha da migration — foi assim que a 0007 ganhou o
+`grant visao_mcp_leitor to postgres` e o vai-e-volta do `create on schema public`.
+
+### Conferir se os dois estão iguais
+
+```sql
+select 'tabelas' o, count(*)::text v from information_schema.tables where table_schema='public'
+union all select 'funcoes', count(*)::text from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'
+union all select 'politicas', count(*)::text from pg_policies where schemaname='public'
+union all select 'triggers', count(*)::text from pg_trigger where not tgisinternal
+union all select 'jobs_cron', string_agg(jobname, ',' order by jobname) from cron.job
+union all select 'particoes_sem_rls', coalesce(string_agg(c.relname,','),'nenhuma') from pg_inherits i join pg_class c on c.oid=i.inhrelid where i.inhparent='public.eventos'::regclass and not c.relrowsecurity
+union all select 'migrations', count(*)::text from supabase_migrations.schema_migrations;
+```
+
+Rode nos dois refs e compare. Diferença aqui é drift, e drift é o que este arranjo existe
+para não deixar acontecer.
+
+### Edge Function também tem ambiente
+
+Publicar em dev **não** publica em prod. Ao mexer em `supabase/functions/`, publique nos
+dois, a partir do arquivo do repositório, e compare o `ezbr_sha256` das duas respostas: se
+os hashes divergirem, alguém publicou algo que não está no git.
+
+**Pendência conhecida:** a função `mcp` de dev anuncia `visao-de-produto.vercel.app` como
+servidor de autorização, porque o segredo `VISAO_SITE` só existe em prod. Assim que o site
+de dev tiver endereço, defina `VISAO_SITE` no projeto de dev — sem isso, conectar o Claude
+ao MCP de dev manda a pessoa autorizar em produção.
+
+---
+
 ## 1. Precedência (seção 4.4 do spec, e é absoluta)
 
 - **As telas** (`visao de produto-telas claude design/`) prevalecem em layout, espaçamento,
@@ -178,7 +231,8 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 - **Google OAuth**: criar o OAuth Client no Google Cloud Console e colar Client ID e Secret
   no painel do Supabase (Authentication → Providers → Google). Bloqueia o épico 8.4.
 - **Senha do banco**: necessária para `supabase db dump` gerar o `schema.sql` do banco real.
-- **Vercel**: o deploy do site pede login pelo navegador uma vez.
+- **Login na Vercel**: uma vez pelo navegador. Depois disso o agente configura domínios,
+  ambientes e variáveis por linha de comando, sem pedir cliques no painel.
 
 ## 10. Backlog conhecido
 
