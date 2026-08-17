@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1 e 8.2 concluídos e verificados. Épicos 8.3 a 8.7 pendentes |
+| Estado | Épicos 8.1, 8.2 e 8.3 concluídos e verificados. Épicos 8.4 a 8.7 pendentes |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -267,7 +267,33 @@ Function (para poder dizer *qual* evento e *por quê*) e de novo no banco, pelo 
 `chk_nome_evento` (para que nada entre por outro caminho). A deduplicação mora só no banco,
 na chave primária. A resolução do projeto mora só no banco, na função da credencial.
 
-### 5.2 — Telas
+### 5.2 — SDK `@dablab/visao`
+
+Quatro funções: `init`, `identify`, `track` e `flush`. Zero dependências de runtime e
+nenhum módulo nativo — o pacote é só TypeScript compilado para ESM.
+
+**O que acontece em cada `track`:** o nome é validado pela regra 11.1 no cliente (para o
+erro aparecer no console de quem instrumentou, e não numa lista de rejeitados que ninguém
+lê); o `id` UUID v4 e o `ocorrido_em` são carimbados naquele instante; o evento entra na
+fila e a função devolve na hora, sem `await`. Quando a fila chega a `flushAt` (20), o envio
+dispara sozinho; um cronômetro de `flushInterval` (10 s) cobre o resto.
+
+**Fila:** persistida a cada `track` e a cada envio bem-sucedido. Ao passar de
+`maxQueueSize` (1.000), os mais antigos saem. O envio quebra a fila em lotes de até
+`maxBatchSize` (100). Falha de rede rende 3 tentativas espaçadas de 3 s e depois devolve o
+lote à fila — nada se perde. Resposta 4xx que não é 429 descarta o lote com erro no
+console: reenviar uma chave inválida não a torna válida.
+
+**Onde a fila mora:** `localStorage` no navegador, memória no Node, e o que o app passar em
+`init({ storage })` no React Native. O SDK não importa AsyncStorage porque importar
+significaria depender de módulo nativo, o que o critério do épico 8.3 proíbe.
+
+**O que o SDK não faz:** não envia absolutamente nada por conta própria. Sem evento de
+instalação, de abertura de app ou de tela (assunção 21.8, confirmada com o dono). Para
+saber quantas pessoas abriram o app, instrumenta-se `app_aberto` como qualquer outro
+evento — e é isso que a skill de instrumentação sugere por padrão.
+
+### 5.3 — Telas
 
 Pendente: será preenchido nos épicos 8.4 e 8.5.
 
@@ -292,6 +318,9 @@ Numeração estável — não renumere.
 | 11 | Propriedades de pessoa | 7.6 diz "merge das propriedades marcadas como de pessoa pelo SDK", sem definir como são marcadas | O SDK grava o que foi passado em `identify()` dentro de `propriedades.pessoa`, e a trigger faz merge dessa chave | O contrato da seção 12.1 não tem campo para propriedade de pessoa. Usar uma chave declarada dentro de `propriedades` mantém o princípio 0.1: o dado continua sendo o que o app enviou de propósito |
 | 12 | `uso_mensal.consultas_mcp` | 7.10 diz que o job diário preenche as quatro dimensões | O job preenche três; `consultas_mcp` é incrementada pelo próprio servidor MCP a cada chamada | Não existe tabela de log de consulta no modelo, e criar uma para contar chamada seria complexidade prematura (princípio 0.4) |
 | 13 | Corpo malformado na ingestão | A tabela da seção 12.1 põe "JSON malformado" na mesma linha do código `lote_excedido` | JSON malformado responde **400 `corpo_invalido`**; `lote_excedido` fica só para lote acima de 100 | Um único código para dois problemas diferentes faria o cliente ler "lote excedido" quando o que houve foi JSON quebrado. O critério de aceite do épico 8.2 só fixa o caso do lote de 101, que continua respondendo `lote_excedido` |
+
+| 14 | Persistência da fila em React Native | A tabela do épico 8.3 diz "AsyncStorage (RN)", e o mesmo épico exige funcionar no Expo SDK 57 **sem módulo nativo** | O SDK não importa AsyncStorage; `init` aceita um `storage` opcional, e em RN o app passa o AsyncStorage ali. A CLI escreve essa linha sozinha ao detectar Expo | As duas exigências se chocam: AsyncStorage **é** módulo nativo. Recebê-lo do app mantém a persistência pedida e o pacote sem dependência nativa. Sem storage em RN, o SDK avisa no console que a fila é só de memória |
+| 15 | `track` antes de `identify` | O spec não diz o que fazer | O evento **não é enviado**, com erro explicativo no console | A v1 não tem fluxo anônimo (F9 é v2) e o contrato exige `distinct_id`. Gerar um identificador anônimo seria a plataforma criando dado que o app não declarou, contra o princípio 0.1 |
 
 ### Limitação declarada
 
