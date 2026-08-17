@@ -62,10 +62,11 @@ export default async function proxy(request: NextRequest) {
   const ehPublica = ROTAS_PUBLICAS.some((rota) => caminho.startsWith(rota));
 
   if (!user && !ehPublica) {
-    const destino = request.nextUrl.clone();
-    destino.pathname = "/login";
-    // Guarda para onde a pessoa queria ir, e leva ela até lá depois do login.
-    destino.searchParams.set("de", caminho);
+    const destino = new URL("/login", request.url);
+    // Guarda para onde a pessoa queria ir — COM a query string. Sem ela, quem
+    // cai no login vindo de /oauth/autorizar volta sem client_id nem
+    // code_challenge, e a autorização morre dizendo "pedido incompleto".
+    destino.searchParams.set("de", `${caminho}${request.nextUrl.search}`);
     return NextResponse.redirect(destino);
   }
 
