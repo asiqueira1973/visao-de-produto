@@ -28,11 +28,26 @@ import { detectarClientes, registrarNoCliente } from "./clientes-de-agente.js";
 import { criarInicializacao, garantirGitignore, gravarNoEnv } from "./arquivos.js";
 import { paraSlug, reconhecer, type Repositorio } from "./projeto.js";
 
+/**
+ * Os endereços de PRODUÇÃO.
+ *
+ * Este pacote é publicado e roda na máquina de quem instala, então o padrão
+ * precisa ser produção — é o que a pessoa espera ao rodar `npx visao init`.
+ * Quem trabalha no repositório aponta para o ambiente de dev definindo
+ * `VISAO_SITE` e `VISAO_HOST`, ou passando `--site=`.
+ *
+ * Ao ligar o domínio próprio (fase C), são estas duas linhas que mudam:
+ * o site vai para `app.visaodeproduto.com.br` e a ingestão para
+ * `api.visaodeproduto.com.br`. Nenhum outro lugar do pacote fixa endereço.
+ */
+const SITE_DE_PRODUCAO = "https://visao-de-produto.vercel.app";
+const HOST_DE_PRODUCAO = "https://glohvqzopiffdghwppor.supabase.co";
+
 /** Site que autoriza a instalação. Trocável por `--site`, para desenvolvimento. */
-const SITE_PADRAO = process.env.VISAO_SITE ?? "https://visao-de-produto.vercel.app";
+const SITE_PADRAO = process.env.VISAO_SITE ?? SITE_DE_PRODUCAO;
 
 /** Host da ingestão, gravado no `.env` do app. */
-const HOST_PADRAO = process.env.VISAO_HOST ?? "https://glohvqzopiffdghwppor.supabase.co";
+const HOST_PADRAO = process.env.VISAO_HOST ?? HOST_DE_PRODUCAO;
 
 /** O que o site devolve depois que o dono autoriza. */
 interface Autorizacao {
@@ -48,6 +63,7 @@ const cores = {
   ok: (t: string) => `[32m${t}[0m`,
   fraco: (t: string) => `[2m${t}[0m`,
   erro: (t: string) => `[31m${t}[0m`,
+  aviso: (t: string) => `[33m${t}[0m`,
 };
 
 /**
@@ -142,6 +158,12 @@ async function init(): Promise<void> {
   );
 
   console.log(cores.titulo("\nVisão de Produto — instalação\n"));
+
+  // Nunca instale às cegas: se alguém apontou a CLI para outro ambiente por
+  // variável ou por `--site=`, isso precisa aparecer antes de qualquer escrita.
+  if (site !== SITE_DE_PRODUCAO) {
+    console.log(cores.aviso(`Atenção: instalando contra ${site}, que não é o ambiente de produção.\n`));
+  }
 
   const repositorio = reconhecer(cwd());
   console.log(
