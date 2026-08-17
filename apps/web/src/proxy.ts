@@ -13,8 +13,22 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Rotas que existem justamente para quem ainda não entrou. */
-const ROTAS_PUBLICAS = ["/login", "/auth/callback", "/auth/erro"];
+/**
+ * Rotas que existem justamente para quem ainda não entrou.
+ *
+ * As três primeiras são o login. As de OAuth entram porque um cliente de agente
+ * precisa se registrar e trocar o código SEM sessão de navegador — quem exige
+ * sessão é só a tela de consentimento, `/oauth/autorizar`, que fica de fora
+ * desta lista de propósito (épico 8.8).
+ */
+const ROTAS_PUBLICAS = [
+  "/login",
+  "/auth/callback",
+  "/auth/erro",
+  "/.well-known/",
+  "/oauth/registrar",
+  "/oauth/token",
+];
 
 export default async function proxy(request: NextRequest) {
   let resposta = NextResponse.next({ request });

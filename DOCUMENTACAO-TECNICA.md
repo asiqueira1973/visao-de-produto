@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1 a 8.7 concluídos e verificados |
+| Estado | Épicos 8.1 a 8.7 concluídos e verificados. Épico 8.8 (OAuth do MCP), fora do spec e decidido com o dono, concluído |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -352,7 +352,36 @@ Com as credenciais em mãos, a CLI instala o SDK, grava `VISAO_API_KEY` e `VISAO
 e registra o servidor MCP em cada cliente de agente que encontrar — sempre guardando cópia
 de segurança do arquivo antes de mexer.
 
-### 5.5 — Telas
+### 5.5 — OAuth do MCP (épico 8.8, fora do spec v1)
+
+A janela "Add custom connector" do Claude só fala OAuth: não tem campo para token. Sem
+isto, instalar o MCP exigiria editar JSON à mão, o que arranha o princípio 0.6. As duas
+portas passam a existir — arquivo de configuração para quem usa terminal, OAuth para quem
+só tem o app.
+
+**Quem é quem:** o servidor MCP (Supabase) é o *recurso protegido*; o site (Vercel) é o
+*servidor de autorização*. O MCP responde 401 com
+`WWW-Authenticate: Bearer resource_metadata="…"`, e esse documento (RFC 9728) aponta para o
+site.
+
+**O fluxo, em quatro passos:** o cliente se registra sozinho em `/oauth/registrar`
+(RFC 7591, cliente público, sem segredo); manda a pessoa para `/oauth/autorizar`, que exige
+sessão e mostra o que o token vai poder e não poder fazer; recebe um código que vive dez
+minutos; e troca esse código em `/oauth/token` provando o PKCE com S256. Código já usado é
+recusado, e o expurgo horário limpa o resto.
+
+**O que o OAuth NÃO muda:** o token emitido é uma linha comum de `credenciais` do tipo
+`leitura` — mesmo hash, mesmo nome na tela de Credenciais MCP, mesma revogação em um
+clique, mesma regra 5.1.2 de nunca escrever. O OAuth é a forma de entregar o token, não um
+poder novo.
+
+**Duas armadilhas que custaram deploy:** dentro do runtime da Edge Function a requisição
+chega como `http://edge-runtime.supabase.com`, então montar a URL a partir do request gera
+um documento OAuth inválido — a origem vem de `SUPABASE_URL`. E `www-authenticate` precisou
+entrar no `access-control-expose-headers`, senão o navegador esconde do cliente justamente
+o cabeçalho que diz por onde começar.
+
+### 5.6 — Telas
 
 Pendente: será preenchido nos épicos 8.4 e 8.5.
 
