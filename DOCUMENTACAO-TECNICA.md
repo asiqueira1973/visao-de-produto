@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épico 8.1 concluído e verificado. Épicos 8.2 a 8.7 pendentes |
+| Estado | Épicos 8.1 e 8.2 concluídos e verificados. Épicos 8.3 a 8.7 pendentes |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -177,6 +177,8 @@ conta cancelada (regra 11.17) apagar tudo em um comando.
 | `fn_projetos_do_usuario()` | usada pelas políticas | Devolve os projetos das contas do usuário |
 | `fn_paineis_do_usuario()` | usada pela política de `paineis_itens` | Devolve os painéis dos projetos do usuário |
 | `fn_consulta_leitura(text, uuid)` | tool `consulta` do MCP | Executa o SELECT do agente **com o papel `visao_mcp_leitor`**, filtrado pela conta do token e limitado a 500 linhas |
+| `fn_valida_chave_ingestao(text)` | Edge Function `ingest` | Encontra a credencial de ingestão ativa pelo hash e devolve conta e projeto. Zero linhas = 401. Marca `ultimo_uso_em` no máximo 1× por minuto |
+| `fn_ingere_eventos(uuid, uuid, jsonb)` | Edge Function `ingest` | Grava o lote inteiro em **uma** instrução INSERT multi-row com `on conflict do nothing`, e devolve quantos entraram de fato |
 
 ### Particionamento e retenção
 
@@ -226,7 +228,46 @@ Pendente: será preenchido nos épicos 8.4 e 8.5.
 
 ---
 
-## 5. Lógica das principais funcionalidades por tela
+## 5. Lógica das principais funcionalidades
+
+### 5.1 — Endpoint de ingestão (`POST /functions/v1/ingest`)
+
+Não é tela, mas é onde vive a maior parte da validação do produto. Publicado como Edge
+Function com `verify_jwt` **desligado**: quem autentica é a própria função, pela chave de
+projeto no header `x-api-key` (regra 5.1.3 — a chave é pública por natureza, vai embutida
+em app de loja e em bundle de front-end).
+
+Ordem exata do que acontece:
+
+1. `OPTIONS` responde o preflight de CORS. O endpoint precisa ser chamável de navegador.
+2. Sem header `x-api-key` → **401** `credencial_invalida`. Nunca 403.
+3. Corpo que não é JSON, ou sem a lista `eventos` → **400** `corpo_invalido`.
+4. Mais de 100 eventos → **400** `lote_excedido`. O tamanho é conferido **antes** de
+   consultar o banco, para que um lote absurdo não custe uma consulta.
+5. A chave é convertida em SHA-256 e procurada por `fn_valida_chave_ingestao`. Sem
+   resultado — chave desconhecida ou revogada — → **401** `credencial_invalida`. É a chave
+   que determina conta e projeto; um `projeto_id` que venha no corpo nem chega a ser lido
+   (regra 11.5).
+6. Cada evento é validado sozinho. Inválido entra em `rejeitados` com `id`, `campo` e
+   `motivo`, e **não derruba o lote**. São verificados: `id` (UUID obrigatório), `nome`
+   (regra 11.1), `distinct_id` (obrigatório e não vazio), `ocorrido_em` (ISO 8601 válido),
+   e os tipos de `tela`, `descricao` e `propriedades`.
+7. Regra 11.6: `ocorrido_em` a mais de 48 h no futuro é substituído pelo instante de
+   recebimento. O evento é aceito, e não rejeitado — relógio errado é problema do
+   dispositivo, não do usuário.
+8. Ids repetidos **dentro do mesmo lote** são contados como duplicados antes de ir ao
+   banco, e não como erro.
+9. Os aceitos vão em uma única chamada a `fn_ingere_eventos`, que faz um INSERT multi-row
+   com `on conflict do nothing` (regra 11.4) e devolve quantos entraram.
+10. Resposta **202** com `{ aceitos, duplicados, rejeitados }`. `duplicados` é o que foi
+    enviado, não foi rejeitado e mesmo assim não gravou — ou seja, já existia.
+
+**Onde cada validação mora:** formato de nome e forma do payload são validados na Edge
+Function (para poder dizer *qual* evento e *por quê*) e de novo no banco, pelo check
+`chk_nome_evento` (para que nada entre por outro caminho). A deduplicação mora só no banco,
+na chave primária. A resolução do projeto mora só no banco, na função da credencial.
+
+### 5.2 — Telas
 
 Pendente: será preenchido nos épicos 8.4 e 8.5.
 
@@ -250,6 +291,7 @@ Numeração estável — não renumere.
 | 10 | Proteção das partições | O spec só pede RLS "em todas as tabelas" | RLS **e** revoke de privilégios em cada partição de `eventos`, reaplicados a cada manutenção | Verificado na prática: partição é tabela própria no schema `public`, e portanto endpoint do PostgREST. Sem isso, `select * from eventos_p20260817` devolveria evento de qualquer conta a qualquer usuário autenticado |
 | 11 | Propriedades de pessoa | 7.6 diz "merge das propriedades marcadas como de pessoa pelo SDK", sem definir como são marcadas | O SDK grava o que foi passado em `identify()` dentro de `propriedades.pessoa`, e a trigger faz merge dessa chave | O contrato da seção 12.1 não tem campo para propriedade de pessoa. Usar uma chave declarada dentro de `propriedades` mantém o princípio 0.1: o dado continua sendo o que o app enviou de propósito |
 | 12 | `uso_mensal.consultas_mcp` | 7.10 diz que o job diário preenche as quatro dimensões | O job preenche três; `consultas_mcp` é incrementada pelo próprio servidor MCP a cada chamada | Não existe tabela de log de consulta no modelo, e criar uma para contar chamada seria complexidade prematura (princípio 0.4) |
+| 13 | Corpo malformado na ingestão | A tabela da seção 12.1 põe "JSON malformado" na mesma linha do código `lote_excedido` | JSON malformado responde **400 `corpo_invalido`**; `lote_excedido` fica só para lote acima de 100 | Um único código para dois problemas diferentes faria o cliente ler "lote excedido" quando o que houve foi JSON quebrado. O critério de aceite do épico 8.2 só fixa o caso do lote de 101, que continua respondendo `lote_excedido` |
 
 ### Limitação declarada
 

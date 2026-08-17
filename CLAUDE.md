@@ -141,6 +141,11 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
 9. **Evento com zero ocorrências sempre aparece** nas telas de uso (regra 11.12).
 10. **O banco opera em UTC.** A conversão para `projetos.fuso_exibicao` é na apresentação
     (regra 11.7), nunca no banco.
+11. **A Edge Function `ingest` roda com `verify_jwt` desligado.** Quem autentica é ela
+    mesma, pela chave no header `x-api-key`. Se alguém redeployar com `verify_jwt: true`,
+    a ingestão para de funcionar para todos os apps.
+12. **Evento inválido não derruba o lote.** Ele volta em `rejeitados` com `id`, `campo` e
+    `motivo`, e os outros 99 entram.
 
 ## 8. Decisões tomadas com o dono nesta v1
 
