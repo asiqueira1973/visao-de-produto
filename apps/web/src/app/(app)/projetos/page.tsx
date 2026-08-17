@@ -7,8 +7,10 @@
  *            políticas `projetos_dono_total` e `eventos_dono_leitura`.
  * Implementa: épico 8.4 e o inventário da seção 10.
  *
- * O estado vazio não é ilustração: ele mostra o comando que cria o projeto
- * (princípio 0.5 — instalar é um comando).
+ * Escreve:   `projetos` — criar e arquivar são ações desta tela (seção 10).
+ *
+ * O estado vazio não é ilustração: ele mostra os dois caminhos para o primeiro
+ * projeto existir (princípio 0.5 — instalar é um comando).
  */
 
 import Link from "next/link";
@@ -16,6 +18,7 @@ import { clienteDaSessao } from "@/lib/supabase/server";
 import { horarioRelativo } from "@/lib/formato";
 import type { ResumoDeProjeto } from "@/lib/data/tipos";
 import { BlocoCopiavel } from "@/features/shell/BlocoCopiavel";
+import { BotaoArquivar, BotaoCriarProjeto } from "@/features/projetos/AcoesDoProjeto";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +46,7 @@ export default async function Projetos() {
               Aplicativos que enviam eventos para esta conta.
             </div>
           </div>
+          <BotaoCriarProjeto />
         </div>
 
         {error && (
@@ -95,10 +99,11 @@ export default async function Projetos() {
                 maxWidth: 520,
               }}
             >
-              O projeto é criado pelo comando de inicialização, dentro do repositório do
-              aplicativo. Ele grava a chave de ingestão no{" "}
+              Dois caminhos. Pelo botão acima, você cria o projeto aqui e gera a chave nas
+              Configurações dele. Pelo comando abaixo, rodado dentro do repositório do
+              aplicativo, tudo acontece de uma vez: o projeto nasce, a chave vai para o{" "}
               <span style={{ fontFamily: "var(--fonte-mono), monospace", fontSize: 12 }}>.env</span>{" "}
-              e registra o projeto aqui.
+              e o MCP é configurado no seu Claude.
             </div>
             <div style={{ marginTop: 16 }}>
               <BlocoCopiavel texto="npx visao init" />
@@ -177,7 +182,8 @@ export default async function Projetos() {
                     : "nenhum evento"}
                 </div>
 
-                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", alignItems: "center" }}>
+                  <BotaoArquivar projetoId={projeto.id} nome={projeto.nome} />
                   <Link
                     href={`/p/${projeto.slug}/atividade`}
                     style={{

@@ -229,11 +229,11 @@ permissão, não devolve zero linhas.
 | Tela | Lê | Escreve | Por quais políticas passa |
 |---|---|---|---|
 | **Login** | — | — | nenhuma. É a única rota pública, junto com o callback do Google |
-| **Projetos** | `projetos`, `eventos` (via `fn_resumo_projetos`) | — | `projetos_dono_total`, `eventos_dono_leitura` |
+| **Projetos** | `projetos`, `eventos` (via `fn_resumo_projetos`) | `projetos` (criar e arquivar) | `projetos_dono_total`, `eventos_dono_leitura` |
 | **[Projeto] Atividade** | `projetos`, `eventos`, `definicoes_evento`, `pessoas` (via `fn_atividade` e `fn_opcoes_de_filtro`) | — | `projetos_dono_total`, `eventos_dono_leitura`, `definicoes_dono_total`, `pessoas_dono_leitura` |
 | **[Projeto] Detalhe do evento** | nada de novo: o evento já veio na lista | — | — |
 | **[Projeto] Atividade, estado vazio** | `credenciais` (só `prefixo`) | — | `credenciais_dono_total` |
-| **[Projeto] Uso** | `definicoes_evento`, `eventos` (via `fn_uso_por_evento`) | — | `definicoes_dono_total`, `eventos_dono_leitura` |
+| **[Projeto] Uso** | `definicoes_evento`, `eventos` (via `fn_uso_por_evento`) | — (exporta em CSV) | `definicoes_dono_total`, `eventos_dono_leitura` |
 | **[Projeto] Painel** | `paineis`, `paineis_itens`, `definicoes_evento`, `eventos` (via `fn_serie_do_evento`) | `paineis`, `paineis_itens` | `paineis_dono_total`, `paineis_itens_dono_total` |
 | **[Projeto] Pessoas** | `pessoas` (via `fn_pessoas`), `eventos` (via `fn_atividade`) | — | `pessoas_dono_leitura`, `eventos_dono_leitura` |
 | **[Projeto] Catálogo** | `definicoes_evento` (via `fn_catalogo`) | `definicoes_evento.descricao` | `definicoes_dono_total` |
@@ -392,6 +392,8 @@ Numeração estável — não renumere.
 | 21 | Autorização da CLI | O fluxo do épico 8.7 diz "pede o token do dono uma vez" | A CLI abre o navegador e o dono autoriza com um clique | Não existe tipo de credencial de dono no modelo (o enum tem `ingestao` e `leitura`, seção 7.2), e criar um terceiro tipo para viver em disco seria a pior das opções. Com o handshake pelo navegador, o token de dono nunca existe |
 
 | 22 | Trecho de instalação nas telas | O mock e o critério do 8.4 mostram só o trecho do SDK | As telas mostram **duas abas**: "Com o SDK" e "Direto pela API", com o `curl` equivalente | O SDK é conveniência; o contrato estável é o REST da seção 12.1, e a assunção 21.2 já previa que quem não é JavaScript usa a API direta. Sem a segunda aba, quem usa Flutter, Python ou n8n não descobre que dá — e é o caminho mais simples para quem não quer instalar pacote |
+
+| 23 | Onde a exportação fica | A seção 13.4 diz que o CSV "respeita o filtro aplicado na tela", sem dizer onde fica o botão | O botão está **na Atividade**, junto dos filtros, e leva o recorte da URL. A tela de Uso ganhou um CSV próprio, e as Configurações continuam com os dois links | Botão de exportar longe do filtro exportaria uma coisa enquanto a tela mostra outra. O CSV da tela de Uso é adição: é a lista que se leva para uma reunião, com o zero explícito dentro |
 
 ### Limitação declarada
 

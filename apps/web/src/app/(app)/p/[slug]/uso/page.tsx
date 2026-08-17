@@ -15,6 +15,7 @@ import { notFound } from "next/navigation";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { horarioRelativo } from "@/lib/formato";
 import { SeletorDePeriodo } from "@/features/uso/SeletorDePeriodo";
+import { LinkDeExportacao } from "@/features/shell/LinkDeExportacao";
 
 export const dynamic = "force-dynamic";
 
@@ -67,8 +68,22 @@ export default async function Uso({
           Todos os eventos do catálogo, inclusive os que não ocorreram nenhuma vez no período.
         </div>
 
-        <div style={{ marginTop: 16 }}>
+        <div
+          style={{
+            marginTop: 16,
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+          }}
+        >
           <SeletorDePeriodo janelaAtual={janelaAtual} />
+          <LinkDeExportacao
+            caminho={`/p/${slug}/exportar/uso`}
+            rotulo="Exportar CSV"
+            parametros={["janela"]}
+          />
         </div>
 
         <div

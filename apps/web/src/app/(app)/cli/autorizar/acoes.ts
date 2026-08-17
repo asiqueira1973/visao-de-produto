@@ -14,6 +14,7 @@
 
 import { randomBytes, createHash } from "node:crypto";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { criarProjetoComSlugLivre } from "@/features/projetos/acoes";
 
 /** O que a CLI recebe de volta. */
 export interface PacoteDaCli {
@@ -32,47 +33,6 @@ function sortear(prefixo: "ing_" | "mcp_") {
     valorHash: createHash("sha256").update(valor).digest("hex"),
     prefixo8: valor.slice(0, 8),
   };
-}
-
-/**
- * Cria o projeto tentando o slug pedido e, se ele já existir, o próximo livre.
- * Recebe o cliente, a conta, o nome e o slug pedido.
- * Devolve o projeto criado, ou o erro.
- *
- * A tentativa é o próprio insert, e não uma consulta antes: o slug é único no
- * produto inteiro (seção 7.3), então a colisão pode vir de projeto de outra
- * conta, que a RLS esconde de qualquer select feito aqui. Só o banco sabe.
- */
-async function criarProjetoComSlugLivre(
-  supabase: Awaited<ReturnType<typeof clienteDaSessao>>,
-  contaId: string,
-  nome: string,
-  slugPedido: string,
-): Promise<{ projeto?: { id: string; nome: string; slug: string }; erro?: string }> {
-  for (let tentativa = 1; tentativa <= 20; tentativa++) {
-    const slug = tentativa === 1 ? slugPedido : `${slugPedido}-${tentativa}`;
-
-    const { data, error } = await supabase
-      .from("projetos")
-      .insert({
-        conta_id: contaId,
-        nome: nome.trim() || slug,
-        slug,
-        // A convenção de nome nasce do slug e passa a valer para todas as
-        // instrumentações seguintes (fluxo 9.1, caminho de exceção).
-        prefixo_evento: `${slug.replace(/-/g, "_").slice(0, 20)}_`,
-      })
-      .select("id, nome, slug")
-      .single();
-
-    if (!error && data) return { projeto: data };
-
-    // 23505 é violação de unicidade: o slug já é de alguém. Qualquer outro
-    // erro é problema de verdade e não melhora tentando de novo.
-    if (error?.code !== "23505") return { erro: error?.message ?? "Não consegui criar o projeto." };
-  }
-
-  return { erro: "Não achei um slug livre para este nome. Escolha outro nome de projeto." };
 }
 
 /**

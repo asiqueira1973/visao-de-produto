@@ -19,16 +19,18 @@ import { clienteDoNavegador } from "@/lib/supabase/client";
 import { diaNoFuso, horarioRelativo, rotuloDoDia } from "@/lib/formato";
 import type { EventoDaAtividade } from "@/lib/data/tipos";
 import { DetalheDoEvento } from "./DetalheDoEvento";
+import { LinkDeExportacao } from "@/features/shell/LinkDeExportacao";
 
 const TAMANHO_DA_PAGINA = 50;
 const GRADE = "1fr 148px 132px 88px";
 
+/** Os períodos do seletor. O rótulo é escrito para caber no subtítulo também. */
 const PERIODOS = [
-  { valor: "1", rotulo: "Hoje" },
-  { valor: "7", rotulo: "Últimos 7 dias" },
-  { valor: "14", rotulo: "Últimos 14 dias" },
-  { valor: "30", rotulo: "Últimos 30 dias" },
-  { valor: "0", rotulo: "Tudo que está visível" },
+  { valor: "1", rotulo: "nas últimas 24 horas" },
+  { valor: "7", rotulo: "nos últimos 7 dias" },
+  { valor: "14", rotulo: "nos últimos 14 dias" },
+  { valor: "30", rotulo: "nos últimos 30 dias" },
+  { valor: "0", rotulo: "em todo o período visível" },
 ];
 
 const estiloDeSeletor: React.CSSProperties = {
@@ -42,6 +44,7 @@ const estiloDeSeletor: React.CSSProperties = {
 
 export function ListaDeAtividade({
   projetoId,
+  slug,
   fuso,
   eventosIniciais,
   nomesDeEvento,
@@ -49,6 +52,7 @@ export function ListaDeAtividade({
   filtros,
 }: {
   projetoId: string;
+  slug: string;
   fuso: string;
   eventosIniciais: EventoDaAtividade[];
   nomesDeEvento: string[];
@@ -134,6 +138,15 @@ export function ListaDeAtividade({
 
   const temFiltro = Boolean(filtros.evento || filtros.pessoa);
 
+  // O subtítulo conta o que está na tela agora. Quando ainda há página para
+  // carregar, ele diz que é um recorte — senão prometeria um total que não é.
+  const rotuloDoPeriodo =
+    PERIODOS.find((p) => p.valor === filtros.periodo)?.rotulo.toLowerCase() ?? "no período";
+  const quantidade = eventos.length === 1 ? "1 evento" : `${eventos.length} eventos`;
+  const subtitulo = acabou
+    ? `${quantidade} ${rotuloDoPeriodo}${temFiltro ? " · filtro ativo" : ""}`
+    : `mostrando os ${eventos.length} mais recentes ${rotuloDoPeriodo}${temFiltro ? " · filtro ativo" : ""}`;
+
   return (
     <>
       <div style={{ flex: "none", padding: "26px 32px 0" }}>
@@ -147,11 +160,7 @@ export function ListaDeAtividade({
         >
           <div>
             <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>Atividade</div>
-            <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>
-              {temFiltro
-                ? `${eventos.length} eventos · filtro ativo`
-                : "descrição primeiro, nome técnico depois"}
-            </div>
+            <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>{subtitulo}</div>
           </div>
         </div>
 
@@ -205,6 +214,12 @@ export function ListaDeAtividade({
               </option>
             ))}
           </select>
+
+          <LinkDeExportacao
+            caminho={`/p/${slug}/exportar/csv`}
+            rotulo="Exportar CSV"
+            parametros={["evento", "pessoa", "periodo"]}
+          />
 
           {temFiltro && (
             <button

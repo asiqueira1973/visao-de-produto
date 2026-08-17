@@ -79,6 +79,7 @@ export default async function Atividade({
   return (
     <ListaDeAtividade
       projetoId={projeto.id}
+      slug={projeto.slug}
       fuso={projeto.fuso_exibicao}
       eventosIniciais={listaDeEventos}
       nomesDeEvento={nomesDeEvento}
