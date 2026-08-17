@@ -13,6 +13,9 @@ build/
 .env
 .env.local
 .env*.local
+# Os dois ambientes guardados lado a lado. Só o .env.example vai para o git.
+.env.dev
+.env.producao
 
 # supabase local
 supabase/.branches/
