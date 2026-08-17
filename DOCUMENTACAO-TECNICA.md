@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1 a 8.5 concluídos e verificados. Épicos 8.6 e 8.7 pendentes |
+| Estado | Épicos 8.1 a 8.6 concluídos e verificados. Épico 8.7 pendente |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -177,6 +177,8 @@ conta cancelada (regra 11.17) apagar tudo em um comando.
 | `fn_projetos_do_usuario()` | usada pelas políticas | Devolve os projetos das contas do usuário |
 | `fn_paineis_do_usuario()` | usada pela política de `paineis_itens` | Devolve os painéis dos projetos do usuário |
 | `fn_consulta_leitura(text, uuid)` | tool `consulta` do MCP | Executa o SELECT do agente **com o papel `visao_mcp_leitor`**, filtrado pela conta do token e limitado a 500 linhas |
+| `fn_valida_token_leitura(text)` | Edge Function `mcp` | Encontra o token de leitura ativo pelo hash e devolve a conta. Zero linhas = 401. Marca `ultimo_uso_em` no máximo 1× por minuto |
+| `fn_registra_consulta_mcp(uuid)` | Edge Function `mcp` | Soma 1 em `uso_mensal.consultas_mcp` do mês corrente |
 | `fn_valida_chave_ingestao(text)` | Edge Function `ingest` | Encontra a credencial de ingestão ativa pelo hash e devolve conta e projeto. Zero linhas = 401. Marca `ultimo_uso_em` no máximo 1× por minuto |
 | `fn_ingere_eventos(uuid, uuid, jsonb)` | Edge Function `ingest` | Grava o lote inteiro em **uma** instrução INSERT multi-row com `on conflict do nothing`, e devolve quantos entraram de fato |
 
@@ -311,7 +313,29 @@ instalação, de abertura de app ou de tela (assunção 21.8, confirmada com o d
 saber quantas pessoas abriram o app, instrumenta-se `app_aberto` como qualquer outro
 evento — e é isso que a skill de instrumentação sugere por padrão.
 
-### 5.3 — Telas
+### 5.3 — Servidor MCP (`POST /functions/v1/mcp/mcp`)
+
+Edge Function com `verify_jwt` desligado: quem autentica é ela, pelo token de leitura no
+header `Authorization: Bearer mcp_…`. Sem token ou com token revogado, **401**.
+
+Cada requisição monta um servidor MCP novo, sem sessão, com a conta do token **fechada por
+closure**: nenhuma tool recebe conta por parâmetro, então não existe forma de o agente
+pedir dado de outra conta. O slug de projeto é sempre resolvido dentro da conta do token —
+é aí que mora o isolamento.
+
+As cinco tools da seção 12.2 respondem em texto curto e legível, e **toda resposta que cita
+evento cita a descrição junto** (princípio 0.2). `atividade_recente` sem limite devolve no
+máximo 50 eventos, para não estourar o contexto do agente.
+
+`consulta` passa por duas barreiras, como manda a seção 17.3: um validador que exige uma
+única instrução começando em `select`, recusa palavras de escrita e recusa tabela fora das
+quatro permitidas; e, depois dele, a função `fn_consulta_leitura`, cujo dono é o papel
+`visao_mcp_leitor` — que não tem permissão de escrita nenhuma no banco. Validação de string
+sozinha não é controle de acesso.
+
+Cada chamada incrementa `uso_mensal.consultas_mcp` da conta, sem bloquear a resposta.
+
+### 5.4 — Telas
 
 Pendente: será preenchido nos épicos 8.4 e 8.5.
 
@@ -345,6 +369,9 @@ Numeração estável — não renumere.
 
 | 18 | Exportação JSON da conta | A seção 13.4 fala em link assinado com validade de 24 h | O arquivo é servido direto no request | No volume da v1 o JSON sai em um request. Link assinado exigiria bucket, expiração e limpeza — peças que só se pagam acima das 100 mil linhas que a própria seção 13.4 usa como divisor (princípio 0.4) |
 
+| 19 | Adaptador do MCP | A seção 4.1 lista `@modelcontextprotocol/server` **+ `/hono`** | Só `@modelcontextprotocol/server@2.0.0`, com `createMcpHandler` | O `/hono` é pacote separado (`@modelcontextprotocol/hono`) e serve para apps Hono. A Edge Function já fala Fetch nativo, e o handler do próprio SDK aceita `Request` e devolve `Response` — uma dependência a menos (princípio 0.4) |
+| 20 | Descrição exibida na Atividade | A seção 7.4 diz que a coluna em `eventos` é "o registro do que valia no momento" e a 7.5 diz que o catálogo é "a fonte de verdade editável" | A exibição usa **a do catálogo primeiro**, com a do evento como reserva | A primeira versão fazia o contrário, e o dono editava a descrição sem ver efeito na Atividade — o que contradiz a promessa escrita na tela de Catálogo ("passa a aparecer em todas as telas"). Encontrado lendo a resposta do MCP, corrigido na migration 0015 |
+
 ### Limitação declarada
 
 **Deduplicação e relógio adiantado.** A deduplicação da regra 11.4 usa a chave primária
@@ -373,8 +400,8 @@ Rodado após a última DDL do épico 8.1.
 
 **Aceitos, com motivo**
 
-- `authenticated_security_definer_function_executable` (WARN, 3): `fn_contas_do_usuario`,
-  `fn_projetos_do_usuario` e `fn_paineis_do_usuario` continuam executáveis por
+- `authenticated_security_definer_function_executable` (WARN, 4): `fn_contas_do_usuario`,
+  `fn_projetos_do_usuario`, `fn_paineis_do_usuario` e `fn_janela_visivel` continuam executáveis por
   `authenticated` porque as políticas de RLS são avaliadas com o papel de quem consulta —
   sem `EXECUTE`, o dono não leria o próprio dado. Elas devolvem apenas ids da própria conta
   de quem chama.
