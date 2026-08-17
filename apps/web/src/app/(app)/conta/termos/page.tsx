@@ -16,7 +16,7 @@
 import Link from "next/link";
 
 const ATUALIZADO_EM = "17 de agosto de 2026";
-const CONTATO = "alexandre.silva.siqueira@gmail.com";
+const CONTATO = "alexandre@dablab.com.br";
 
 /** Um bloco de texto da política. */
 interface Bloco {
