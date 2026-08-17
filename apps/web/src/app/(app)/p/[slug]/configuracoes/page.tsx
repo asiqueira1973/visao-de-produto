@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { FormularioDoProjeto } from "@/features/configuracoes/FormularioDoProjeto";
 import { ChaveDeIngestao } from "@/features/configuracoes/ChaveDeIngestao";
-import { BlocoCopiavel } from "@/features/shell/BlocoCopiavel";
+import { TrechosDeInstalacao } from "@/features/shell/TrechosDeInstalacao";
 import type { Credencial } from "@/lib/data/tipos";
 
 export const dynamic = "force-dynamic";
@@ -36,13 +36,6 @@ export default async function Configuracoes({ params }: { params: Promise<{ slug
     .eq("projeto_id", projeto.id)
     .eq("tipo", "ingestao")
     .order("criada_em", { ascending: false });
-
-  const trechoDeInstalacao = `import { init } from "@dablab/visao";
-
-init({
-  key: process.env.VISAO_API_KEY,
-  projeto: "${projeto.slug}"
-});`;
 
   return (
     <div style={{ flex: 1, overflowY: "auto" }}>
@@ -71,11 +64,17 @@ init({
         >
           <div style={{ padding: "14px 18px 12px" }}>
             <div style={{ fontSize: 13.5, fontWeight: 600 }}>Instalação</div>
-            <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)" }}>
-              Trecho pronto para copiar. A chave fica no <code>.env</code>, nunca no código.
+            <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.5 }}>
+              Com o SDK, se o app for JavaScript. Direto pela API, se for qualquer outra
+              coisa — o contrato REST é o mesmo que o SDK usa por baixo.
             </div>
           </div>
-          <BlocoCopiavel texto={trechoDeInstalacao} rotulo="analytics.ts" />
+          <div style={{ padding: "0 18px 18px" }}>
+            <TrechosDeInstalacao
+              slug={projeto.slug}
+              host={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}
+            />
+          </div>
         </div>
 
         {/* Exportação (seção 13.4 e regra 11.16): autosserviço, sem pedir nada

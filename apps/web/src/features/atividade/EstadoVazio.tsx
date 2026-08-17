@@ -15,16 +15,7 @@
 
 import Link from "next/link";
 import { clienteDaSessao } from "@/lib/supabase/server";
-import { BlocoCopiavel } from "@/features/shell/BlocoCopiavel";
-
-/** O trecho de instrumentação da seção 12.1, com a assinatura definitiva. */
-const TRECHO = `import { track } from "@dablab/visao";
-
-track("psi_novo_pagamento", {
-  descricao: "usuário registrou um pagamento de um paciente",
-  tela: "PagamentosView",
-  props: { valor: 250, forma: "pix" }
-});`;
+import { TrechosDeInstalacao } from "@/features/shell/TrechosDeInstalacao";
 
 export async function EstadoVazio({ projetoId, slug }: { projetoId: string; slug: string }) {
   const supabase = await clienteDaSessao();
@@ -113,7 +104,10 @@ export async function EstadoVazio({ projetoId, slug }: { projetoId: string; slug
         </div>
 
         <div style={{ marginTop: 12 }}>
-          <BlocoCopiavel texto={TRECHO} rotulo="Instrumentação" />
+          <TrechosDeInstalacao
+            slug={slug}
+            host={process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}
+          />
         </div>
       </div>
     </div>

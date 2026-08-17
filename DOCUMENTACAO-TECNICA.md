@@ -391,6 +391,8 @@ Numeração estável — não renumere.
 
 | 21 | Autorização da CLI | O fluxo do épico 8.7 diz "pede o token do dono uma vez" | A CLI abre o navegador e o dono autoriza com um clique | Não existe tipo de credencial de dono no modelo (o enum tem `ingestao` e `leitura`, seção 7.2), e criar um terceiro tipo para viver em disco seria a pior das opções. Com o handshake pelo navegador, o token de dono nunca existe |
 
+| 22 | Trecho de instalação nas telas | O mock e o critério do 8.4 mostram só o trecho do SDK | As telas mostram **duas abas**: "Com o SDK" e "Direto pela API", com o `curl` equivalente | O SDK é conveniência; o contrato estável é o REST da seção 12.1, e a assunção 21.2 já previa que quem não é JavaScript usa a API direta. Sem a segunda aba, quem usa Flutter, Python ou n8n não descobre que dá — e é o caminho mais simples para quem não quer instalar pacote |
+
 ### Limitação declarada
 
 **Deduplicação e relógio adiantado.** A deduplicação da regra 11.4 usa a chave primária
