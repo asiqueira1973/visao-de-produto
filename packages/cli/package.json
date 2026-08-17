@@ -1,0 +1,25 @@
+{
+  "name": "visao",
+  "version": "0.1.0",
+  "description": "Instala a Visão de Produto num aplicativo em um comando",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "visao": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.6.2",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

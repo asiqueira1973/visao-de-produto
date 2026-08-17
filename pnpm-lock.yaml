@@ -49,6 +49,18 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/cli:
+    devDependencies:
+      '@types/node':
+        specifier: 24.6.2
+        version: 24.6.2
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.6.2)
+
   packages/sdk-js:
     devDependencies:
       typescript:

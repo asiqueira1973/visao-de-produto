@@ -7,7 +7,7 @@ documento **no mesmo commit**.
 | | |
 |---|---|
 | Banco | Supabase Postgres 17.6, projeto `Visao de Produto`, ref `glohvqzopiffdghwppor`, região `sa-east-1`, plano Pro |
-| Estado | Épicos 8.1 a 8.6 concluídos e verificados. Épico 8.7 pendente |
+| Estado | Épicos 8.1 a 8.7 concluídos e verificados |
 | Última atualização | 17 de agosto de 2026 |
 
 ---
@@ -335,7 +335,24 @@ sozinha não é controle de acesso.
 
 Cada chamada incrementa `uso_mensal.consultas_mcp` da conta, sem bloquear a resposta.
 
-### 5.4 — Telas
+### 5.4 — CLI `npx visao init`
+
+Reconhece o repositório sozinho — tipo de app pelas dependências, gerenciador pelo arquivo
+de lock, nome pelo `package.json` — e faz **uma** pergunta: o nome do projeto (princípio 0.5).
+
+A autorização acontece **no navegador**, e não por token colado: a CLI abre uma porta local,
+manda o dono para `/cli/autorizar`, e o site cria o projeto com a sessão dele. O que volta
+para o terminal são as duas credenciais que o produto já define — a chave de ingestão e o
+token de leitura. Nenhuma credencial de dono fica em disco. O `estado` sorteado pela CLI
+volta junto e é conferido, para a resposta não poder vir de outra aba.
+
+Com as credenciais em mãos, a CLI instala o SDK, grava `VISAO_API_KEY` e `VISAO_HOST` no
+`.env` (em Expo, com o prefixo `EXPO_PUBLIC_`, que é o único que chega ao app), garante o
+`.env` no `.gitignore`, cria o arquivo de inicialização no lugar certo para o tipo de app,
+e registra o servidor MCP em cada cliente de agente que encontrar — sempre guardando cópia
+de segurança do arquivo antes de mexer.
+
+### 5.5 — Telas
 
 Pendente: será preenchido nos épicos 8.4 e 8.5.
 
@@ -371,6 +388,8 @@ Numeração estável — não renumere.
 
 | 19 | Adaptador do MCP | A seção 4.1 lista `@modelcontextprotocol/server` **+ `/hono`** | Só `@modelcontextprotocol/server@2.0.0`, com `createMcpHandler` | O `/hono` é pacote separado (`@modelcontextprotocol/hono`) e serve para apps Hono. A Edge Function já fala Fetch nativo, e o handler do próprio SDK aceita `Request` e devolve `Response` — uma dependência a menos (princípio 0.4) |
 | 20 | Descrição exibida na Atividade | A seção 7.4 diz que a coluna em `eventos` é "o registro do que valia no momento" e a 7.5 diz que o catálogo é "a fonte de verdade editável" | A exibição usa **a do catálogo primeiro**, com a do evento como reserva | A primeira versão fazia o contrário, e o dono editava a descrição sem ver efeito na Atividade — o que contradiz a promessa escrita na tela de Catálogo ("passa a aparecer em todas as telas"). Encontrado lendo a resposta do MCP, corrigido na migration 0015 |
+
+| 21 | Autorização da CLI | O fluxo do épico 8.7 diz "pede o token do dono uma vez" | A CLI abre o navegador e o dono autoriza com um clique | Não existe tipo de credencial de dono no modelo (o enum tem `ingestao` e `leitura`, seção 7.2), e criar um terceiro tipo para viver em disco seria a pior das opções. Com o handshake pelo navegador, o token de dono nunca existe |
 
 ### Limitação declarada
 
