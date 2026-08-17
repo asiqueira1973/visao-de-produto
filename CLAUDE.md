@@ -166,6 +166,10 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
 
 ## 10. Backlog conhecido
 
+**Resolvido no épico 8.8:** as duas portas de entrada do MCP existem — arquivo de
+configuração para quem usa terminal (e a CLI escreve sozinha), e OAuth para quem só tem o
+app do Claude Desktop.
+
 **A palavra "tile" na tela de Painel não comunica.** O termo vem do mock e do spec
 (regra 11.9, seção 7.7), mas para quem chega não diz nada — "Adicionar tile", "Tiles
 fixados do catálogo". A seção 13.3 deixa a copy livre, então dá para trocar por algo como
@@ -176,18 +180,6 @@ como está. **Pendente de decisão do dono.**
 painel inteiro. Filtrar por pessoa ou por tela dentro do painel é possível — as funções de
 série já recebem projeto e evento, e aceitariam mais um parâmetro —, mas muda o significado
 dos números de cada cartão e precisa de desenho antes de código. **Pendente de decisão.**
-
-**Faltam as duas portas de entrada do MCP.** Hoje só existe uma: token Bearer colado num
-arquivo de configuração (seção 12.3 do spec). Ela serve quem usa terminal e sabe editar
-JSON. Quem usa o **app do Claude Desktop** clica em "Add custom connector", e aquela janela
-só aceita **OAuth** — não tem campo para token. Enquanto isso não existir, instalar o
-produto exige um passo manual, o que arranha o princípio 0.6.
-
-Decisão do dono: as duas opções precisam existir, e o OAuth entra **depois do épico 8.7**,
-como candidato a 8.8. Caminho já mapeado: o SDK do MCP v2 traz `requireBearerAuth`,
-`buildOAuthProtectedResourceMetadata` e `oauthMetadataResponse` (metadata de recurso
-protegido da RFC 9728 e registro dinâmico de cliente), e o Supabase Auth faz o papel de
-servidor de autorização — quem já está logado no site autoriza o Claude com um clique.
 
 **A tela do Google mostra `glohvqzopiffdghwppor.supabase.co` em vez de "Visão de Produto".**
 O nome do app, o e-mail de suporte e o contato do desenvolvedor já estão preenchidos na
