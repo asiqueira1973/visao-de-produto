@@ -17,8 +17,10 @@
   --dim: #9b9ea6;
   --faint: #6a6d76;
   --code: #0e0f12;
-  --pri: #6e7cf7;
-  --priSoft: rgba(110, 124, 247, 0.15);
+  /* Azul de sistema da Apple, no tom do modo escuro. Decisão do dono, que
+     substitui o índigo da seção 13.2 do spec — ver divergência 24. */
+  --pri: #0a84ff;
+  --priSoft: rgba(10, 132, 255, 0.15);
   --ok: #3fb950;
   --off: #6a6d76;
   --err: #f0616d;
@@ -37,8 +39,9 @@
     --dim: #63666e;
     --faint: #8d9098;
     --code: #f6f7f9;
-    --pri: #4a56cf;
-    --priSoft: rgba(79, 91, 213, 0.09);
+    /* Azul de sistema da Apple, no tom do modo claro. */
+    --pri: #007aff;
+    --priSoft: rgba(0, 122, 255, 0.09);
     --ok: #1a7f37;
     --off: #8d9098;
     --err: #c9303d;

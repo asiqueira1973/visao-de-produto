@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
   <!--
     Ícone do produto.
-    O quadrado arredondado índigo é a marca que já aparece no menu lateral e na
+    O quadrado arredondado azul é a marca que já aparece no menu lateral e na
     tela de Login. Dentro dele, três barras — porque série temporal aqui é
     sempre barra, nunca linha (regra 11.10). A barra do meio é a mais alta para
     o desenho ainda ser reconhecível a 16 pixels.
-    Cor primária da seção 13.2, no valor do modo escuro.
+    Cor primária: azul de sistema da Apple, no tom do modo escuro (divergência 24).
   -->
-  <rect width="32" height="32" rx="9" fill="#6e7cf7"/>
+  <rect width="32" height="32" rx="9" fill="#0a84ff"/>
   <rect x="8"  y="17" width="4.5" height="8"  rx="1.5" fill="#ffffff" opacity="0.75"/>
   <rect x="14" y="10" width="4.5" height="15" rx="1.5" fill="#ffffff"/>
   <rect x="20" y="14" width="4.5" height="11" rx="1.5" fill="#ffffff" opacity="0.75"/>

@@ -14,7 +14,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { gerarTokenDeLeitura, revogarCredencial } from "./acoes";
-import { BlocoCopiavel } from "@/features/shell/BlocoCopiavel";
+import { ComoConectar } from "./ComoConectar";
 import { dataCurta, horarioRelativo } from "@/lib/formato";
 import type { Credencial } from "@/lib/data/tipos";
 
@@ -33,22 +33,6 @@ export function TokensDeLeitura({
   const [copiado, setCopiado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [pendente, iniciarTransicao] = useTransition();
-
-  // O bloco que a pessoa cola no cliente de agente (seção 12.3). O token vai
-  // como `mcp_…` porque o valor real só existe no momento da geração.
-  const configuracao = JSON.stringify(
-    {
-      mcpServers: {
-        "visao-de-produto": {
-          type: "http",
-          url: urlDoMcp,
-          headers: { Authorization: `Bearer ${valorNovo ?? "mcp_…"}` },
-        },
-      },
-    },
-    null,
-    2,
-  );
 
   function gerar() {
     setErro(null);
@@ -91,11 +75,16 @@ export function TokensDeLeitura({
             Credenciais MCP
           </div>
           <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>
-            Tokens de leitura usados pelo Claude para consultar os projetos desta conta. Eles
-            nunca escrevem nada.
+            Cada linha aqui é um Claude com permissão de ler seus projetos — o do seu
+            notebook, o do desktop, o do trabalho. Eles só leem: nunca gravam, nunca apagam.
+            Revogar corta o acesso daquele na hora, sem mexer nos outros.
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <label style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <span style={{ fontSize: 11.5, color: "var(--faint)" }}>
+            Nome do token — para você saber depois qual máquina é esta
+          </span>
+          <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
@@ -126,7 +115,8 @@ export function TokensDeLeitura({
           >
             {pendente ? "Gerando…" : "Gerar token"}
           </button>
-        </div>
+          </span>
+        </label>
       </div>
 
       {erro && <div style={{ marginTop: 12, fontSize: 12.5, color: "var(--err)" }}>{erro}</div>}
@@ -318,24 +308,7 @@ export function TokensDeLeitura({
         )}
       </div>
 
-      <div
-        style={{
-          marginTop: 16,
-          border: "1px solid var(--line)",
-          borderRadius: 12,
-          background: "var(--panel)",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ padding: "14px 18px 12px" }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600 }}>Configuração do servidor MCP</div>
-          <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.5 }}>
-            Cole no arquivo de configuração do cliente. O servidor é remoto: a credencial do
-            banco fica no servidor, e o cliente só recebe um token de leitura revogável.
-          </div>
-        </div>
-        <BlocoCopiavel texto={configuracao} rotulo="claude_desktop_config.json" quebrarLinha />
-      </div>
+      <ComoConectar urlDoMcp={urlDoMcp} tokenRecemGerado={valorNovo} />
     </>
   );
 }

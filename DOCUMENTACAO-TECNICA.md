@@ -424,6 +424,10 @@ Numeração estável — não renumere.
 
 | 23 | Onde a exportação fica | A seção 13.4 diz que o CSV "respeita o filtro aplicado na tela", sem dizer onde fica o botão | O botão está **na Atividade**, junto dos filtros, e leva o recorte da URL. A tela de Uso ganhou um CSV próprio, e as Configurações continuam com os dois links | Botão de exportar longe do filtro exportaria uma coisa enquanto a tela mostra outra. O CSV da tela de Uso é adição: é a lista que se leva para uma reunião, com o zero explícito dentro |
 
+| 24 | Cor primária | A seção 13.2 fixa índigo `#6e7cf7` no escuro e `#4a56cf` no claro, com a instrução "use exatamente estes valores" | **Azul de sistema da Apple**: `#0a84ff` no escuro, `#007aff` no claro | Decisão do dono, que é quem aprovou a paleta original. Os demais tokens da 13.2 continuam intactos, e a troca foi feita só nas duas variáveis — nenhuma cor foi escolhida fora delas. O ícone acompanha |
+| 25 | A palavra "tile" | O mock e as regras 11.9 e 7.7 usam "tile" | A interface diz **"gráfico"**: "Adicionar gráfico", "Gráficos fixados do catálogo" | A seção 13.3 deixa a copy livre, e "tile" não diz nada para quem chega. No banco e no código o nome continua `paineis_itens`, que é o vocabulário do spec |
+| 26 | Tela de Credenciais MCP | A seção 12.3 pede o bloco de configuração copiável | O bloco continua, agora dentro de um cartão **"Como conectar o Claude"** com dois caminhos em passos: pelo aplicativo (OAuth) e por arquivo, com o caminho do arquivo em cada sistema | Bloco de JSON sem instrução não é autosserviço (princípio 0.6): a tela mostrava a configuração sem dizer o que fazer com ela, e quem não é do ramo não descobria |
+
 ### Limitação declarada
 
 **Deduplicação e relógio adiantado.** A deduplicação da regra 11.4 usa a chave primária

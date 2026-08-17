@@ -1,8 +1,8 @@
 /**
  * Tela de Painel.
  *
- * O que faz: mostra os tiles fixados, cada um com o número absoluto do período
- *            e a série em barras.
+ * O que faz: mostra os gráficos fixados, cada um com o número absoluto do
+ *            período e a série em barras.
  * Lê:        `paineis`, `paineis_itens`, `definicoes_evento` e `fn_serie_do_evento`.
  * Escreve:   `paineis` e `paineis_itens`, pelas políticas de propriedade.
  * Implementa: épico 8.5; regras 11.9, 11.10 e 11.14.
@@ -59,7 +59,7 @@ export default async function Painel({
   const { data: catalogo } = await supabase.rpc("fn_catalogo", { p_projeto_id: projeto.id });
   const definicoes = (catalogo ?? []) as Array<{ nome: string; descricao: string | null }>;
 
-  // Cada tile puxa a própria série, já agrupada pela regra 11.14.
+  // Cada gráfico puxa a própria série, já agrupada pela regra 11.14.
   const tiles: TileDoPainel[] = await Promise.all(
     (itens ?? []).map(async (item) => {
       const { data: serie } = await supabase.rpc("fn_serie_do_evento", {
@@ -110,7 +110,7 @@ export default async function Painel({
           <div>
             <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>Painel</div>
             <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>
-              Tiles fixados do catálogo. O período vale para o painel inteiro.
+              Gráficos fixados do catálogo. O período vale para o painel inteiro.
             </div>
           </div>
           <SeletorDePeriodo janelaAtual={janelaAtual} />

@@ -1,14 +1,18 @@
 "use client";
 
 /**
- * A grade de tiles do Painel.
+ * A grade de gráficos do Painel.
  *
- * O que faz: desenha cada tile com o número absoluto do período e as barras da
- *            série, e permite fixar e remover eventos.
- * Recebe:    o projeto, a janela, os tiles já com as séries, e os nomes de
+ * O que faz: desenha cada gráfico com o número absoluto do período e as barras
+ *            da série, e permite fixar e remover eventos.
+ * Recebe:    o projeto, a janela, os gráficos já com as séries, e os nomes de
  *            evento do catálogo para o seletor.
  * Devolve:   a grade do Painel.
  * Implementa: épico 8.5; regras 11.9, 11.10 e 11.14.
+ *
+ * Na tela a palavra é "gráfico", e não "tile": a copy é livre (seção 13.3) e
+ * "tile" não diz nada para quem chega. No código e no banco o nome continua
+ * `paineis_itens`, que é o vocabulário do spec.
  */
 
 import { useState, useTransition } from "react";
@@ -23,7 +27,7 @@ export interface BarraDaSerie {
   usuariosUnicos: number;
 }
 
-/** Um tile pronto para desenhar. */
+/** Um gráfico do painel, pronto para desenhar. */
 export interface TileDoPainel {
   id: string;
   nomeEvento: string;
@@ -361,7 +365,7 @@ export function GradeDeTiles({
             }}
           >
             <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-            <span style={{ fontSize: 12.5 }}>Adicionar tile</span>
+            <span style={{ fontSize: 12.5 }}>Adicionar gráfico</span>
             <span style={{ fontSize: 11, color: "var(--faint)" }}>
               do catálogo ou digitando um evento
             </span>
