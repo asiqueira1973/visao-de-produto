@@ -34,6 +34,9 @@ const ROTAS_PUBLICAS = [
   // Ninguém deveria precisar criar conta para ler as regras que vai aceitar ao
   // criar a conta. A mesma página existe em /conta/termos, dentro do app.
   "/termos",
+  // Quem chama é a Stripe, que não tem sessão de navegador. Quem autentica o
+  // request é a assinatura criptográfica, conferida dentro da própria rota.
+  "/api/cobranca/webhook",
 ];
 
 export default async function proxy(request: NextRequest) {
