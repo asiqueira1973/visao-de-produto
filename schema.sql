@@ -1,5 +1,5 @@
 -- Esquema do banco de glohvqzopiffdghwppor, gerado do catálogo do Postgres.
--- Gerado por scripts/gerar-schema.sh em 2026-08-18T00:46:44Z.
+-- Gerado por scripts/gerar-schema.sh em 2026-08-18T01:04:16Z.
 --
 -- NÃO EDITE À MÃO. Quem manda são os arquivos de supabase/migrations/;
 -- este arquivo é o retrato do que eles produziram no banco de verdade.

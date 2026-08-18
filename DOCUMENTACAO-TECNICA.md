@@ -41,6 +41,10 @@ login com Google, sem ninguém aprovar nada.
 | `stripe_cliente_id` | Reservado para a cobrança da v2. Criado agora para não exigir migration na tabela raiz depois |
 | `criada_em` | Quando a conta nasceu |
 | `cancelada_em` | Nulo = ativa. Preenchido, a conta está cancelada e some em 30 dias (regra 11.17) |
+| `cortesia` | Conta paga sem Stripe. Enquanto verdadeira, nenhuma rotina de cobrança encosta nela |
+| `assinatura_id` | A assinatura no Stripe. Nulo em conta gratuita e em cortesia |
+| `assinatura_status` | **Espelho** do estado no Stripe: `nenhuma`, `ativa`, `atrasada`, `cancelada`. A verdade mora no Stripe |
+| `periodo_fim` | Até quando o período pago vale. Cancelar não rebaixa na hora; rebaixa quando este prazo passa |
 
 ### `usuarios_conta` — quem é dono do quê
 
@@ -124,6 +128,37 @@ acaba de subir. `titulo` nulo significa "use a descrição do catálogo".
 | `valor_hash` | SHA-256 do valor completo. **O valor em claro aparece uma única vez** |
 | `ultimo_uso_em` | Atualizado no máximo 1× por minuto, para não transformar cada ingestão numa escrita extra |
 | `revogada_em` | Nulo = ativa. Revogada nunca é reativada; gera-se outra |
+
+### `dados_de_cobranca` — o tomador da nota fiscal
+
+Existe só para quem paga. Tabela própria, e não colunas em `contas`, porque carrega CPF ou
+CNPJ — dado pessoal de outra natureza, que merece política e exclusão próprias.
+
+| Coluna | O que significa |
+|---|---|
+| `tipo` | `pf` ou `pj`. **Decide o que é obrigatório** |
+| `documento` | CPF ou CNPJ, só dígitos. Tamanho conferido por check conforme o tipo |
+| `nome` | Nome completo na física; razão social na jurídica |
+| `email_nota` | Para onde a nota vai. Nulo usa o e-mail do dono da conta |
+| `cep`, `logradouro`, `numero`, `complemento`, `bairro`, `municipio`, `uf` | Endereço. **Obrigatório apenas para `pj`**, garantido pelo check `chk_endereco_da_pj` |
+
+Os campos obrigatórios não foram inventados: saíram do formulário real da Contabilizei, que
+é por onde a nota é emitida. Pessoa física ali pede dois campos, e o endereço fica atrás de
+um botão desligado — então aqui também.
+
+### `eventos_stripe` — a tabela que impede cobrar duas vezes
+
+A chave primária é o `event.id` do **próprio Stripe**. Webhook chega duplicado, fora de ordem
+e às vezes simultâneo; o `insert` com essa chave é o que torna o processamento idempotente.
+`processado_em` nulo significa "chegou e ainda não foi aplicado" — e é assim que fica quando
+o processamento falha no meio, para o reenvio do Stripe conseguir tentar de novo.
+
+### `administradores` e `acoes_admin`
+
+Admin é papel de **plataforma**, não de conta: por isso tabela própria, e não um valor novo
+em `papel_conta`, que descreve papel dentro de uma conta. `acoes_admin` registra quem fez o
+quê, sobre qual conta, com o antes e o depois — **inclusive quando quem fez foi o dono.**
+Auditoria que abre exceção para o dono não é auditoria.
 
 ---
 
@@ -491,9 +526,12 @@ Rodado após a última DDL do épico 8.1.
 
 **Aceitos, com motivo**
 
-- `authenticated_security_definer_function_executable` (WARN, 4): `fn_contas_do_usuario`,
-  `fn_projetos_do_usuario`, `fn_paineis_do_usuario` e `fn_janela_visivel` continuam executáveis por
-  `authenticated` porque as políticas de RLS são avaliadas com o papel de quem consulta —
+- `authenticated_security_definer_function_executable` (WARN, 5): `fn_contas_do_usuario`,
+  `fn_projetos_do_usuario`, `fn_paineis_do_usuario`, `fn_janela_visivel` e `fn_eh_admin`
+  continuam executáveis por `authenticated`. A `fn_eh_admin` entrou na lista com a cobrança e
+  é o caso mais fácil de justificar: ela responde **sim ou não sobre quem perguntou**, devolve
+  falso para todo mundo que não é admin, e não dá acesso a coisa nenhuma — quem dá são as
+  funções de agregado, que não estão expostas. As outras quatro continuam por causa da RLS: porque as políticas de RLS são avaliadas com o papel de quem consulta —
   sem `EXECUTE`, o dono não leria o próprio dado. Elas devolvem apenas ids da própria conta
   de quem chama.
 - `rls_enabled_no_policy` (INFO, 13 partições): é exatamente o desenho. Partição com RLS
