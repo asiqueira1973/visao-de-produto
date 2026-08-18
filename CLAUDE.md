@@ -57,10 +57,16 @@ cima do `.env` e reiniciar o servidor.
 ### Regra de migration — não tem exceção
 
 1. Escreva o `.sql` em `supabase/migrations/`.
-2. Aplique em **dev** com `apply_migration`, rode `get_advisors` (segurança e performance)
-   e verifique o efeito de verdade.
-3. Só então aplique **o mesmo arquivo** em prod, e rode os advisors lá também.
-4. Commit do `.sql` junto da mudança de código que depende dele.
+2. Aplique em **dev**, rode `get_advisors` (segurança e performance) e verifique o efeito
+   de verdade — com dados, não por leitura.
+3. Commit do `.sql` junto da mudança de código que depende dele, na branch `dev`.
+4. **Produção recebe a migration quando a feature chega em `main`**, e não antes. Enquanto
+   uma feature está pela metade, os dois bancos ficam diferentes de propósito: é para isso
+   que existem dois. Aplicar em prod cedo enche o banco de produção de tabela órfã.
+5. Ao aplicar em prod, rode os advisors lá também e regenere o `schema.sql`.
+
+O `schema.sql` retrata **produção**. Se ele não mostra uma tabela que existe no dev, isso não
+é erro: é uma feature ainda em construção.
 
 **Nunca** rode SQL solto em produção. Se um ajuste precisou ser feito à mão para uma
 migration passar, ele vira linha da migration — foi assim que a 0007 ganhou o
