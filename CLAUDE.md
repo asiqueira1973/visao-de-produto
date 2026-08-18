@@ -87,10 +87,23 @@ Publicar em dev **não** publica em prod. Ao mexer em `supabase/functions/`, pub
 dois, a partir do arquivo do repositório, e compare o `ezbr_sha256` das duas respostas: se
 os hashes divergirem, alguém publicou algo que não está no git.
 
-**Pendência conhecida:** a função `mcp` de dev anuncia `visao-de-produto.vercel.app` como
-servidor de autorização, porque o segredo `VISAO_SITE` só existe em prod. Assim que o site
-de dev tiver endereço, defina `VISAO_SITE` no projeto de dev — sem isso, conectar o Claude
-ao MCP de dev manda a pessoa autorizar em produção.
+Existe um `SUPABASE_ACCESS_TOKEN` no `.env`, então dá para publicar função e definir
+segredo pela CLI, sem painel:
+
+```bash
+./node_modules/.bin/supabase secrets set --project-ref <ref> NOME=valor
+```
+
+`VISAO_SITE` já está definido nos dois projetos, cada um apontando para o próprio site.
+Sem isso, conectar o Claude ao MCP de dev mandaria a pessoa autorizar em **produção** e
+devolveria um token que não serve lá — foi assim que nasceu.
+
+**Divergência aceita, com data para acabar:** a função `mcp` publicada em produção tem os
+comentários abreviados em relação ao arquivo do repositório. O código executável é idêntico
+— conferido linha a linha. O dono decidiu não republicar só por causa de comentário. Isso se
+resolve sozinho na fase C, quando `VISAO_ORIGEM_PUBLICA` obrigar a publicar de novo a partir
+do arquivo. Até lá, **não** trate o `ezbr_sha256` diferente dessa função como sinal de
+problema.
 
 ---
 
