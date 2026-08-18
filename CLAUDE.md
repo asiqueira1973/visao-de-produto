@@ -249,13 +249,17 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
-**Épico de cobrança (F10) — a desenhar.** Pedido do dono em 17/08/2026: desenhar o épico de
-billing por inteiro, incluindo os jobs de cron. Base que já existe na v1 e não precisa ser
-refeita: `contas.plano`, `contas.retencao_meses`, `contas.limite_projetos`,
-`contas.stripe_cliente_id` e a tabela `uso_mensal` alimentada por `fn_agrega_uso_mensal()`.
-O gatilho de cobrança é **projetos e retenção, nunca volume de eventos** (regra 11.15).
-Depende das perguntas 22.1 (preço em USD) e 22.6 (contrato de operação). **É desenho, não
-implementação** — a seção 25 mantém F10 fora do MVP.
+**Épico de cobrança (F10) — desenhado, não implementado.** O desenho completo está em
+[`EPICO-COBRANCA.md`](EPICO-COBRANCA.md), decidido com o dono em 17/08/2026. Em resumo:
+US$ 10/mês, um preço para todos os projetos, retenção como gatilho, volume de evento **não**
+é preço, rebaixar não apaga nada, e admin lê agregado sem tocar em política de RLS existente.
+
+**Antes de escrever qualquer código deste épico, resolva o item V1 daquele documento:**
+saber se uma conta Stripe brasileira consegue cobrar e liquidar em USD. Se não conseguir, o
+épico muda de forma, não de detalhe.
+
+A pergunta 22.6 (contrato revisado por advogado) segue aberta. O dono decidiu seguir sem
+advogado por ora e autorizou a redação do texto de Termos, que já fala de cobrança.
 
 **Resolvido no épico 8.8:** as duas portas de entrada do MCP existem — arquivo de
 configuração para quem usa terminal (e a CLI escreve sozinha), e OAuth para quem só tem o

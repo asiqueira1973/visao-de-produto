@@ -45,10 +45,11 @@ const TERMOS: Bloco[] = [
     paragrafos: [
       <>
         Você cria projetos, gera chaves de ingestão, envia eventos dos seus aplicativos, consulta o
-        que enviou pelas telas ou pelo Claude, exporta tudo e encerra a conta. Os limites do plano
-        gratuito são <strong>1 projeto</strong> e <strong>1 mês</strong> de janela de consulta; no
-        plano pago, projetos ilimitados e 12 meses. Enquanto a plataforma estiver em versão 1 não há
-        cobrança nem checkout — se isso mudar, você será avisado antes.
+        que enviou pelas telas ou pelo Claude, exporta tudo e encerra a conta. O plano{" "}
+        <strong>gratuito</strong> dá <strong>1 projeto</strong> e <strong>1 mês</strong> de janela
+        de consulta. O plano <strong>pago</strong> dará projetos ilimitados e <strong>12 meses</strong>{" "}
+        de janela — <strong>ele ainda não está disponível</strong>, e o item 3 explica o que já
+        está definido sobre ele.
       </>,
       <>
         Você não pode usar a plataforma para armazenar dado sensível, tentar acessar dados de outra
@@ -59,7 +60,73 @@ const TERMOS: Bloco[] = [
     ],
   },
   {
-    titulo: "3. O que é seu, e o que é nosso",
+    titulo: "3. Planos, preço e pagamento",
+    paragrafos: [
+      <>
+        <strong>O plano pago ainda não está no ar.</strong> Hoje todas as contas são gratuitas e
+        não existe nenhuma forma de pagar — não há cobrança, cartão nem cadastro na Stripe. Este
+        item descreve como vai funcionar quando o pagamento entrar, e ele só passa a valer no dia
+        em que o botão de assinar aparecer na tela de Perfil. Até lá, leia como aviso prévio.
+      </>,
+      <>
+        O plano pago custará <strong>US$ 10 por mês</strong>, cobrado em dólar, e dará projetos
+        ilimitados e 12 meses de janela de consulta. Não há cobrança por volume: mandar mais
+        eventos nunca aumenta o preço, porque instrumentar bem é exatamente o que esta
+        plataforma existe para incentivar.
+      </>,
+      <>
+        <strong>Se você está no Brasil, isto é uma compra internacional.</strong> Além dos US$ 10,
+        seu banco cobra IOF e o spread da conversão, então o valor na fatura sai maior que a
+        conversão direta do dia. Preferimos que você saiba disso aqui a que descubra na fatura.
+      </>,
+      <>
+        O pagamento é processado pela <strong>Stripe</strong>. Nenhum dado do seu cartão passa por
+        esta plataforma em momento algum: você digita na Stripe, e nós recebemos de volta apenas
+        se a assinatura está ativa ou não. Também não guardamos os quatro últimos dígitos.
+      </>,
+      <>
+        A assinatura é mensal e se renova sozinha até você cancelar. Cancelar é feito por você, no
+        portal da Stripe, sem pedir nada a ninguém — e vale até o fim do período que você já pagou.
+        Não há multa nem fidelidade. Como o cancelamento passa a valer no fim do período em curso,
+        não devolvemos proporcional dos dias restantes; você continua com o plano pago até lá.
+      </>,
+      <>
+        <strong>Se o pagamento falhar</strong>, a Stripe tenta de novo por alguns dias. Se ainda
+        assim não entrar, a conta volta para o plano gratuito no fim do período pago — e o item 4
+        descreve exatamente o que isso faz, e o que não faz.
+      </>,
+      <>
+        <strong>Mudança de preço</strong> é avisada por e-mail com pelo menos 30 dias de
+        antecedência e nunca vale para o período já pago. Se o novo preço não servir para você,
+        cancelar antes de ele entrar em vigor resolve.
+      </>,
+      <>
+        Algumas contas são <strong>cortesia</strong>: têm o plano pago sem pagar nada e sem cadastro
+        na Stripe. Se a sua for uma delas, a tela de Perfil diz isso.
+      </>,
+    ],
+  },
+  {
+    titulo: "4. Voltar para o plano gratuito não apaga nada",
+    paragrafos: [
+      <>
+        Quando uma conta paga volta a ser gratuita — por cancelamento ou por pagamento que não
+        entrou — <strong>nenhum evento é apagado e nenhum projeto é removido</strong>. Se você
+        tinha quatro projetos, continua com quatro, todos legíveis e todos recebendo evento.
+      </>,
+      <>
+        O que muda é isto, e só isto: você passa a enxergar <strong>1 mês</strong> de histórico em
+        vez de 12, e não consegue criar projeto novo enquanto estiver acima do limite do gratuito.
+        A exportação continua funcionando integralmente.
+      </>,
+      <>
+        E voltar a assinar devolve os 12 meses <strong>sobre os dados que nunca saíram do banco</strong>,
+        respeitado o prazo do item 10. Nada precisa ser recuperado porque nada foi perdido.
+      </>,
+    ],
+  },
+  {
+    titulo: "5. O que é seu, e o que é nosso",
     paragrafos: [
       <>
         Os eventos que você envia são <strong>seus</strong>. Nós os guardamos, indexamos e
@@ -74,7 +141,7 @@ const TERMOS: Bloco[] = [
     ],
   },
   {
-    titulo: "4. Disponibilidade e responsabilidade",
+    titulo: "6. Disponibilidade e responsabilidade",
     paragrafos: [
       <>
         Esta é a versão 1 de um produto pequeno, sem acordo de nível de serviço. A plataforma é
@@ -91,10 +158,15 @@ const TERMOS: Bloco[] = [
     ],
   },
   {
-    titulo: "5. Encerramento",
+    titulo: "7. Encerramento",
     paragrafos: [
       <>
-        Você encerra a conta quando quiser. A partir do encerramento, os dados ficam guardados por{" "}
+        Você encerra a conta quando quiser. Encerrar a conta <strong>não</strong> cancela a
+        assinatura sozinho: cancele antes no portal da Stripe, ou você continuará sendo cobrado
+        por uma conta que não usa mais.
+      </>,
+      <>
+        A partir do encerramento, os dados ficam guardados por{" "}
         <strong>30 dias</strong> — nesse período a exportação continua disponível e o cancelamento é
         reversível por você mesmo. Passados os 30 dias, tudo é apagado em definitivo por rotina
         automática, sem possibilidade de recuperação.
@@ -107,7 +179,7 @@ const TERMOS: Bloco[] = [
     ],
   },
   {
-    titulo: "6. Mudanças nestes termos",
+    titulo: "8. Mudanças nestes termos",
     paragrafos: [
       <>
         Quando estes termos mudarem, a data de atualização no topo desta página muda junto, e
@@ -120,7 +192,7 @@ const TERMOS: Bloco[] = [
 
 const PRIVACIDADE: Bloco[] = [
   {
-    titulo: "7. Que dados existem aqui",
+    titulo: "9. Que dados existem aqui",
     paragrafos: [
       <>
         A plataforma guarda <strong>exatamente o que o seu aplicativo enviou</strong>: nome do
@@ -141,7 +213,7 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "8. Cookies",
+    titulo: "10. Cookies",
     paragrafos: [
       <>
         Este site usa <strong>um</strong> cookie: o de sessão, que mantém você logado. Não há
@@ -151,7 +223,7 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "9. Papéis, e por que isso importa",
+    titulo: "11. Papéis, e por que isso importa",
     paragrafos: [
       <>
         Sobre os dados <em>da sua conta</em> — seu e-mail, seus projetos — a Dab Lab é{" "}
@@ -178,7 +250,7 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "10. Por quanto tempo os dados ficam",
+    titulo: "12. Por quanto tempo os dados ficam",
     paragrafos: [
       <>
         A janela que você <em>enxerga</em> depende do plano: 1 mês no gratuito, 12 meses no pago.
@@ -194,7 +266,7 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "11. Seus direitos, e como exercê-los sozinho",
+    titulo: "13. Seus direitos, e como exercê-los sozinho",
     paragrafos: [
       <>
         Nada aqui depende de abrir chamado ou mandar e-mail — a LGPD dá o direito e a plataforma dá
@@ -219,7 +291,7 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "12. Como os dados são protegidos",
+    titulo: "14. Como os dados são protegidos",
     paragrafos: [
       <>
         Cada tabela do banco tem isolamento por conta aplicado no próprio banco, e não apenas no
@@ -235,10 +307,10 @@ const PRIVACIDADE: Bloco[] = [
     ],
   },
   {
-    titulo: "13. Quem mais toca nos dados",
+    titulo: "15. Quem mais toca nos dados",
     paragrafos: [
       <>
-        Três fornecedores, e só:
+        Quatro fornecedores, e só:
         <br />
         <strong>Supabase</strong> — banco de dados e autenticação. Os dados ficam em{" "}
         <strong>São Paulo, no Brasil</strong> (região sa-east-1).
@@ -247,6 +319,10 @@ const PRIVACIDADE: Bloco[] = [
         <br />
         <strong>Google</strong> — apenas o login. Recebemos seu e-mail e seu nome; o Google não
         recebe nenhum evento seu.
+        <br />
+        <strong>Stripe</strong> — apenas o pagamento, e só se você assinar. Recebe seu e-mail e os
+        dados do cartão, que você digita diretamente lá. Não recebe evento nenhum e não sabe o que
+        seus aplicativos fazem.
       </>,
       <>
         Nenhum outro serviço recebe dado de conta ou de evento. Não há pixel, tag manager, ferramenta
