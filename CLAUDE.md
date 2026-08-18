@@ -26,11 +26,38 @@ responsabilidade do agente, não dele. Ele não usa terminal: quem roda comando 
 Commit de trabalho pela metade é aceito, com prefixo `wip:`. O que não pode é ele trocar
 de máquina com coisa não enviada.
 
-**Se ele disser que está numa máquina nova:** clone o repositório, `pnpm install`, e monte
-o `.env` a partir do `.env.example`, pedindo os valores que faltarem um a um e dizendo
-onde ele acha cada um. O banco é o mesmo (Supabase na nuvem); só o ambiente local precisa
-ser remontado. **Não rode migration nova sem antes checar o estado do banco remoto**
-(`list_migrations` do MCP do Supabase).
+### Máquina nova — o roteiro completo
+
+O dono trabalha em mais de um computador e **não usa terminal**. Quando ele disser que
+está numa máquina nova, faça tudo você, nesta ordem, sem pedir que ele rode nada:
+
+1. `git clone git@github.com:asiqueira1973/visao-de-produto.git` (ou por HTTPS, se a chave
+   SSH não estiver lá). **A branch de trabalho é `dev`, não `main`.**
+2. `pnpm install`. Se o `pnpm` não existir na máquina, instale com `npm i -g pnpm`.
+3. Monte os `.env`. **Eles não estão no git, e é assim que tem que ser** — então esta é a
+   única parte em que você precisa dele. Peça os valores **um a um**, dizendo exatamente
+   onde clicar, e não peça os três de uma vez:
+
+| Variável | Onde ele acha |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → projeto **Visao de Produto — Dev** → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | mesma tela, chave `anon` |
+| `SUPABASE_SERVICE_ROLE_KEY` | mesma tela, chave `service_role` |
+| `SUPABASE_ACCESS_TOKEN` | supabase.com/dashboard/account/tokens — pode gerar um novo, não precisa ser o mesmo |
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → **Secret key de TESTE** (`sk_test_…`) |
+| `STRIPE_PRICE_ID` | Stripe → Product catalog → "Visão de Produto — Plano pago" → o preço de R$ 50/mês |
+| `STRIPE_WEBHOOK_SECRET` | **não precisa pedir**: gere um valor local qualquer começando com `whsec_`. Só precisa ser o mesmo que a suíte usa para assinar |
+| `VISAO_API_KEY` | deixe vazia; só serve para instrumentar um app |
+| `VISAO_HOST` | mesmo valor de `NEXT_PUBLIC_SUPABASE_URL` |
+
+4. Copie o `.env` resultante para `.env.dev`, para o arranjo de dois ambientes continuar
+   valendo. O `.env.producao` só é necessário se ele for mexer em produção naquela máquina.
+5. Faça login na Vercel (`./node_modules/.bin/vercel login`) **só se** for mexer em deploy.
+6. Rode `pnpm typecheck`, `pnpm lint` e `pnpm test` antes de tocar em qualquer coisa: se os
+   três passarem, o ambiente está montado de verdade.
+
+O banco é o mesmo, na nuvem — não há nada para restaurar. **Não rode migration nova sem
+antes conferir o estado do banco remoto** (`list_migrations` do MCP do Supabase).
 
 ### Segredos — regra dura
 
