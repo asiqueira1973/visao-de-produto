@@ -476,6 +476,18 @@ Rodado após a última DDL do épico 8.1.
   `idx_usuarios_conta_conta`.
 - `auth_rls_initplan` (WARN, 2): as políticas do MCP passaram a usar
   `(select current_setting(...))`, avaliado uma vez por consulta em vez de uma vez por linha.
+  **O advisor continua listando o alerta mesmo depois do conserto** — ele casa o texto da
+  política e não reconhece a forma com subselect. Que o conserto pegou está provado pelo
+  plano de execução, rodando como o papel do MCP:
+
+  ```
+  Seq Scan on projetos
+    Filter: (conta_id = (InitPlan 1).col1)
+    InitPlan 1
+  ```
+
+  `InitPlan` é justamente "avalia uma vez e reaproveita". Fica registrado aqui para que
+  ninguém tente "consertar" de novo o que já está certo.
 
 **Aceitos, com motivo**
 
