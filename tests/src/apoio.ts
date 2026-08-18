@@ -202,3 +202,72 @@ export function eventoValido(extra: Record<string, unknown> = {}): Record<string
     ...extra,
   };
 }
+
+/** Uma resposta JSON-RPC do servidor MCP. */
+export interface RespostaMcp {
+  status: number;
+  cabecalhos: Headers;
+  corpo: Record<string, unknown> | null;
+}
+
+/**
+ * Faz uma chamada JSON-RPC ao servidor MCP, por Streamable HTTP.
+ * Recebe o token de leitura (ou nulo, para testar a recusa), o método e os
+ * parâmetros.
+ * Devolve status, cabeçalhos e o corpo já desembrulhado.
+ *
+ * O transporte pode responder em JSON ou em SSE, e o teste não deve se importar
+ * com qual dos dois: quem chama quer o resultado JSON-RPC, não o envelope.
+ */
+export async function chamarMcp(
+  token: string | null,
+  metodo: string,
+  params: Record<string, unknown> = {},
+  id: number = 1,
+): Promise<RespostaMcp> {
+  const cabecalhos: Record<string, string> = {
+    "content-type": "application/json",
+    accept: "application/json, text/event-stream",
+  };
+  if (token) cabecalhos.authorization = `Bearer ${token}`;
+
+  const resposta = await fetch(`${URL_DO_PROJETO}/functions/v1/mcp/mcp`, {
+    method: "POST",
+    headers: cabecalhos,
+    body: JSON.stringify({ jsonrpc: "2.0", id, method: metodo, params }),
+  });
+
+  const bruto = await resposta.text();
+  let corpo: Record<string, unknown> | null = null;
+
+  if (bruto.trim().length > 0) {
+    try {
+      corpo = JSON.parse(bruto) as Record<string, unknown>;
+    } catch {
+      // SSE: a carga vem nas linhas `data:`. Fica com a última, que é a
+      // resposta ao pedido — as anteriores são notificação do transporte.
+      const dados = bruto
+        .split("\n")
+        .filter((l) => l.startsWith("data:"))
+        .map((l) => l.slice(5).trim());
+      for (const d of dados) {
+        try {
+          corpo = JSON.parse(d) as Record<string, unknown>;
+        } catch {
+          // linha de keep-alive; ignora
+        }
+      }
+    }
+  }
+
+  return { status: resposta.status, cabecalhos: resposta.headers, corpo };
+}
+
+/** O texto que uma tool devolveu, concatenado. */
+export function textoDaTool(corpo: Record<string, unknown> | null): string {
+  const resultado = corpo?.result as { content?: Array<{ type: string; text?: string }> } | undefined;
+  return (resultado?.content ?? [])
+    .filter((c) => c.type === "text")
+    .map((c) => c.text ?? "")
+    .join("\n");
+}

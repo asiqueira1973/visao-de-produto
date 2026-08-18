@@ -8,7 +8,7 @@ documento existe para que o dia de escrever código não comece com decisão pen
 | Origem | Pergunta 22.1 do spec (preço) e item F10 da seção 25 |
 | Decidido com o dono em | 17 de agosto de 2026 |
 | Estado | Desenhado. **Não implementado** |
-| Bloqueio | Nenhum. O item que bloqueava — cobrar em USD de conta brasileira — foi resolvido mudando a moeda para BRL |
+| Bloqueio | **Nenhum.** O último caiu quando o dono mandou o formulário da Contabilizei |
 
 ---
 
@@ -160,27 +160,44 @@ parte é nossa, e o dono assumiu o trabalho de olhos abertos.
 
 ### O que a plataforma precisa guardar
 
-| Campo | Onde | Para quê |
-|---|---|---|
-| Razão social ou nome | `contas` | Sai na nota |
-| CPF ou CNPJ | `contas` | Obrigatório no tomador |
-| Endereço | `contas` | Obrigatório no tomador |
-| E-mail para a nota | usa o do dono da conta | Para onde a nota vai |
+Resolvido olhando o formulário real da Contabilizei, que é por onde o dono já emite. Os
+campos obrigatórios **dependem do tipo de tomador**, e a diferença é grande:
 
-São dados que **hoje não existem** e que passam a ser pedidos **no checkout, uma vez**, para
-quem assina. Conta gratuita não preenche nada disso — princípio 0.5 continua valendo para
-quem não paga.
+| Tomador | Obrigatório | Opcional |
+|---|---|---|
+| **Pessoa física** | CPF, nome completo | e-mail, telefone, endereço |
+| **Pessoa jurídica** | CNPJ, razão social, CEP, endereço, número, bairro, município, estado | e-mail, telefone, complemento, inscrição municipal |
+
+Ou seja: **pessoa física pede dois campos.** Endereço, na Contabilizei, fica atrás de um
+botão desligado por padrão para PF — então não vamos pedir o que a nota não exige.
+
+### Como isso vira tela sem virar formulário chato
+
+O checkout pergunta primeiro **"pessoa física ou jurídica?"**, e daí:
+
+- **PF:** CPF e nome completo. Dois campos. Fim.
+- **PJ:** CNPJ e CEP, e o resto é preenchido sozinho. Consultar CNPJ devolve razão social e
+  endereço completo; consultar CEP devolve logradouro, bairro, município e estado. Sobra o
+  número para a pessoa digitar.
+
+Sem consulta automática, PJ seriam oito campos, e oito campos entre a pessoa e o pagamento
+é onde carrinho morre. Com consulta, são três: CNPJ, CEP e número. **Isso é requisito do
+épico, não enfeite** — a estratégia declarada é não causar desconforto ao público-alvo.
+
+Fica registrado que o formulário também oferece "cliente do exterior". Não é para agora, mas
+significa que vender para fora não exigiria trocar de ferramenta de emissão.
 
 ### Emissão: manual primeiro, automática só quando doer
 
 A recomendação é **não automatizar na primeira versão**. Automatizar NFS-e é um projeto por
 si: certificado digital A1, numeração de RPS, cancelamento, e a API da prefeitura — que pode
 ou não estar no padrão nacional. Fazer isso antes do primeiro cliente é construir uma
-esteira para uma fábrica que ainda não abriu.
+esteira para uma fábrica que ainda não abriu. O dono já emite nota pela **Contabilizei**,
+então a fase 1 é copiar dados para um formulário que ele já preenche todo mês.
 
 | Fase | Como | Quando muda |
 |---|---|---|
-| **1** | Uma tela de admin lista as cobranças do mês com os dados do tomador prontos para copiar. O dono ou o contador emite no portal da prefeitura | Até doer |
+| **1** | Uma tela de admin lista as cobranças do mês com os dados do tomador prontos para copiar. O dono emite pela Contabilizei, que ele já usa para isso | Até doer |
 | **2** | Emissão automática pela API, disparada pelo webhook de pagamento confirmado | Quando o volume justificar — na casa das dezenas de clientes por mês, não antes |
 
 O que a fase 1 exige de código é pequeno: uma consulta e uma tela. O que a fase 2 exige é um
@@ -276,14 +293,23 @@ acontecem lá, sem tela nossa e sem ninguém no meio (princípio 0.6).
 
 ## 11. O que precisa ser verificado ANTES de escrever código
 
-| # | Verificação | Com quem | Por que importa |
+A lista original tinha seis itens. Cinco não bloqueavam nada e foram cortados pelo dono, com
+razão: numa fase de emissão manual, saber a alíquota de ISS muda o lucro, não o software.
+
+| # | O que resolver | Com quem | Por que **bloqueia** |
 |---|---|---|---|
-| V1 | ~~Conta Stripe brasileira cobrando em USD~~ | — | **Resolvido.** A conta é BRL, e o preço passou a ser R$ 50 |
-| V2 | A cidade da Dab Lab já está no **padrão nacional de NFS-e**, que tem API? | Contador / prefeitura | Decide se a fase 2 da seção 5 é viável, e quanto custa |
-| V3 | Regime tributário, CNAE do serviço e alíquota de ISS | Contador | Entra na nota. Não muda código, mas muda o preço líquido |
-| V4 | Taxa da Stripe Brasil sobre R$ 50, e prazo de repasse | Painel da Stripe | Cartão nacional fica na casa de 4% + taxa fixa. Sobre R$ 50 é perto de R$ 2,50, então o líquido é ~R$ 47,50 |
-| V5 | Recorrência só por cartão, ou Pix Automático também? | Decisão de produto | Cartão no Brasil recusa mais que nos EUA, e parte do público-alvo não tem limite sobrando. Fica para depois do primeiro cliente, mas é o primeiro item da fila |
-| V6 | O número do teto de válvula | Decisão do dono | Só falta escolher; não bloqueia o desenho |
+| ~~V1~~ | ~~Quais dados a Contabilizei exige do tomador?~~ | — | **Resolvido.** O dono mandou o formulário real, e a resposta está na seção 5: PF pede CPF e nome; PJ pede CNPJ, razão social e endereço |
+| V2 | O número do teto de válvula | Decisão do dono | Só falta escolher. Não bloqueia: dá para subir sem teto e definir depois |
+
+### Cortados, e por quê
+
+| Era | Por que saiu |
+|---|---|
+| Conta Stripe brasileira cobrando em USD | Resolvido mudando a moeda para BRL |
+| Cidade no padrão nacional de NFS-e | Só importa para a fase 2, que foi adiada. E a Contabilizei pode emitir no lugar disso |
+| Regime tributário, CNAE, alíquota de ISS | Muda o líquido do dono, não o produto. Conversa de contador, não requisito de software |
+| Taxa da Stripe e prazo de repasse | Idem. Fica registrado que sobre R$ 50 a taxa fica perto de R$ 2,50 |
+| Cartão ou Pix Automático | Decisão de produto para **depois** do primeiro cliente pagante. Vale saber que existe: cartão no Brasil recusa mais, e parte do público-alvo não tem limite sobrando |
 
 **Pergunta 22.6 do spec — contrato de operação revisado por advogado — continua aberta.** O
 dono decidiu seguir sem advogado neste momento e autorizou a redação do texto de Termos, que
