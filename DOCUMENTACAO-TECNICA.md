@@ -501,3 +501,60 @@ Rodado após a última DDL do épico 8.1.
 - `auth_leaked_password_protection` (WARN): não se aplica. Não existe senha no produto — o
   único método de login é Google (assunção 21.3).
 - `unused_index` (INFO): banco recém-criado, nenhum índice foi usado ainda.
+
+---
+
+## 7. Definition of Done (seção 23), conferido item a item
+
+Conferido em 18 de agosto de 2026. **Um item não foi cumprido**, e está marcado como tal —
+lista de verificação com item marcado por educação não serve para nada.
+
+### Funcional
+
+| | Item | Como foi verificado |
+|---|---|---|
+| ✅ | Critérios de aceite dos épicos 8.1 a 8.7, um a um | Verificados contra o banco e os endpoints reais ao longo da construção, e não por leitura de código. Três defeitos apareceram só por causa disso: o vazamento das partições, as funções destrutivas chamáveis por anônimo, e a precedência invertida da descrição |
+| ❌ | **App real da Dab Lab enviando eventos em produção há pelo menos 7 dias** | **Não cumprido.** A plataforma subiu há um dia. Só o tempo resolve, e o dono ainda vai apagar os dados atuais para semear uma base de CRM fictícia |
+| ✅ | "O que aconteceu no app essa semana" respondida pelo Claude via MCP, sem citar nome de evento | Verificado pelo próprio dono, no Claude Desktop: ele perguntou em português, o Claude consultou as tools e devolveu resposta e gráfico sem que nenhum nome de evento fosse citado na pergunta |
+
+### Banco e código
+
+| | Item | Como foi verificado |
+|---|---|---|
+| ✅ | Banco inteiramente em português, `snake_case` | 25 tabelas, 27 funções, 5 enums. O `schema.sql` é o retrato, e não há um nome fora do padrão |
+| ✅ | Funções, rotas, triggers e políticas comentadas em português citando a seção | Convenção seguida em todo arquivo criado; os cabeçalhos dizem o que faz, o que recebe, o que devolve e qual regra implementa |
+| ✅ | `pnpm typecheck` e `pnpm lint` sem erro | **Os dois passam.** O `lint` estava quebrado desde o começo: o script era `next lint`, comando que o Next 16 removeu, e por isso nunca tinha rodado. Trocado por ESLint direto, com configuração no repositório |
+| ✅ | Suíte de testes da seção 19 verde | 66 testes: 40 de integração (regras de negócio, RLS, partições, contrato do MCP), 17 do SDK e 9 da CLI |
+
+### Documentação
+
+| | Item | Onde |
+|---|---|---|
+| ✅ | `DOCUMENTACAO-TECNICA.md` com os seis itens da seção 16 | Este arquivo |
+| ✅ | `CLAUDE.md` com convenções, arquitetura, comandos e pegadinhas | [`CLAUDE.md`](CLAUDE.md) |
+| ✅ | `README.md` com setup local, variáveis e migrations | [`README.md`](README.md) |
+| ✅ | `schema.sql` gerado do banco real | 1108 linhas, por [`scripts/gerar-schema.sh`](scripts/gerar-schema.sh), lendo o catálogo do Postgres |
+
+### Segurança e privacidade
+
+| | Item | Resultado |
+|---|---|---|
+| ✅ | `get_advisors` (segurança e performance) após a última DDL, sem alerta crítico | Rodado nos dois ambientes. Nenhum alerta de nível ERROR. Os WARN restantes estão no anexo, cada um com o motivo de ser aceito |
+| ✅ | Teste confirmando que `anon` não lê nenhuma tabela | `rls-e-particoes.test.ts`, tabela por tabela, **incluindo as partições de `eventos`** — que é onde estava o furo |
+| ✅ | Teste confirmando que `consulta` rejeita `insert`, `update`, `delete` e `drop` | `mcp.test.ts`, seis casos, incluindo `with x as (select 1) delete from eventos`, que passa pela primeira barreira e prova que a segunda existe |
+| ✅ | Nenhuma chave de serviço em bundle de cliente | Busca no `.next` construído: a `service_role` e o token pessoal não aparecem em nenhum arquivo estático. O que aparece é a URL do projeto e a chave `anon`, que são públicas por desenho |
+| ✅ | Nenhum evento com campo que o app não enviou (princípio 0.1) | Consulta sobre **todas** as chaves de `propriedades` em produção: `forma`, `origem`, `valor` — as três declaradas pelo app. Nada de IP, geolocalização, user-agent ou dispositivo. As colunas de `eventos` são exatamente as dez da seção 7.4 |
+
+### Não-funcional
+
+| | Item | Medido |
+|---|---|---|
+| ✅ | Ingestão de lote de 100 abaixo de 500 ms de CPU | **328 ms de ida e volta** da máquina do dono até `sa-east-1`, o que inclui rede, Edge Function e banco. O tempo de CPU é um pedaço disso, então o limite está cumprido com folga |
+| ✅ | Tela de Atividade abaixo de 1,5 s com 100 mil eventos semeados | **28 a 63 ms** com 100.300 eventos no projeto. O índice `(projeto_id, ocorrido_em desc)` faz o trabalho |
+| ✅ | SDK offline: 30 eventos sem rede chegam exatamente 30 | `sdk.test.ts`, e confere também que os 30 ids são distintos — reenvio não duplica |
+
+### O que fica pendente, e por quê
+
+O único item aberto é **tempo de estrada**: sete dias de app real em produção. Não há atalho,
+e marcar como feito seria mentir para o próprio checklist. Os outros dezesseis estão cumpridos
+e verificados contra o sistema em funcionamento, não contra a intenção.

@@ -13,7 +13,7 @@
  *             conversão de fuso feita aqui, na apresentação.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clienteDoNavegador } from "@/lib/supabase/client";
 import { diaNoFuso, horarioRelativo, rotuloDoDia } from "@/lib/formato";
@@ -66,6 +66,17 @@ export function ListaDeAtividade({
   const [carregandoMais, setCarregandoMais] = useState(false);
   const [acabou, setAcabou] = useState(eventosIniciais.length < TAMANHO_DA_PAGINA);
   const [aberto, setAberto] = useState<EventoDaAtividade | null>(null);
+  const [baseAnterior, setBaseAnterior] = useState(eventosIniciais);
+
+  // Trocar de filtro traz uma lista nova do servidor, e o que já tinha sido
+  // carregado com "carregar mais" precisa ser descartado. O ajuste acontece
+  // durante o render, e não num efeito: assim a tela nunca chega a desenhar a
+  // lista antiga com o filtro novo.
+  if (baseAnterior !== eventosIniciais) {
+    setBaseAnterior(eventosIniciais);
+    setEventos(eventosIniciais);
+    setAcabou(eventosIniciais.length < TAMANHO_DA_PAGINA);
+  }
 
   // Filtro novo recarrega a página pelo servidor: a URL passa a descrever o que
   // está na tela, e o link fica compartilhável.
@@ -79,11 +90,6 @@ export function ListaDeAtividade({
   function limparFiltros() {
     router.push("?");
   }
-
-  useEffect(() => {
-    setEventos(eventosIniciais);
-    setAcabou(eventosIniciais.length < TAMANHO_DA_PAGINA);
-  }, [eventosIniciais]);
 
   const carregarMais = useCallback(async () => {
     if (carregandoMais || acabou) return;

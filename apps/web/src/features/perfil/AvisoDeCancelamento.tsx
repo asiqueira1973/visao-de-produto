@@ -10,17 +10,12 @@
  */
 
 import Link from "next/link";
-
-/** Dias de graça da regra 11.17. */
-const DIAS_DE_GRACA = 30;
+import { diasAteOExpurgo } from "./dias";
 
 export function AvisoDeCancelamento({ canceladaEm }: { canceladaEm: string | null }) {
   if (!canceladaEm) return null;
 
-  const dias = Math.max(
-    0,
-    Math.ceil(DIAS_DE_GRACA - (Date.now() - new Date(canceladaEm).getTime()) / 86_400_000),
-  );
+  const dias = diasAteOExpurgo(canceladaEm);
 
   return (
     <div

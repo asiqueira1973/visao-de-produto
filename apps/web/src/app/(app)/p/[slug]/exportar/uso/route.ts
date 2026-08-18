@@ -91,7 +91,10 @@ export async function GET(
 
   const hoje = new Date().toISOString().slice(0, 10);
 
-  return new NextResponse(`﻿${linhas.join("\r\n")}\r\n`, {
+  // O `\uFEFF` é o BOM, e ele é obrigatório: sem ele o Excel abre o CSV em
+  // Latin-1 e todo acento vira lixo (seção 13.4). Escrito como escape, e não
+  // como caractere invisível, para ninguém apagar sem querer.
+  return new NextResponse(`\uFEFF${linhas.join("\r\n")}\r\n`, {
     headers: {
       "content-type": "text/csv; charset=utf-8",
       "content-disposition": `attachment; filename="${projeto.slug}-uso-${janela}-${hoje}.csv"`,

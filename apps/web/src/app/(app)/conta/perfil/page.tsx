@@ -19,6 +19,7 @@ import Link from "next/link";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { NomeDaConta } from "@/features/perfil/NomeDaConta";
 import { ZonaDePerigo } from "@/features/perfil/ZonaDePerigo";
+import { diasAteOExpurgo } from "@/features/perfil/dias";
 import { dataCurta } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -222,6 +223,7 @@ export default async function Perfil() {
         <div style={{ marginTop: 30 }}>
           <ZonaDePerigo
             canceladaEm={conta?.cancelada_em ?? null}
+            diasRestantes={diasAteOExpurgo(conta?.cancelada_em ?? null)}
             projetos={projetos ?? 0}
             eventos={eventos ?? 0}
           />
