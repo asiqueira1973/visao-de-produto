@@ -251,12 +251,15 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 **Épico de cobrança (F10) — desenhado, não implementado.** O desenho completo está em
 [`EPICO-COBRANCA.md`](EPICO-COBRANCA.md), decidido com o dono em 17/08/2026. Em resumo:
-US$ 10/mês, um preço para todos os projetos, retenção como gatilho, volume de evento **não**
-é preço, rebaixar não apaga nada, e admin lê agregado sem tocar em política de RLS existente.
+**R$ 50/mês em real**, um preço para todos os projetos, retenção como gatilho, volume de
+evento **não** é preço, rebaixar não apaga nada, e admin lê agregado sem tocar em política de
+RLS existente.
 
-**Antes de escrever qualquer código deste épico, resolva o item V1 daquele documento:**
-saber se uma conta Stripe brasileira consegue cobrar e liquidar em USD. Se não conseguir, o
-épico muda de forma, não de detalhe.
+A moeda mudou de USD para BRL depois de descobrir que a conta Stripe do dono é brasileira e
+liquida em real. A consequência assumida é **emitir NFS-e**, e a recomendação registrada é
+emitir **à mão na primeira versão** — automatizar nota fiscal é épico próprio e não se paga
+antes de dezenas de clientes por mês. Os dados do tomador, esses sim, são guardados desde o
+primeiro cliente: é a parte que dói fazer depois.
 
 A pergunta 22.6 (contrato revisado por advogado) segue aberta. O dono decidiu seguir sem
 advogado por ora e autorizou a redação do texto de Termos, que já fala de cobrança.

@@ -31,6 +31,9 @@ const ROTAS_PUBLICAS = [
   // Diz para qual ambiente este deploy aponta. Pública de propósito: é o que
   // permite conferir um deploy sem entrar nele.
   "/api/saude",
+  // Ninguém deveria precisar criar conta para ler as regras que vai aceitar ao
+  // criar a conta. A mesma página existe em /conta/termos, dentro do app.
+  "/termos",
 ];
 
 export default async function proxy(request: NextRequest) {

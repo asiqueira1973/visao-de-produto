@@ -8,7 +8,7 @@ documento existe para que o dia de escrever código não comece com decisão pen
 | Origem | Pergunta 22.1 do spec (preço) e item F10 da seção 25 |
 | Decidido com o dono em | 17 de agosto de 2026 |
 | Estado | Desenhado. **Não implementado** |
-| Bloqueio | Item V1 da seção 9 abaixo — se ele cair, o épico muda de forma |
+| Bloqueio | Nenhum. O item que bloqueava — cobrar em USD de conta brasileira — foi resolvido mudando a moeda para BRL |
 
 ---
 
@@ -18,13 +18,13 @@ documento existe para que o dia de escrever código não comece com decisão pen
 |---|---|---|
 | C1 | **Volume de evento não é preço.** Existe teto, mas como válvula de segurança contra abuso e loop maluco | Descarta a cobrança por evento. Ela puniria instrumentar, que é o comportamento que a plataforma existe para criar: diante de um teto, a resposta racional de quem constrói é instrumentar menos, e catálogo pobre é produto inútil (regra 11.15) |
 | C2 | **Um preço, todos os projetos.** Não se multiplica por projeto | Descarta preço por projeto. O público faz vários apps pequenos; cobrar por projeto faz a pessoa hesitar antes de criar um, e hesitação no onboarding contraria o princípio 0.5 |
-| C3 | **US$ 10/mês, global, via Stripe.** Cliente brasileiro compra como compra internacional | Descarta cobrar em BRL. Consequência assumida: o comprador brasileiro paga IOF e spread por cima — a tela precisa dizer isso, não deixar a pessoa descobrir na fatura |
+| C3 | **R$ 50/mês, em real, via Stripe Brasil** | Descarta cobrar em USD, que era a decisão anterior. Ela caiu por um fato: a conta Stripe do dono é brasileira e liquida em BRL. Consequência assumida: **obrigação de emitir nota fiscal de serviço**, tratada na seção 5. Em troca, o comprador brasileiro não paga IOF nem spread — o que o spec chamava de risco (R10) vira, para o público-alvo, uma compra mais simples |
 | C4 | **A retenção é o que separa grátis de pago.** Grátis: 1 projeto, 1 mês de janela. Pago: projetos ilimitados, 12 meses | É o único gatilho que não custa nada dar e não pune uso nenhum. A dor aparece depois que a pessoa já gostou — quando ela pergunta "o que mudou desde o lançamento?" e a janela não alcança |
 | C5 | **Admin lê agregado, nunca evento.** Sem política nova nas tabelas existentes | Descarta `or eh_admin()` nas políticas de RLS. Seriam 14 lugares novos para errar, e o erro vaza dado entre contas — o único erro deste produto que não tem conserto |
 | C6 | **Rebaixar não apaga e não bloqueia leitura.** Bloqueia criar projeto novo e encolhe a janela | Descarta apagar dado de quem parou de pagar. Gera raiva desproporcional ao dinheiro envolvido, e voltar a pagar tem que devolver tudo |
 | C7 | **Cortesia vitalícia é uma coluna**, não uma integração | Uma conta pode ser paga sem nunca ter passado pelo Stripe |
 
-**Preço:** US$ 10/mês. **Teto de válvula:** a definir, na ordem de 1 milhão de eventos por
+**Preço:** R$ 50/mês. **Teto de válvula:** a definir, na ordem de 1 milhão de eventos por
 mês por conta — um número que ninguém do público-alvo alcança por acidente. Quem chegar
 perto recebe aviso e conversa; não é cortado.
 
@@ -152,7 +152,49 @@ Stripe, sem assinatura, sem cobrança, sem rebaixamento. Fica em `acoes_admin`.
 
 ---
 
-## 4. Os jobs
+## 5. Nota fiscal — a consequência de cobrar em real
+
+Cobrar em real, como pessoa jurídica brasileira prestando serviço, obriga a **emitir NFS-e**.
+A Stripe não emite: ela processa pagamento, e nota fiscal de serviço é municipal. Então esta
+parte é nossa, e o dono assumiu o trabalho de olhos abertos.
+
+### O que a plataforma precisa guardar
+
+| Campo | Onde | Para quê |
+|---|---|---|
+| Razão social ou nome | `contas` | Sai na nota |
+| CPF ou CNPJ | `contas` | Obrigatório no tomador |
+| Endereço | `contas` | Obrigatório no tomador |
+| E-mail para a nota | usa o do dono da conta | Para onde a nota vai |
+
+São dados que **hoje não existem** e que passam a ser pedidos **no checkout, uma vez**, para
+quem assina. Conta gratuita não preenche nada disso — princípio 0.5 continua valendo para
+quem não paga.
+
+### Emissão: manual primeiro, automática só quando doer
+
+A recomendação é **não automatizar na primeira versão**. Automatizar NFS-e é um projeto por
+si: certificado digital A1, numeração de RPS, cancelamento, e a API da prefeitura — que pode
+ou não estar no padrão nacional. Fazer isso antes do primeiro cliente é construir uma
+esteira para uma fábrica que ainda não abriu.
+
+| Fase | Como | Quando muda |
+|---|---|---|
+| **1** | Uma tela de admin lista as cobranças do mês com os dados do tomador prontos para copiar. O dono ou o contador emite no portal da prefeitura | Até doer |
+| **2** | Emissão automática pela API, disparada pelo webhook de pagamento confirmado | Quando o volume justificar — na casa das dezenas de clientes por mês, não antes |
+
+O que a fase 1 exige de código é pequeno: uma consulta e uma tela. O que a fase 2 exige é um
+épico próprio. Começar pela 1 não fecha nenhuma porta: os dados do tomador já estarão
+guardados desde o primeiro cliente, que é a parte que dói fazer depois.
+
+### O que continua fora do nosso alcance
+
+Apuração de imposto, DAS, escrituração e a decisão de regime tributário são do contador. A
+plataforma guarda dado e ajuda a emitir; ela não calcula imposto e não substitui contabilidade.
+
+---
+
+## 6. Os jobs
 
 | Job | Quando | O que faz |
 |---|---|---|
@@ -166,7 +208,7 @@ produz.
 
 ---
 
-## 5. Administração
+## 7. Administração
 
 ### O que o admin vê
 
@@ -197,7 +239,7 @@ X", X está mal desenhado.
 
 ---
 
-## 6. O que a interface ganha
+## 8. O que a interface ganha
 
 | Tela | O que muda |
 |---|---|
@@ -212,7 +254,7 @@ acontecem lá, sem tela nossa e sem ninguém no meio (princípio 0.6).
 
 ---
 
-## 7. Segurança
+## 9. Segurança
 
 - `STRIPE_SECRET_KEY` e `STRIPE_WEBHOOK_SECRET` vivem só em rota de servidor. Nunca no bundle.
 - A rota de webhook fica fora do proxy de sessão e **verifica a assinatura antes de ler o
@@ -223,7 +265,7 @@ acontecem lá, sem tela nossa e sem ninguém no meio (princípio 0.6).
 
 ---
 
-## 8. Fora deste épico
+## 10. Fora deste épico
 
 - Plano de agência ou de time. Só quando aparecer alguém com 50 apps, e não antes.
 - Cupom, teste grátis por tempo, preço por região.
@@ -232,16 +274,18 @@ acontecem lá, sem tela nossa e sem ninguém no meio (princípio 0.6).
 
 ---
 
-## 9. O que precisa ser verificado ANTES de escrever código
+## 11. O que precisa ser verificado ANTES de escrever código
 
-| # | Verificação | Por que bloqueia |
-|---|---|---|
-| **V1** | **Uma conta Stripe brasileira consegue cobrar em USD e liquidar?** Contas brasileiras normalmente liquidam em BRL, e cobrar em outra moeda a partir delas tem restrições | Se não der, as saídas são entidade em outra jurisdição ou intermediário — e isso **muda a forma do épico**, não um detalhe. É o primeiro telefonema, antes de qualquer linha |
-| V2 | Stripe Tax cobre as jurisdições pretendidas | Muda o que aparece no checkout |
-| V3 | Obrigação fiscal sobre venda a brasileiro, mesmo em USD | O spec levantou (risco R10) e continua aberto |
-| V4 | O número do teto de válvula | Só falta escolher; não bloqueia o desenho |
+| # | Verificação | Com quem | Por que importa |
+|---|---|---|---|
+| V1 | ~~Conta Stripe brasileira cobrando em USD~~ | — | **Resolvido.** A conta é BRL, e o preço passou a ser R$ 50 |
+| V2 | A cidade da Dab Lab já está no **padrão nacional de NFS-e**, que tem API? | Contador / prefeitura | Decide se a fase 2 da seção 5 é viável, e quanto custa |
+| V3 | Regime tributário, CNAE do serviço e alíquota de ISS | Contador | Entra na nota. Não muda código, mas muda o preço líquido |
+| V4 | Taxa da Stripe Brasil sobre R$ 50, e prazo de repasse | Painel da Stripe | Cartão nacional fica na casa de 4% + taxa fixa. Sobre R$ 50 é perto de R$ 2,50, então o líquido é ~R$ 47,50 |
+| V5 | Recorrência só por cartão, ou Pix Automático também? | Decisão de produto | Cartão no Brasil recusa mais que nos EUA, e parte do público-alvo não tem limite sobrando. Fica para depois do primeiro cliente, mas é o primeiro item da fila |
+| V6 | O número do teto de válvula | Decisão do dono | Só falta escolher; não bloqueia o desenho |
 
 **Pergunta 22.6 do spec — contrato de operação revisado por advogado — continua aberta.** O
-dono decidiu seguir sem advogado neste momento e autorizou a redação do texto de Termos,
-que nesta rodada passou a falar de cobrança. Fica registrado que **é texto escrito por
-agente, não parecer jurídico.**
+dono decidiu seguir sem advogado neste momento e autorizou a redação do texto de Termos, que
+nesta rodada passou a falar de cobrança, preço em real e nota fiscal. Fica registrado que
+**é texto escrito por agente, não parecer jurídico.**
