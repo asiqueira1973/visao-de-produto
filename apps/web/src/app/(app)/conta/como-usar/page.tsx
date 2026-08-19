@@ -115,7 +115,7 @@ export default function ComoUsar() {
           </p>
           <p style={estiloDeParagrafo}>
             Você dá o nome — <em>Agenda Psi</em>, por exemplo — e o identificador curto sai dele
-            sozinho: <code>agenda-psi</code>. Esse identificador aparece na URL, no SDK e nas
+            sozinho: <code>agenda-psi</code>. Esse identificador aparece na URL e nas
             perguntas que você faz ao Claude, então vale ser curto e óbvio. Nada além disso é pedido:
             nenhuma tela de configuração é obrigatória antes do primeiro evento chegar.
           </p>
@@ -186,9 +186,8 @@ export default function ComoUsar() {
             <TrechosDeInstalacao slug="meu-app" host={host} />
           </div>
           <p style={estiloDeParagrafo}>
-            São dois caminhos para a mesma coisa. O SDK dá fila offline, reenvio e lote automático; a
-            chamada direta não pede instalação nenhuma e funciona em qualquer linguagem que saiba
-            fazer POST. Escolha um.
+            Uma chamada HTTP, em qualquer linguagem que saiba fazer POST. Não há pacote para
+            instalar: o contrato é o REST, e ele é o que não muda.
           </p>
           <div
             style={{
@@ -389,10 +388,10 @@ export default function ComoUsar() {
             lineHeight: 1.7,
           }}
         >
-          <span style={destaque}>Atalho, se você usa o Claude Code.</span> Rodar{" "}
-          <code>npx visao init</code> dentro do repositório do seu app faz os passos 1, 3 e 7 de uma
-          vez: cria o projeto, gera a chave, escreve o <code>.env</code> e registra o servidor MCP em
-          todos os clientes de agente que encontrar na máquina.
+          <span style={destaque}>Um SDK está a caminho.</span> Ele vai dar fila offline, reenvio
+          automático e envio em lote para quem usa JavaScript, React Native ou Node. Enquanto ele
+          não sai, a chamada acima é o caminho — e vai continuar sendo, porque é o contrato estável
+          da plataforma.
         </div>
       </div>
     </div>

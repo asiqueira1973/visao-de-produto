@@ -1,5 +1,5 @@
--- Esquema do banco de ntdjmdqiqjpnufrekorp, gerado do catálogo do Postgres.
--- Gerado por scripts/gerar-schema.sh em 2026-08-19T01:41:37Z.
+-- Esquema do banco de glohvqzopiffdghwppor, gerado do catálogo do Postgres.
+-- Gerado por scripts/gerar-schema.sh em 2026-08-19T09:53:55Z.
 --
 -- NÃO EDITE À MÃO. Quem manda são os arquivos de supabase/migrations/;
 -- este arquivo é o retrato do que eles produziram no banco de verdade.
@@ -8,6 +8,7 @@
 -- Extensões
 
 create extension if not exists pg_cron with schema pg_catalog;
+create extension if not exists pg_net with schema public;
 create extension if not exists pg_partman with schema partman;
 create extension if not exists pg_stat_statements with schema extensions;
 create extension if not exists pgcrypto with schema extensions;
@@ -55,6 +56,13 @@ create table administradores (
   constraint administradores_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
+create table ajustes_da_plataforma (
+  chave text not null,
+  valor text not null,
+  atualizado_em timestamp with time zone not null default now(),
+  constraint ajustes_da_plataforma_pkey PRIMARY KEY (chave)
+);
+
 create table clientes_oauth (
   id uuid not null default gen_random_uuid(),
   client_id text not null,
@@ -97,6 +105,7 @@ create table contas (
   assinatura_status status_assinatura not null default 'nenhuma'::status_assinatura,
   periodo_fim timestamp with time zone,
   limite_eventos_mes integer not null default 1000000,
+  limite_eventos_minuto integer not null default 2000,
   constraint contas_pkey PRIMARY KEY (id)
 );
 
@@ -232,6 +241,14 @@ create table projetos (
   constraint projetos_pkey PRIMARY KEY (id)
 );
 
+create table taxa_de_ingestao (
+  credencial_id uuid not null,
+  minuto timestamp with time zone not null,
+  eventos integer not null default 0,
+  constraint taxa_de_ingestao_credencial_id_fkey FOREIGN KEY (credencial_id) REFERENCES credenciais(id) ON DELETE CASCADE,
+  constraint taxa_de_ingestao_pkey PRIMARY KEY (credencial_id, minuto)
+);
+
 create table uso_mensal (
   id uuid not null default gen_random_uuid(),
   conta_id uuid not null,
@@ -284,6 +301,7 @@ CREATE INDEX idx_paineis_itens_painel ON public.paineis_itens USING btree (paine
 CREATE UNIQUE INDEX uq_pessoas_projeto_distinct ON public.pessoas USING btree (projeto_id, distinct_id);
 CREATE INDEX idx_projetos_conta ON public.projetos USING btree (conta_id) WHERE (arquivado_em IS NULL);
 CREATE UNIQUE INDEX uq_projetos_slug ON public.projetos USING btree (slug);
+CREATE INDEX idx_taxa_minuto ON public.taxa_de_ingestao USING btree (minuto);
 CREATE UNIQUE INDEX uq_uso_conta_competencia ON public.uso_mensal USING btree (conta_id, competencia);
 CREATE INDEX idx_usuarios_conta_conta ON public.usuarios_conta USING btree (conta_id);
 CREATE UNIQUE INDEX uq_usuarios_conta_usuario ON public.usuarios_conta USING btree (usuario_id);
@@ -466,9 +484,6 @@ AS $function$
   select
     e.id,
     e.nome,
-    -- O catálogo primeiro: é ele que o dono edita e que vale em todas as telas.
-    -- A descrição do evento é a reserva, para o que chegou antes de existir
-    -- entrada no catálogo.
     coalesce(d.descricao, e.descricao) as descricao,
     e.distinct_id,
     e.tela,
@@ -513,8 +528,6 @@ begin
   )
   on conflict (projeto_id, nome) do update set
     total_ocorrencias = public.definicoes_evento.total_ocorrencias + 1,
-    -- Eventos podem chegar fora de ordem (fila offline), por isso least/greatest
-    -- em vez de atribuição direta.
     primeira_ocorrencia_em = least(
       coalesce(public.definicoes_evento.primeira_ocorrencia_em, excluded.primeira_ocorrencia_em),
       excluded.primeira_ocorrencia_em
@@ -523,7 +536,6 @@ begin
       coalesce(public.definicoes_evento.ultima_ocorrencia_em, excluded.ultima_ocorrencia_em),
       excluded.ultima_ocorrencia_em
     ),
-    -- Regra 11.2: só preenche quando está nula.
     descricao = coalesce(public.definicoes_evento.descricao, excluded.descricao),
     telas = case
               when new.tela is null or new.tela = any (public.definicoes_evento.telas)
@@ -545,7 +557,6 @@ AS $function$
 declare
   v_props_pessoa jsonb;
 begin
-  -- Só faz merge se o app declarou um objeto em propriedades->'pessoa'.
   v_props_pessoa := case
     when jsonb_typeof(new.propriedades -> 'pessoa') = 'object'
       then new.propriedades -> 'pessoa'
@@ -567,6 +578,82 @@ begin
     propriedades      = public.pessoas.propriedades || excluded.propriedades;
 
   return new;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_autoriza_ingestao(p_valor_hash text, p_quantidade integer)
+ RETURNS TABLE(conta_id uuid, projeto_id uuid, permitido boolean, motivo text, esperar_seg integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_credencial  uuid;
+  v_conta       uuid;
+  v_projeto     uuid;
+  v_ultimo_uso  timestamptz;
+  v_lim_minuto  integer;
+  v_lim_mes     integer;
+  v_no_minuto   integer;
+  v_no_mes      bigint;
+  v_minuto      timestamptz := date_trunc('minute', now());
+begin
+  select c.id, c.conta_id, c.projeto_id, c.ultimo_uso_em,
+         ct.limite_eventos_minuto, ct.limite_eventos_mes
+    into v_credencial, v_conta, v_projeto, v_ultimo_uso, v_lim_minuto, v_lim_mes
+  from public.credenciais c
+  join public.contas ct on ct.id = c.conta_id
+  where c.valor_hash = p_valor_hash
+    and c.tipo = 'ingestao'
+    and c.revogada_em is null;
+
+  -- Chave desconhecida ou revogada: nenhuma linha, e a função devolve vazio.
+  -- É assim que a Edge Function sabe responder 401.
+  if v_credencial is null then
+    return;
+  end if;
+
+  if v_ultimo_uso is null or v_ultimo_uso < now() - interval '1 minute' then
+    update public.credenciais set ultimo_uso_em = now() where id = v_credencial;
+  end if;
+
+  -- Contabiliza ANTES de decidir: assim duas requisições ao mesmo tempo somam
+  -- em vez de as duas lerem o valor antigo e as duas passarem.
+  insert into public.taxa_de_ingestao (credencial_id, minuto, eventos)
+  values (v_credencial, v_minuto, p_quantidade)
+  on conflict (credencial_id, minuto)
+    do update set eventos = public.taxa_de_ingestao.eventos + excluded.eventos
+  returning eventos into v_no_minuto;
+
+  if v_lim_minuto is not null and v_no_minuto > v_lim_minuto then
+    conta_id := v_conta; projeto_id := v_projeto; permitido := false;
+    motivo := format('taxa_excedida: %s eventos neste minuto, e o limite é %s por minuto.', v_no_minuto, v_lim_minuto);
+    -- Quanto falta para o minuto virar.
+    esperar_seg := greatest(1, 60 - extract(second from now())::integer);
+    return next;
+    return;
+  end if;
+
+  -- O teto mensal vem da medição diária, então ele está até 24 h atrasado.
+  -- Serve para abuso sustentado; quem pega o laço é o limite acima.
+  if v_lim_mes is not null then
+    select coalesce(m.eventos_recebidos, 0) into v_no_mes
+    from public.uso_mensal m
+    where m.conta_id = v_conta and m.competencia = date_trunc('month', now())::date;
+
+    if coalesce(v_no_mes, 0) > v_lim_mes then
+      conta_id := v_conta; projeto_id := v_projeto; permitido := false;
+      motivo := format('teto_mensal_excedido: esta conta já recebeu %s eventos neste mês, e o teto é %s. Fale com a gente que a gente levanta.', v_no_mes, v_lim_mes);
+      esperar_seg := null;
+      return next;
+      return;
+    end if;
+  end if;
+
+  conta_id := v_conta; projeto_id := v_projeto; permitido := true;
+  motivo := null; esperar_seg := null;
+  return next;
 end;
 $function$
 ;
@@ -594,15 +681,11 @@ AS $function$
 declare
   v_resultado jsonb;
 begin
-  -- Ponto e vírgula é recusado aqui também, e não só no servidor MCP: sem isso
-  -- o agente poderia emendar uma segunda instrução na mesma string.
   if position(';' in p_sql) > 0 then
     raise exception 'consulta_invalida: a consulta não pode conter ponto e vírgula';
   end if;
 
-  -- Isolamento por conta: é este ajuste que as políticas acima leem.
   perform set_config('visao.conta_id', p_conta_id::text, true);
-  -- Uma consulta do agente não pode prender o banco (requisito 14: p95 < 2 s).
   perform set_config('statement_timeout', '5000', true);
 
   execute format(
@@ -635,9 +718,9 @@ AS $function$
 declare
   v_conta_id uuid;
   v_nome     text;
+  v_host     text;
+  v_chave    text;
 begin
-  -- Nome vindo do perfil do Google; cai para o e-mail quando o provedor não
-  -- manda nome.
   v_nome := coalesce(
     new.raw_user_meta_data ->> 'full_name',
     new.raw_user_meta_data ->> 'name',
@@ -645,12 +728,39 @@ begin
     'Conta sem nome'
   );
 
+  -- Fora de qualquer bloco de exceção, de propósito: falha aqui precisa
+  -- aparecer, e não ser engolida.
   insert into public.contas (nome)
   values (v_nome)
   returning id into v_conta_id;
 
   insert into public.usuarios_conta (conta_id, usuario_id, papel)
   values (v_conta_id, new.id, 'dono');
+
+  -- A partir daqui é só instrumentação, e ela nunca pode impedir alguém de
+  -- se cadastrar.
+  begin
+    select valor into v_host  from public.ajustes_da_plataforma where chave = 'visao_host';
+    select valor into v_chave from public.ajustes_da_plataforma where chave = 'visao_api_key';
+
+    if v_host is not null and v_chave is not null then
+      perform net.http_post(
+        url     := v_host || '/functions/v1/ingest',
+        headers := jsonb_build_object('content-type', 'application/json', 'x-api-key', v_chave),
+        body    := jsonb_build_object('eventos', jsonb_build_array(jsonb_build_object(
+          'id',          gen_random_uuid(),
+          'nome',        'visao_conta_criada',
+          'distinct_id', v_conta_id::text,
+          'ocorrido_em', to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+          'tela',        'Login',
+          'descricao',   'alguém entrou pela primeira vez e a conta foi criada'
+        )))
+      );
+    end if;
+  exception when others then
+    -- Silêncio de propósito: medir o cadastro não vale mais do que o cadastro.
+    null;
+  end;
 
   return new;
 end;
@@ -827,6 +937,16 @@ begin
   delete from cron.job_run_details
   where end_time < now() - interval '30 days';
 end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_poda_taxa_de_ingestao()
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  delete from public.taxa_de_ingestao where minuto < now() - interval '2 hours';
 $function$
 ;
 
@@ -1062,6 +1182,42 @@ end;
 $function$
 ;
 
+CREATE OR REPLACE FUNCTION public.fn_valida_limite_de_projetos()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_limite integer;
+  v_ativos integer;
+  v_plano  public.plano_conta;
+begin
+  select limite_projetos, plano into v_limite, v_plano
+  from public.contas where id = new.conta_id;
+
+  -- Nulo significa "sem limite" (plano pago). Mesma semântica da coluna.
+  if v_limite is null then
+    return new;
+  end if;
+
+  select count(*) into v_ativos
+  from public.projetos
+  where conta_id = new.conta_id and arquivado_em is null;
+
+  if v_ativos >= v_limite then
+    -- A mensagem diz o que fazer, e não só que não deu. Quem bate no limite
+    -- precisa saber que tem duas saídas, e que nenhuma delas apaga nada.
+    raise exception 'limite_de_projetos: o plano % permite % projeto(s) ativo(s), e esta conta já tem %. Arquive um projeto que não usa mais — arquivar não apaga evento nenhum — ou assine o plano pago para ter projetos ilimitados.',
+      v_plano, v_limite, v_ativos
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end;
+$function$
+;
+
 CREATE OR REPLACE FUNCTION public.fn_valida_nome_evento(p_nome text)
  RETURNS boolean
  LANGUAGE sql
@@ -1136,6 +1292,7 @@ CREATE TRIGGER trg_eventos_definicao AFTER INSERT ON public.eventos_p20260928 FO
 CREATE TRIGGER trg_eventos_pessoa AFTER INSERT ON public.eventos_p20260928 FOR EACH ROW EXECUTE FUNCTION fn_atualiza_pessoa();
 CREATE TRIGGER trg_eventos_definicao AFTER INSERT ON public.eventos_p20261005 FOR EACH ROW EXECUTE FUNCTION fn_atualiza_definicao_evento();
 CREATE TRIGGER trg_eventos_pessoa AFTER INSERT ON public.eventos_p20261005 FOR EACH ROW EXECUTE FUNCTION fn_atualiza_pessoa();
+CREATE TRIGGER trg_projetos_limite BEFORE INSERT ON public.projetos FOR EACH ROW EXECUTE FUNCTION fn_valida_limite_de_projetos();
 CREATE TRIGGER trg_usuario_criado_cria_conta AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION fn_cria_conta_no_cadastro();
 
 -- ==========================================================================
@@ -1143,6 +1300,7 @@ CREATE TRIGGER trg_usuario_criado_cria_conta AFTER INSERT ON auth.users FOR EACH
 
 alter table acoes_admin enable row level security;
 alter table administradores enable row level security;
+alter table ajustes_da_plataforma enable row level security;
 alter table clientes_oauth enable row level security;
 alter table codigos_oauth enable row level security;
 alter table contas enable row level security;
@@ -1155,6 +1313,7 @@ alter table paineis enable row level security;
 alter table paineis_itens enable row level security;
 alter table pessoas enable row level security;
 alter table projetos enable row level security;
+alter table taxa_de_ingestao enable row level security;
 alter table uso_mensal enable row level security;
 alter table usuarios_conta enable row level security;
 
@@ -1260,6 +1419,13 @@ grant select on administradores to service_role;
 grant trigger on administradores to service_role;
 grant truncate on administradores to service_role;
 grant update on administradores to service_role;
+grant delete on ajustes_da_plataforma to service_role;
+grant insert on ajustes_da_plataforma to service_role;
+grant references on ajustes_da_plataforma to service_role;
+grant select on ajustes_da_plataforma to service_role;
+grant trigger on ajustes_da_plataforma to service_role;
+grant truncate on ajustes_da_plataforma to service_role;
+grant update on ajustes_da_plataforma to service_role;
 grant delete on clientes_oauth to service_role;
 grant insert on clientes_oauth to service_role;
 grant references on clientes_oauth to service_role;
@@ -1390,6 +1556,13 @@ grant trigger on projetos to service_role;
 grant truncate on projetos to service_role;
 grant update on projetos to service_role;
 grant select on projetos to visao_mcp_leitor;
+grant delete on taxa_de_ingestao to service_role;
+grant insert on taxa_de_ingestao to service_role;
+grant references on taxa_de_ingestao to service_role;
+grant select on taxa_de_ingestao to service_role;
+grant trigger on taxa_de_ingestao to service_role;
+grant truncate on taxa_de_ingestao to service_role;
+grant update on taxa_de_ingestao to service_role;
 grant select on uso_mensal to authenticated;
 grant delete on uso_mensal to service_role;
 grant insert on uso_mensal to service_role;
@@ -1415,6 +1588,7 @@ select cron.schedule('expurga_codigos_oauth', '7 * * * *', 'select public.fn_exp
 select cron.schedule('expurga_contas_canceladas', '30 4 * * *', 'select public.fn_expurga_contas_canceladas()');
 select cron.schedule('manutencao_particoes', '0 3 * * *', 'select public.fn_manutencao_particoes()');
 select cron.schedule('poda_cron_historico', '0 5 * * 0', 'select public.fn_poda_cron_historico()');
+select cron.schedule('poda_taxa_de_ingestao', '*/30 * * * *', 'select public.fn_poda_taxa_de_ingestao()');
 select cron.schedule('rebaixa_contas_vencidas', '15 5 * * *', 'select public.fn_rebaixa_contas_vencidas()');
 
 -- ==========================================================================
