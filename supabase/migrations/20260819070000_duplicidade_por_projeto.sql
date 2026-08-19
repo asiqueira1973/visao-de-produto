@@ -1,0 +1,39 @@
+-- ============================================================================
+-- 0023 — A deduplicação passa a ser por projeto
+--
+-- O que faz: troca a chave primária de `eventos` de `(ocorrido_em, id)` para
+--            `(ocorrido_em, projeto_id, id)`.
+-- Implementa: regra 11.4, corrigindo o escopo dela.
+--
+-- O PROBLEMA, encontrado por teste e não por leitura: a chave não tinha o
+-- projeto, então o `id` precisava ser único na PLATAFORMA INTEIRA. Dois
+-- projetos diferentes que mandassem o mesmo `id` no mesmo instante colidiam, e
+-- o segundo perdia o evento em silêncio, por causa do `on conflict do nothing`.
+-- Verificado: com dois projetos e o mesmo id, só uma linha era gravada.
+--
+-- Colisão aleatória de UUID v4 é irrelevante. O caminho realista é outro: quem
+-- constrói com IA assistida pede a chamada para o modelo, ele devolve um `id`
+-- de exemplo como `00000000-0000-0000-0000-000000000001`, e a pessoa sobe
+-- assim. É UUID válido e passa na validação. Duas pessoas fazendo isso no
+-- mesmo segundo colidem, e uma perde eventos sem nunca descobrir.
+--
+-- POR QUE O `id` CONTINUA VINDO DO CLIENTE: é ele que torna o reenvio seguro.
+-- Se a resposta se perde na volta e o app tenta de novo, o mesmo `id` impede
+-- que conte duas vezes. Gerar o id aqui trocaria uma duplicidade improvável por
+-- uma duplicidade garantida em todo timeout de rede.
+--
+-- POR QUE AGORA: mexer em chave primária de tabela particionada recria o índice
+-- no pai e em cada partição. Hoje são poucos milhares de linhas e leva segundos;
+-- com milhões e gente pagando, vira janela de manutenção.
+--
+-- O contrato da API não muda. Quem já integrou não precisa fazer nada.
+--
+-- LIMITAÇÃO QUE PERMANECE: a regra 11.6 substitui o `ocorrido_em` de um
+-- dispositivo com relógio mais de 48 h adiantado. Como o `ocorrido_em` faz parte
+-- da chave, um reenvio desse caso específico ainda pode gerar duas linhas.
+-- Corrigir exigiria índice único sem a coluna de partição, o que o Postgres não
+-- permite em tabela particionada.
+-- ============================================================================
+
+alter table eventos drop constraint eventos_pkey;
+alter table eventos add constraint eventos_pkey primary key (ocorrido_em, projeto_id, id);

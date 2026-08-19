@@ -1,5 +1,5 @@
 -- Esquema do banco de glohvqzopiffdghwppor, gerado do catálogo do Postgres.
--- Gerado por scripts/gerar-schema.sh em 2026-08-19T09:53:55Z.
+-- Gerado por scripts/gerar-schema.sh em 2026-08-19T23:14:41Z.
 --
 -- NÃO EDITE À MÃO. Quem manda são os arquivos de supabase/migrations/;
 -- este arquivo é o retrato do que eles produziram no banco de verdade.
@@ -178,7 +178,7 @@ create table eventos (
   recebido_em timestamp with time zone not null default now(),
   constraint chk_nome_evento CHECK (fn_valida_nome_evento(nome)),
   constraint eventos_conta_id_fkey FOREIGN KEY (conta_id) REFERENCES contas(id) ON DELETE CASCADE,
-  constraint eventos_pkey PRIMARY KEY (ocorrido_em, id),
+  constraint eventos_pkey PRIMARY KEY (ocorrido_em, projeto_id, id),
   constraint eventos_projeto_id_fkey FOREIGN KEY (projeto_id) REFERENCES projetos(id) ON DELETE CASCADE
 ) partition by RANGE (ocorrido_em);
 

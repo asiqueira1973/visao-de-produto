@@ -104,7 +104,15 @@ function validarEvento(
 
   if (!id || !UUID_VALIDO.test(id)) {
     return {
-      rejeicao: { id, campo: "id", motivo: "é obrigatório e precisa ser um UUID" },
+      rejeicao: {
+        id,
+        campo: "id",
+        // A mensagem mostra o formato porque quem erra este campo costuma mandar
+        // um número ou um texto qualquer, e "precisa ser um UUID" sozinho não
+        // diz que cara tem um UUID.
+        motivo:
+          "é obrigatório e precisa ser um UUID, no formato 3f9a1c2e-7b45-4d81-9e63-0a5f8c2d1b47, gerado novo a cada evento",
+      },
     };
   }
 
