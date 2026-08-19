@@ -17,7 +17,6 @@ import Link from "next/link";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { horarioRelativo } from "@/lib/formato";
 import type { ResumoDeProjeto } from "@/lib/data/tipos";
-import { BlocoCopiavel } from "@/features/shell/BlocoCopiavel";
 import { BotaoArquivar, BotaoCriarProjeto } from "@/features/projetos/AcoesDoProjeto";
 
 export const dynamic = "force-dynamic";
@@ -99,14 +98,9 @@ export default async function Projetos() {
                 maxWidth: 520,
               }}
             >
-              Dois caminhos. Pelo botão acima, você cria o projeto aqui e gera a chave nas
-              Configurações dele. Pelo comando abaixo, rodado dentro do repositório do
-              aplicativo, tudo acontece de uma vez: o projeto nasce, a chave vai para o{" "}
-              <span style={{ fontFamily: "var(--fonte-mono), monospace", fontSize: 12 }}>.env</span>{" "}
-              e o MCP é configurado no seu Claude.
-            </div>
-            <div style={{ marginTop: 16 }}>
-              <BlocoCopiavel texto="npx visao init" />
+              Um projeto é um aplicativo. Crie o primeiro pelo botão acima, gere a chave de
+              ingestão nas Configurações dele, e o seu app começa a mandar evento com uma
+              chamada HTTP — sem instalar pacote nenhum.
             </div>
           </div>
         )}

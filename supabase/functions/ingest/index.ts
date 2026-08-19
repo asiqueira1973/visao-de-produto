@@ -228,21 +228,41 @@ Deno.serve(async (req: Request) => {
 
   // Regra 11.5: é a chave que determina o projeto. Um `projeto_id` que venha no
   // payload é simplesmente ignorado — nem é lido.
-  const { data: credencial, error: erroCredencial } = await supabase.rpc(
-    "fn_valida_chave_ingestao",
-    { p_valor_hash: await hashDaChave(chave) },
+  //
+  // A mesma chamada também contabiliza a taxa e confere os dois limites da
+  // conta: o de eventos por minuto, que existe para parar laço mal escrito em
+  // tempo real, e o teto mensal, que pega abuso sustentado. Uma ida ao banco.
+  const { data: autorizacao, error: erroCredencial } = await supabase.rpc(
+    "fn_autoriza_ingestao",
+    { p_valor_hash: await hashDaChave(chave), p_quantidade: recebidos.length },
   );
 
   if (erroCredencial) {
-    console.error("falha ao validar a credencial", erroCredencial);
+    console.error("falha ao autorizar a ingestão", erroCredencial);
     return responder(500, { codigo: "erro_interno" });
   }
 
-  if (!credencial || credencial.length === 0) {
+  if (!autorizacao || autorizacao.length === 0) {
     return responder(401, { codigo: "credencial_invalida" });
   }
 
-  const { conta_id, projeto_id } = credencial[0];
+  const { conta_id, projeto_id, permitido, motivo, esperar_seg } = autorizacao[0];
+
+  if (!permitido) {
+    // 429, e não 403: do outro lado há um programa, e este é o código que um
+    // programa sabe interpretar e repetir depois. O `retry-after` diz quando.
+    const cabecalhos = esperar_seg
+      ? { ...CABECALHOS_CORS, "retry-after": String(esperar_seg) }
+      : CABECALHOS_CORS;
+
+    return new Response(
+      JSON.stringify({
+        codigo: String(motivo).split(":")[0],
+        mensagem: String(motivo).split(": ").slice(1).join(": "),
+      }),
+      { status: 429, headers: { "content-type": "application/json", ...cabecalhos } },
+    );
+  }
 
   const recebidoEm = new Date();
   const aceitaveis: EventoValidado[] = [];

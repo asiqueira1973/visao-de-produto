@@ -21,6 +21,18 @@ import { BlocoCopiavel } from "./BlocoCopiavel";
 /** O que aparece no lugar da chave quando ela não está mais disponível. */
 const CHAVE_OCULTA = "$VISAO_API_KEY";
 
+/**
+ * O SDK ainda não está publicado no npm.
+ *
+ * Enquanto `@dablab/visao` não existir no registro, `pnpm add @dablab/visao`
+ * falha — e instrução que não funciona é pior do que instrução ausente: quem
+ * tenta conclui que o produto está quebrado. Então a aba some, e o caminho
+ * mostrado é a API, que é o contrato estável (seção 12.1) e funciona hoje.
+ *
+ * Para devolver a aba, basta trocar esta linha para `true` depois de publicar.
+ */
+const SDK_PUBLICADO = false;
+
 export function TrechosDeInstalacao({
   slug,
   host,
@@ -30,7 +42,7 @@ export function TrechosDeInstalacao({
   host: string;
   chaveEmClaro?: string;
 }) {
-  const [aba, setAba] = useState<"sdk" | "api">("sdk");
+  const [aba, setAba] = useState<"sdk" | "api">(SDK_PUBLICADO ? "sdk" : "api");
   const chave = chaveEmClaro ?? CHAVE_OCULTA;
 
   const trechoDoSdk = `import { init, identify, track } from "@dablab/visao";
@@ -72,14 +84,16 @@ track("${slug.replace(/-/g, "_").slice(0, 20)}_algo_aconteceu", {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: "center" }}>
-        <button onClick={() => setAba("sdk")} style={estiloDaAba(aba === "sdk")}>
-          Com o SDK
-        </button>
-        <button onClick={() => setAba("api")} style={estiloDaAba(aba === "api")}>
-          Direto pela API
-        </button>
-      </div>
+      {SDK_PUBLICADO && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 10, alignItems: "center" }}>
+          <button onClick={() => setAba("sdk")} style={estiloDaAba(aba === "sdk")}>
+            Com o SDK
+          </button>
+          <button onClick={() => setAba("api")} style={estiloDaAba(aba === "api")}>
+            Direto pela API
+          </button>
+        </div>
+      )}
 
       {aba === "sdk" ? (
         <BlocoCopiavel texto={trechoDoSdk} rotulo="JavaScript, React Native ou Node" />

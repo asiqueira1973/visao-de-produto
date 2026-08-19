@@ -45,9 +45,9 @@ const COMO_SE_USA = [
   },
   {
     numero: "2",
-    titulo: "O app envia, pelo SDK ou direto pela API",
+    titulo: "O app envia, por uma chamada de API",
     texto:
-      "Uma chamada de rede com a chave de ingestão do projeto. Quem já chama uma API REST não precisa instalar pacote nenhum; quem prefere o SDK ganha fila offline e reenvio automático.",
+      "Uma chamada de rede com a chave de ingestão do projeto, em qualquer linguagem que saiba fazer POST. Não há pacote para instalar: o contrato é o REST, e é ele que não muda.",
   },
   {
     numero: "3",

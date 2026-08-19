@@ -65,8 +65,8 @@ export default async function Configuracoes({ params }: { params: Promise<{ slug
           <div style={{ padding: "14px 18px 12px" }}>
             <div style={{ fontSize: 13.5, fontWeight: 600 }}>Instalação</div>
             <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.5 }}>
-              Com o SDK, se o app for JavaScript. Direto pela API, se for qualquer outra
-              coisa — o contrato REST é o mesmo que o SDK usa por baixo.
+              Uma chamada HTTP com esta chave, de qualquer linguagem. O contrato REST é o
+              que não muda: o que for construído em cima dele continua valendo.
             </div>
           </div>
           <div style={{ padding: "0 18px 18px" }}>
