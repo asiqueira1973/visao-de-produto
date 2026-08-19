@@ -56,6 +56,18 @@ async function estadoDaConta() {
 const CLIENTE_STRIPE = "cus_teste_da_suite";
 
 beforeAll(async () => {
+  // Esta suíte fala com o site rodando, e não só com o banco. Sem o servidor
+  // no ar, os oito testes falham com "fetch failed" — mensagem que não diz o
+  // que fazer e que já custou um susto de achar que a cobrança tinha quebrado.
+  try {
+    await fetch(`${SITE}/api/saude`, { signal: AbortSignal.timeout(4_000) });
+  } catch {
+    throw new Error(
+      `O site não respondeu em ${SITE}. Esta suíte precisa dele no ar: rode \`pnpm dev\` ` +
+        "antes, ou aponte SITE_LOCAL para um ambiente publicado.",
+    );
+  }
+
   conta = await montarCenario("webhook");
 }, 60_000);
 
