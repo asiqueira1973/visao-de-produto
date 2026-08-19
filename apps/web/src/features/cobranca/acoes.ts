@@ -187,7 +187,7 @@ export async function criarSessaoDeCheckout(): Promise<{ url?: string; erro?: st
   const site = emissor();
 
   try {
-    const checkout = await stripe.checkout.sessions.create({
+    const checkout = await stripe().checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: PRECO_MENSAL, quantity: 1 }],
       // É por aqui que o webhook descobre de quem é o pagamento.
@@ -235,7 +235,7 @@ export async function abrirPortalDaStripe(): Promise<{ url?: string; erro?: stri
   }
 
   try {
-    const portal = await stripe.billingPortal.sessions.create({
+    const portal = await stripe().billingPortal.sessions.create({
       customer: conta.stripe_cliente_id,
       return_url: `${emissor()}/conta/perfil`,
     });

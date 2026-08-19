@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
   let evento;
   try {
-    evento = stripe.webhooks.constructEvent(corpo, assinatura, segredo);
+    evento = stripe().webhooks.constructEvent(corpo, assinatura, segredo);
   } catch (falha) {
     // Não logamos o corpo: ele pode trazer dado de cliente, e um corpo que não
     // passou na verificação não é confiável de nenhuma forma.
