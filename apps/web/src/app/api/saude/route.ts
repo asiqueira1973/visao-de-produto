@@ -18,15 +18,28 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/** Extrai o `ref` do projeto a partir da URL do Supabase. */
-function refDoProjeto(url: string | undefined): string {
-  return url?.match(/https:\/\/([a-z0-9]+)\.supabase\.co/)?.[1] ?? "desconhecido";
+/**
+ * Identifica o backend a partir da URL do Supabase.
+ *
+ * Devolve o `ref` do projeto quando o endereço é o do Supabase, e o próprio
+ * host quando é domínio próprio — que passou a ser o caso em produção, e fazia
+ * esta rota dizer "desconhecido" justamente no ambiente que mais importa.
+ */
+function identificaOBackend(url: string | undefined): string {
+  if (!url) return "não configurado";
+  const supabase = url.match(/https:\/\/([a-z0-9]+)\.supabase\.co/)?.[1];
+  if (supabase) return supabase;
+  try {
+    return new URL(url).host;
+  } catch {
+    return "endereço inválido";
+  }
 }
 
 export function GET() {
   return NextResponse.json({
     ambiente: process.env.VERCEL_ENV ?? "local",
-    supabase: refDoProjeto(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    supabase: identificaOBackend(process.env.NEXT_PUBLIC_SUPABASE_URL),
     site: process.env.NEXT_PUBLIC_SITE_URL ?? null,
     commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
     branch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
