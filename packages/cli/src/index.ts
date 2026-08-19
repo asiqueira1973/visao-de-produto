@@ -36,12 +36,13 @@ import { paraSlug, reconhecer, type Repositorio } from "./projeto.js";
  * Quem trabalha no repositório aponta para o ambiente de dev definindo
  * `VISAO_SITE` e `VISAO_HOST`, ou passando `--site=`.
  *
- * Ao ligar o domínio próprio (fase C), são estas duas linhas que mudam:
- * o site vai para `app.visaodeproduto.com.br` e a ingestão para
- * `api.visaodeproduto.com.br`. Nenhum outro lugar do pacote fixa endereço.
+ * Estes são os endereços PRÓPRIOS, e não os da Vercel e do Supabase. É o que
+ * torna a plataforma mudável de casa: a chave de ingestão que a CLI escreve no `.env` de
+ * um app vai durar anos lá dentro, e trocar de hospedagem não pode obrigar
+ * ninguém a fazer release de app.
  */
-const SITE_DE_PRODUCAO = "https://visao-de-produto.vercel.app";
-const HOST_DE_PRODUCAO = "https://glohvqzopiffdghwppor.supabase.co";
+const SITE_DE_PRODUCAO = "https://app.visaodeproduto.com.br";
+const HOST_DE_PRODUCAO = "https://api.visaodeproduto.com.br";
 
 /** Site que autoriza a instalação. Trocável por `--site`, para desenvolvimento. */
 const SITE_PADRAO = process.env.VISAO_SITE ?? SITE_DE_PRODUCAO;
