@@ -59,6 +59,36 @@ beforeAll(async () => {
   conta = await montarCenario("webhook");
 }, 60_000);
 
+/**
+ * A checagem de que o site está no ar é um TESTE, e não um `beforeAll`.
+ *
+ * Numa primeira versão eu pus isso num `beforeAll` que lançava exceção, para
+ * trocar o "fetch failed" por uma mensagem útil. O efeito foi pior: o Vitest
+ * marcou os nove testes como PULADOS, e `pnpm test` passou a sair com sucesso
+ * sem ter rodado nenhum deles. Suíte que pula em silêncio mente sobre a
+ * cobertura, e isso é pior do que falhar de forma confusa.
+ *
+ * Como teste, a ausência do servidor vira uma falha vermelha que explica o que
+ * fazer, e o comando sai com erro como deve.
+ */
+describe("pré-requisito", () => {
+  it("o site está no ar — esta suíte fala com ele, não só com o banco", async () => {
+    let respondeu = false;
+    try {
+      const r = await fetch(`${SITE}/api/saude`, { signal: AbortSignal.timeout(4_000) });
+      respondeu = r.ok;
+    } catch {
+      respondeu = false;
+    }
+
+    expect(
+      respondeu,
+      `O site não respondeu em ${SITE}. Rode \`pnpm dev\` antes, ou aponte SITE_LOCAL ` +
+        "para um ambiente publicado.",
+    ).toBe(true);
+  }, 30_000);
+});
+
 afterAll(async () => {
   await clienteDeServico().from("eventos_stripe").delete().eq("conta_id", conta.contaId);
   await conta?.limpar();

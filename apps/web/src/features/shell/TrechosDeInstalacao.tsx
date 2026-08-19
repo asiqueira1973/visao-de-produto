@@ -61,10 +61,10 @@ track("${slug.replace(/-/g, "_").slice(0, 20)}_algo_aconteceu", {
   -H "x-api-key: ${chave}" \\
   -d '{
     "eventos": [{
-      "id": "'"$(uuidgen | tr A-Z a-z)"'",
+      "id": "3f9a1c2e-7b45-4d81-9e63-0a5f8c2d1b47",
       "nome": "${slug.replace(/-/g, "_").slice(0, 20)}_algo_aconteceu",
       "distinct_id": "pessoa@exemplo.com",
-      "ocorrido_em": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
+      "ocorrido_em": "2026-08-19T14:32:05Z",
       "tela": "NomeDaTela",
       "descricao": "usuário fez a coisa que você quer medir",
       "propriedades": { "valor": 250 }
@@ -108,8 +108,16 @@ track("${slug.replace(/-/g, "_").slice(0, 20)}_algo_aconteceu", {
               lineHeight: 1.55,
             }}
           >
-            Até 100 eventos por chamada. O <code>id</code> é seu e serve de proteção contra
-            duplicata: reenviar o mesmo evento nunca conta duas vezes.
+            <strong style={{ color: "var(--text)" }}>O <code>id</code> precisa ser um UUID</strong>,
+            novo a cada evento. Número ou texto solto é recusado — o valor acima é só um exemplo, e
+            copiá-lo tal qual faz o segundo evento ser tratado como repetição do primeiro.
+            <br />
+            Ele é a sua proteção contra duplicata: reenviar o mesmo evento, com o mesmo id, nunca
+            conta duas vezes dentro deste projeto. É o que torna seguro tentar de novo quando a
+            rede falha.
+            <br />
+            O <code>ocorrido_em</code> é o instante em que a coisa aconteceu, em UTC. Até 100
+            eventos por chamada.
             {!chaveEmClaro && " Troque $VISAO_API_KEY pela chave deste projeto."}
           </div>
         </>

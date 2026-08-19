@@ -22,7 +22,7 @@ const CAMPOS_DO_EVENTO = [
   {
     campo: "id",
     obrigatorio: true,
-    texto: "UUID gerado por você. É a proteção contra duplicata: reenviar o mesmo id nunca conta duas vezes.",
+    texto: "Um UUID, novo a cada evento, gerado por você. Número ou texto solto é recusado. É a proteção contra duplicata: reenviar o mesmo id nunca conta duas vezes dentro do projeto.",
   },
   {
     campo: "nome",

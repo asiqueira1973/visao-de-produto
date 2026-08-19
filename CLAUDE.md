@@ -292,6 +292,38 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
+**E-mail transacional (Bird) — configurado pela metade.** O dono criou a conta no Bird,
+adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em 19/08/2026. **Os
+registros de DNS ainda não foram criados**, então nada é enviado.
+
+Para ligar, criar no registro.br:
+
+| Nome | Tipo | Valor |
+|---|---|---|
+| `bird-726-0826._domainkey` | TXT | a chave DKIM que o painel do Bird mostra |
+| `send` | CNAME | `us1.bounce.bird.com.` |
+| `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:dmarc-agg@dmarc.bird.com;` |
+
+**Dois blocos do painel do Bird ficam de fora, e não por esquecimento:**
+
+- **Rastreamento de abertura e clique (`links`).** O produto se sustenta em "nada é
+  capturado que não foi declarado". Rastrear leitura de e-mail em silêncio seria a primeira
+  coisa a desmentir isso. Se um dia entrar, tem que ser declarado na política de privacidade.
+- **Os três MX de recebimento.** A plataforma não precisa receber e-mail, e mexer no MX do
+  domínio raiz sem necessidade é abrir porta para quebrar entrega depois.
+
+**Os quatro e-mails a escrever, em ordem de valor:**
+
+1. **Conta encerrada, faltam N dias** — a janela de 30 dias da regra 11.17 só protege quem
+   lembra que pediu. É o único que evita perda de dado.
+2. **Pagamento falhou** — sem aviso, a pessoa perde o plano sem entender por quê.
+3. **Perto do teto de eventos** — `fn_uso_do_teto` já existe e devolve a fração usada.
+4. **Boas-vindas** — o de menor valor: serve para ter um canal, não para resolver problema.
+
+Os três primeiros só passam a existir quando houver usuários e cobrança ligada.
+
+
+
 **Épico de cobrança (F10) — desenhado, não implementado.** O desenho completo está em
 [`EPICO-COBRANCA.md`](EPICO-COBRANCA.md), decidido com o dono em 17/08/2026. Em resumo:
 **R$ 50/mês em real**, um preço para todos os projetos, retenção como gatilho, volume de
