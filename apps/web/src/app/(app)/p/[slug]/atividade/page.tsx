@@ -43,6 +43,10 @@ export default async function Atividade({
   const dias = filtros.periodo ? Number(filtros.periodo) : 7;
   const desde =
     Number.isFinite(dias) && dias > 0
+      // Componente de servidor com `force-dynamic`: isto roda uma vez por
+      // requisição, no servidor, e nunca é hidratado — não há o que divergir
+      // entre servidor e navegador. A regra de pureza não distingue os dois.
+      // eslint-disable-next-line react-hooks/purity
       ? new Date(Date.now() - dias * 86_400_000).toISOString()
       : null;
 

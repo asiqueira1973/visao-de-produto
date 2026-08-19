@@ -11,6 +11,7 @@
  * em comportamento.
  */
 
+import Link from "next/link";
 import { BotaoGoogle } from "@/features/auth/BotaoGoogle";
 
 export default async function Login({
@@ -94,6 +95,13 @@ export default async function Login({
 
           <div style={{ fontSize: 11.5, color: "var(--faint)", lineHeight: 1.5 }}>
             Entrar cria sua conta na primeira vez. Não há senha para lembrar.
+          </div>
+
+          {/* Entrar aceita os termos, então eles precisam estar legíveis aqui —
+              e não atrás do login que a pessoa ainda não fez. */}
+          <div style={{ fontSize: 11.5, color: "var(--faint)", lineHeight: 1.5 }}>
+            Ao entrar, você concorda com os{" "}
+            <Link href="/termos">Termos de uso e a Política de privacidade</Link>.
           </div>
         </div>
       </div>

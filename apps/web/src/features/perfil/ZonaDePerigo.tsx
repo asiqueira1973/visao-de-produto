@@ -19,19 +19,20 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cancelarConta, reativarConta } from "./acoes";
+import { DIAS_DE_GRACA } from "./dias";
 
 /** A palavra que destrava o botão. */
 const CONFIRMACAO = "APAGAR";
 
-/** Dias que a regra 11.17 dá antes do expurgo definitivo. */
-const DIAS_DE_GRACA = 30;
-
 export function ZonaDePerigo({
   canceladaEm,
+  diasRestantes,
   projetos,
   eventos,
 }: {
   canceladaEm: string | null;
+  /** Quantos dias faltam para o expurgo. Calculado no servidor, de propósito. */
+  diasRestantes: number;
   projetos: number;
   eventos: number;
 }) {
@@ -41,18 +42,6 @@ export function ZonaDePerigo({
   const [pendente, iniciarTransicao] = useTransition();
 
   const cancelada = Boolean(canceladaEm);
-
-  // Quantos dias ainda restam até o expurgo. Arredonda para cima: dizer "faltam
-  // 0 dias" num dia em que ainda dá para desfazer seria mentira.
-  const diasRestantes = canceladaEm
-    ? Math.max(
-        0,
-        Math.ceil(
-          DIAS_DE_GRACA -
-            (Date.now() - new Date(canceladaEm).getTime()) / 86_400_000,
-        ),
-      )
-    : DIAS_DE_GRACA;
 
   function cancelar() {
     setErro(null);

@@ -7,3 +7,6 @@ packages:
 allowBuilds:
   esbuild: true
   supabase: true
+  # Resolvedor nativo do plugin de import do ESLint. Só ferramenta de
+  # desenvolvimento; sem o binário, o lint não resolve os caminhos.
+  unrs-resolver: true

@@ -29,11 +29,16 @@ export default async function LayoutDoApp({ children }: { children: React.ReactN
   // 11.17) — o aviso existe para ela não perder o prazo por esquecimento.
   const { data: conta } = await supabase.from("contas").select("cancelada_em").maybeSingle();
 
+  // O grupo de administração só aparece para quem administra a plataforma. Quem
+  // decide isso é o banco, não o site.
+  const { data: admin } = await supabase.rpc("fn_eh_admin");
+
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden" }}>
       <MenuLateral
         projetos={projetos ?? []}
         email={user.email ?? "sem e-mail"}
+        ehAdmin={admin === true}
       />
       <main
         style={{

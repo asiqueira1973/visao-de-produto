@@ -41,6 +41,10 @@ login com Google, sem ninguém aprovar nada.
 | `stripe_cliente_id` | Reservado para a cobrança da v2. Criado agora para não exigir migration na tabela raiz depois |
 | `criada_em` | Quando a conta nasceu |
 | `cancelada_em` | Nulo = ativa. Preenchido, a conta está cancelada e some em 30 dias (regra 11.17) |
+| `cortesia` | Conta paga sem Stripe. Enquanto verdadeira, nenhuma rotina de cobrança encosta nela |
+| `assinatura_id` | A assinatura no Stripe. Nulo em conta gratuita e em cortesia |
+| `assinatura_status` | **Espelho** do estado no Stripe: `nenhuma`, `ativa`, `atrasada`, `cancelada`. A verdade mora no Stripe |
+| `periodo_fim` | Até quando o período pago vale. Cancelar não rebaixa na hora; rebaixa quando este prazo passa |
 
 ### `usuarios_conta` — quem é dono do quê
 
@@ -124,6 +128,37 @@ acaba de subir. `titulo` nulo significa "use a descrição do catálogo".
 | `valor_hash` | SHA-256 do valor completo. **O valor em claro aparece uma única vez** |
 | `ultimo_uso_em` | Atualizado no máximo 1× por minuto, para não transformar cada ingestão numa escrita extra |
 | `revogada_em` | Nulo = ativa. Revogada nunca é reativada; gera-se outra |
+
+### `dados_de_cobranca` — o tomador da nota fiscal
+
+Existe só para quem paga. Tabela própria, e não colunas em `contas`, porque carrega CPF ou
+CNPJ — dado pessoal de outra natureza, que merece política e exclusão próprias.
+
+| Coluna | O que significa |
+|---|---|
+| `tipo` | `pf` ou `pj`. **Decide o que é obrigatório** |
+| `documento` | CPF ou CNPJ, só dígitos. Tamanho conferido por check conforme o tipo |
+| `nome` | Nome completo na física; razão social na jurídica |
+| `email_nota` | Para onde a nota vai. Nulo usa o e-mail do dono da conta |
+| `cep`, `logradouro`, `numero`, `complemento`, `bairro`, `municipio`, `uf` | Endereço. **Obrigatório apenas para `pj`**, garantido pelo check `chk_endereco_da_pj` |
+
+Os campos obrigatórios não foram inventados: saíram do formulário real da Contabilizei, que
+é por onde a nota é emitida. Pessoa física ali pede dois campos, e o endereço fica atrás de
+um botão desligado — então aqui também.
+
+### `eventos_stripe` — a tabela que impede cobrar duas vezes
+
+A chave primária é o `event.id` do **próprio Stripe**. Webhook chega duplicado, fora de ordem
+e às vezes simultâneo; o `insert` com essa chave é o que torna o processamento idempotente.
+`processado_em` nulo significa "chegou e ainda não foi aplicado" — e é assim que fica quando
+o processamento falha no meio, para o reenvio do Stripe conseguir tentar de novo.
+
+### `administradores` e `acoes_admin`
+
+Admin é papel de **plataforma**, não de conta: por isso tabela própria, e não um valor novo
+em `papel_conta`, que descreve papel dentro de uma conta. `acoes_admin` registra quem fez o
+quê, sobre qual conta, com o antes e o depois — **inclusive quando quem fez foi o dono.**
+Auditoria que abre exceção para o dono não é auditoria.
 
 ---
 
@@ -476,12 +511,27 @@ Rodado após a última DDL do épico 8.1.
   `idx_usuarios_conta_conta`.
 - `auth_rls_initplan` (WARN, 2): as políticas do MCP passaram a usar
   `(select current_setting(...))`, avaliado uma vez por consulta em vez de uma vez por linha.
+  **O advisor continua listando o alerta mesmo depois do conserto** — ele casa o texto da
+  política e não reconhece a forma com subselect. Que o conserto pegou está provado pelo
+  plano de execução, rodando como o papel do MCP:
+
+  ```
+  Seq Scan on projetos
+    Filter: (conta_id = (InitPlan 1).col1)
+    InitPlan 1
+  ```
+
+  `InitPlan` é justamente "avalia uma vez e reaproveita". Fica registrado aqui para que
+  ninguém tente "consertar" de novo o que já está certo.
 
 **Aceitos, com motivo**
 
-- `authenticated_security_definer_function_executable` (WARN, 4): `fn_contas_do_usuario`,
-  `fn_projetos_do_usuario`, `fn_paineis_do_usuario` e `fn_janela_visivel` continuam executáveis por
-  `authenticated` porque as políticas de RLS são avaliadas com o papel de quem consulta —
+- `authenticated_security_definer_function_executable` (WARN, 5): `fn_contas_do_usuario`,
+  `fn_projetos_do_usuario`, `fn_paineis_do_usuario`, `fn_janela_visivel` e `fn_eh_admin`
+  continuam executáveis por `authenticated`. A `fn_eh_admin` entrou na lista com a cobrança e
+  é o caso mais fácil de justificar: ela responde **sim ou não sobre quem perguntou**, devolve
+  falso para todo mundo que não é admin, e não dá acesso a coisa nenhuma — quem dá são as
+  funções de agregado, que não estão expostas. As outras quatro continuam por causa da RLS: porque as políticas de RLS são avaliadas com o papel de quem consulta —
   sem `EXECUTE`, o dono não leria o próprio dado. Elas devolvem apenas ids da própria conta
   de quem chama.
 - `rls_enabled_no_policy` (INFO, 13 partições): é exatamente o desenho. Partição com RLS
@@ -489,3 +539,60 @@ Rodado após a última DDL do épico 8.1.
 - `auth_leaked_password_protection` (WARN): não se aplica. Não existe senha no produto — o
   único método de login é Google (assunção 21.3).
 - `unused_index` (INFO): banco recém-criado, nenhum índice foi usado ainda.
+
+---
+
+## 7. Definition of Done (seção 23), conferido item a item
+
+Conferido em 18 de agosto de 2026. **Um item não foi cumprido**, e está marcado como tal —
+lista de verificação com item marcado por educação não serve para nada.
+
+### Funcional
+
+| | Item | Como foi verificado |
+|---|---|---|
+| ✅ | Critérios de aceite dos épicos 8.1 a 8.7, um a um | Verificados contra o banco e os endpoints reais ao longo da construção, e não por leitura de código. Três defeitos apareceram só por causa disso: o vazamento das partições, as funções destrutivas chamáveis por anônimo, e a precedência invertida da descrição |
+| ❌ | **App real da Dab Lab enviando eventos em produção há pelo menos 7 dias** | **Não cumprido.** A plataforma subiu há um dia. Só o tempo resolve, e o dono ainda vai apagar os dados atuais para semear uma base de CRM fictícia |
+| ✅ | "O que aconteceu no app essa semana" respondida pelo Claude via MCP, sem citar nome de evento | Verificado pelo próprio dono, no Claude Desktop: ele perguntou em português, o Claude consultou as tools e devolveu resposta e gráfico sem que nenhum nome de evento fosse citado na pergunta |
+
+### Banco e código
+
+| | Item | Como foi verificado |
+|---|---|---|
+| ✅ | Banco inteiramente em português, `snake_case` | 25 tabelas, 27 funções, 5 enums. O `schema.sql` é o retrato, e não há um nome fora do padrão |
+| ✅ | Funções, rotas, triggers e políticas comentadas em português citando a seção | Convenção seguida em todo arquivo criado; os cabeçalhos dizem o que faz, o que recebe, o que devolve e qual regra implementa |
+| ✅ | `pnpm typecheck` e `pnpm lint` sem erro | **Os dois passam.** O `lint` estava quebrado desde o começo: o script era `next lint`, comando que o Next 16 removeu, e por isso nunca tinha rodado. Trocado por ESLint direto, com configuração no repositório |
+| ✅ | Suíte de testes da seção 19 verde | 66 testes: 40 de integração (regras de negócio, RLS, partições, contrato do MCP), 17 do SDK e 9 da CLI |
+
+### Documentação
+
+| | Item | Onde |
+|---|---|---|
+| ✅ | `DOCUMENTACAO-TECNICA.md` com os seis itens da seção 16 | Este arquivo |
+| ✅ | `CLAUDE.md` com convenções, arquitetura, comandos e pegadinhas | [`CLAUDE.md`](CLAUDE.md) |
+| ✅ | `README.md` com setup local, variáveis e migrations | [`README.md`](README.md) |
+| ✅ | `schema.sql` gerado do banco real | 1108 linhas, por [`scripts/gerar-schema.sh`](scripts/gerar-schema.sh), lendo o catálogo do Postgres |
+
+### Segurança e privacidade
+
+| | Item | Resultado |
+|---|---|---|
+| ✅ | `get_advisors` (segurança e performance) após a última DDL, sem alerta crítico | Rodado nos dois ambientes. Nenhum alerta de nível ERROR. Os WARN restantes estão no anexo, cada um com o motivo de ser aceito |
+| ✅ | Teste confirmando que `anon` não lê nenhuma tabela | `rls-e-particoes.test.ts`, tabela por tabela, **incluindo as partições de `eventos`** — que é onde estava o furo |
+| ✅ | Teste confirmando que `consulta` rejeita `insert`, `update`, `delete` e `drop` | `mcp.test.ts`, seis casos, incluindo `with x as (select 1) delete from eventos`, que passa pela primeira barreira e prova que a segunda existe |
+| ✅ | Nenhuma chave de serviço em bundle de cliente | Busca no `.next` construído: a `service_role` e o token pessoal não aparecem em nenhum arquivo estático. O que aparece é a URL do projeto e a chave `anon`, que são públicas por desenho |
+| ✅ | Nenhum evento com campo que o app não enviou (princípio 0.1) | Consulta sobre **todas** as chaves de `propriedades` em produção: `forma`, `origem`, `valor` — as três declaradas pelo app. Nada de IP, geolocalização, user-agent ou dispositivo. As colunas de `eventos` são exatamente as dez da seção 7.4 |
+
+### Não-funcional
+
+| | Item | Medido |
+|---|---|---|
+| ✅ | Ingestão de lote de 100 abaixo de 500 ms de CPU | **328 ms de ida e volta** da máquina do dono até `sa-east-1`, o que inclui rede, Edge Function e banco. O tempo de CPU é um pedaço disso, então o limite está cumprido com folga |
+| ✅ | Tela de Atividade abaixo de 1,5 s com 100 mil eventos semeados | **28 a 63 ms** com 100.300 eventos no projeto. O índice `(projeto_id, ocorrido_em desc)` faz o trabalho |
+| ✅ | SDK offline: 30 eventos sem rede chegam exatamente 30 | `sdk.test.ts`, e confere também que os 30 ids são distintos — reenvio não duplica |
+
+### O que fica pendente, e por quê
+
+O único item aberto é **tempo de estrada**: sete dias de app real em produção. Não há atalho,
+e marcar como feito seria mentir para o próprio checklist. Os outros dezesseis estão cumpridos
+e verificados contra o sistema em funcionamento, não contra a intenção.

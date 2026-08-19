@@ -26,11 +26,38 @@ responsabilidade do agente, não dele. Ele não usa terminal: quem roda comando 
 Commit de trabalho pela metade é aceito, com prefixo `wip:`. O que não pode é ele trocar
 de máquina com coisa não enviada.
 
-**Se ele disser que está numa máquina nova:** clone o repositório, `pnpm install`, e monte
-o `.env` a partir do `.env.example`, pedindo os valores que faltarem um a um e dizendo
-onde ele acha cada um. O banco é o mesmo (Supabase na nuvem); só o ambiente local precisa
-ser remontado. **Não rode migration nova sem antes checar o estado do banco remoto**
-(`list_migrations` do MCP do Supabase).
+### Máquina nova — o roteiro completo
+
+O dono trabalha em mais de um computador e **não usa terminal**. Quando ele disser que
+está numa máquina nova, faça tudo você, nesta ordem, sem pedir que ele rode nada:
+
+1. `git clone git@github.com:asiqueira1973/visao-de-produto.git` (ou por HTTPS, se a chave
+   SSH não estiver lá). **A branch de trabalho é `dev`, não `main`.**
+2. `pnpm install`. Se o `pnpm` não existir na máquina, instale com `npm i -g pnpm`.
+3. Monte os `.env`. **Eles não estão no git, e é assim que tem que ser** — então esta é a
+   única parte em que você precisa dele. Peça os valores **um a um**, dizendo exatamente
+   onde clicar, e não peça os três de uma vez:
+
+| Variável | Onde ele acha |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → projeto **Visao de Produto — Dev** → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | mesma tela, chave `anon` |
+| `SUPABASE_SERVICE_ROLE_KEY` | mesma tela, chave `service_role` |
+| `SUPABASE_ACCESS_TOKEN` | supabase.com/dashboard/account/tokens — pode gerar um novo, não precisa ser o mesmo |
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → **Secret key de TESTE** (`sk_test_…`) |
+| `STRIPE_PRICE_ID` | Stripe → Product catalog → "Visão de Produto — Plano pago" → o preço de R$ 50/mês |
+| `STRIPE_WEBHOOK_SECRET` | **não precisa pedir**: gere um valor local qualquer começando com `whsec_`. Só precisa ser o mesmo que a suíte usa para assinar |
+| `VISAO_API_KEY` | deixe vazia; só serve para instrumentar um app |
+| `VISAO_HOST` | mesmo valor de `NEXT_PUBLIC_SUPABASE_URL` |
+
+4. Copie o `.env` resultante para `.env.dev`, para o arranjo de dois ambientes continuar
+   valendo. O `.env.producao` só é necessário se ele for mexer em produção naquela máquina.
+5. Faça login na Vercel (`./node_modules/.bin/vercel login`) **só se** for mexer em deploy.
+6. Rode `pnpm typecheck`, `pnpm lint` e `pnpm test` antes de tocar em qualquer coisa: se os
+   três passarem, o ambiente está montado de verdade.
+
+O banco é o mesmo, na nuvem — não há nada para restaurar. **Não rode migration nova sem
+antes conferir o estado do banco remoto** (`list_migrations` do MCP do Supabase).
 
 ### Segredos — regra dura
 
@@ -45,10 +72,20 @@ colar uma chave no chat, use e não escreva em lugar nenhum além do `.env`.
 
 Existem **dois projetos Supabase**, e eles não se misturam:
 
-| | Projeto Supabase | Para que serve |
-|---|---|---|
-| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
-| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | Os dados reais do dono. Só recebe o que já passou por dev |
+| | Projeto Supabase | Endereço | Para que serve |
+|---|---|---|---|
+| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | site `dev.visaodeproduto.com.br`, API no `.supabase.co` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
+| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | site `app.visaodeproduto.com.br`, API `api.visaodeproduto.com.br` | Os dados reais do dono. Só recebe o que já passou por dev |
+
+**Os endereços de produção são os próprios, e isso não é enfeite.** A chave de ingestão e o
+host que a CLI escreve no `.env` de um app ficam lá por anos: se apontassem para o Supabase,
+trocar de hospedagem obrigaria todo mundo que instrumentou a fazer release de app. O
+`api.visaodeproduto.com.br` faz essa troca virar um registro de DNS.
+
+A virada de endereço está em [`scripts/virar-para-o-dominio.sh`](scripts/virar-para-o-dominio.sh),
+e **a ordem dos passos dele importa**: a função do MCP precisa saber o endereço novo ANTES de
+o site mudar, senão quem se conectar recebe um documento de OAuth apontando para o lugar
+errado e a conexão é recusada sem mensagem que explique.
 
 O `.env` local aponta para **dev**. Os dois arquivos completos ficam lado a lado na
 máquina, fora do git: `.env.dev` e `.env.producao`. Trocar de ambiente é copiar um por
@@ -57,10 +94,16 @@ cima do `.env` e reiniciar o servidor.
 ### Regra de migration — não tem exceção
 
 1. Escreva o `.sql` em `supabase/migrations/`.
-2. Aplique em **dev** com `apply_migration`, rode `get_advisors` (segurança e performance)
-   e verifique o efeito de verdade.
-3. Só então aplique **o mesmo arquivo** em prod, e rode os advisors lá também.
-4. Commit do `.sql` junto da mudança de código que depende dele.
+2. Aplique em **dev**, rode `get_advisors` (segurança e performance) e verifique o efeito
+   de verdade — com dados, não por leitura.
+3. Commit do `.sql` junto da mudança de código que depende dele, na branch `dev`.
+4. **Produção recebe a migration quando a feature chega em `main`**, e não antes. Enquanto
+   uma feature está pela metade, os dois bancos ficam diferentes de propósito: é para isso
+   que existem dois. Aplicar em prod cedo enche o banco de produção de tabela órfã.
+5. Ao aplicar em prod, rode os advisors lá também e regenere o `schema.sql`.
+
+O `schema.sql` retrata **produção**. Se ele não mostra uma tabela que existe no dev, isso não
+é erro: é uma feature ainda em construção.
 
 **Nunca** rode SQL solto em produção. Se um ajuste precisou ser feito à mão para uma
 migration passar, ele vira linha da migration — foi assim que a 0007 ganhou o
@@ -87,10 +130,23 @@ Publicar em dev **não** publica em prod. Ao mexer em `supabase/functions/`, pub
 dois, a partir do arquivo do repositório, e compare o `ezbr_sha256` das duas respostas: se
 os hashes divergirem, alguém publicou algo que não está no git.
 
-**Pendência conhecida:** a função `mcp` de dev anuncia `visao-de-produto.vercel.app` como
-servidor de autorização, porque o segredo `VISAO_SITE` só existe em prod. Assim que o site
-de dev tiver endereço, defina `VISAO_SITE` no projeto de dev — sem isso, conectar o Claude
-ao MCP de dev manda a pessoa autorizar em produção.
+Existe um `SUPABASE_ACCESS_TOKEN` no `.env`, então dá para publicar função e definir
+segredo pela CLI, sem painel:
+
+```bash
+./node_modules/.bin/supabase secrets set --project-ref <ref> NOME=valor
+```
+
+`VISAO_SITE` já está definido nos dois projetos, cada um apontando para o próprio site.
+Sem isso, conectar o Claude ao MCP de dev mandaria a pessoa autorizar em **produção** e
+devolveria um token que não serve lá — foi assim que nasceu.
+
+**Divergência aceita, com data para acabar:** a função `mcp` publicada em produção tem os
+comentários abreviados em relação ao arquivo do repositório. O código executável é idêntico
+— conferido linha a linha. O dono decidiu não republicar só por causa de comentário. Isso se
+resolve sozinho na fase C, quando `VISAO_ORIGEM_PUBLICA` obrigar a publicar de novo a partir
+do arquivo. Até lá, **não** trate o `ezbr_sha256` diferente dessa função como sinal de
+problema.
 
 ---
 
@@ -236,13 +292,20 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
-**Épico de cobrança (F10) — a desenhar.** Pedido do dono em 17/08/2026: desenhar o épico de
-billing por inteiro, incluindo os jobs de cron. Base que já existe na v1 e não precisa ser
-refeita: `contas.plano`, `contas.retencao_meses`, `contas.limite_projetos`,
-`contas.stripe_cliente_id` e a tabela `uso_mensal` alimentada por `fn_agrega_uso_mensal()`.
-O gatilho de cobrança é **projetos e retenção, nunca volume de eventos** (regra 11.15).
-Depende das perguntas 22.1 (preço em USD) e 22.6 (contrato de operação). **É desenho, não
-implementação** — a seção 25 mantém F10 fora do MVP.
+**Épico de cobrança (F10) — desenhado, não implementado.** O desenho completo está em
+[`EPICO-COBRANCA.md`](EPICO-COBRANCA.md), decidido com o dono em 17/08/2026. Em resumo:
+**R$ 50/mês em real**, um preço para todos os projetos, retenção como gatilho, volume de
+evento **não** é preço, rebaixar não apaga nada, e admin lê agregado sem tocar em política de
+RLS existente.
+
+A moeda mudou de USD para BRL depois de descobrir que a conta Stripe do dono é brasileira e
+liquida em real. A consequência assumida é **emitir NFS-e**, e a recomendação registrada é
+emitir **à mão na primeira versão** — automatizar nota fiscal é épico próprio e não se paga
+antes de dezenas de clientes por mês. Os dados do tomador, esses sim, são guardados desde o
+primeiro cliente: é a parte que dói fazer depois.
+
+A pergunta 22.6 (contrato revisado por advogado) segue aberta. O dono decidiu seguir sem
+advogado por ora e autorizou a redação do texto de Termos, que já fala de cobrança.
 
 **Resolvido no épico 8.8:** as duas portas de entrada do MCP existem — arquivo de
 configuração para quem usa terminal (e a CLI escreve sozinha), e OAuth para quem só tem o

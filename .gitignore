@@ -30,3 +30,7 @@ _to_delete/
 
 # artefatos de build do TypeScript
 *.tsbuildinfo
+.vercel
+.env*
+# o exemplo é o único que vai para o git: ele não tem valor nenhum dentro
+!.env.example
