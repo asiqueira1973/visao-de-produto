@@ -72,10 +72,20 @@ colar uma chave no chat, use e não escreva em lugar nenhum além do `.env`.
 
 Existem **dois projetos Supabase**, e eles não se misturam:
 
-| | Projeto Supabase | Para que serve |
-|---|---|---|
-| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
-| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | Os dados reais do dono. Só recebe o que já passou por dev |
+| | Projeto Supabase | Endereço | Para que serve |
+|---|---|---|---|
+| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | site `dev.visaodeproduto.com.br`, API no `.supabase.co` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
+| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | site `app.visaodeproduto.com.br`, API `api.visaodeproduto.com.br` | Os dados reais do dono. Só recebe o que já passou por dev |
+
+**Os endereços de produção são os próprios, e isso não é enfeite.** A chave de ingestão e o
+host que a CLI escreve no `.env` de um app ficam lá por anos: se apontassem para o Supabase,
+trocar de hospedagem obrigaria todo mundo que instrumentou a fazer release de app. O
+`api.visaodeproduto.com.br` faz essa troca virar um registro de DNS.
+
+A virada de endereço está em [`scripts/virar-para-o-dominio.sh`](scripts/virar-para-o-dominio.sh),
+e **a ordem dos passos dele importa**: a função do MCP precisa saber o endereço novo ANTES de
+o site mudar, senão quem se conectar recebe um documento de OAuth apontando para o lugar
+errado e a conexão é recusada sem mensagem que explique.
 
 O `.env` local aponta para **dev**. Os dois arquivos completos ficam lado a lado na
 máquina, fora do git: `.env.dev` e `.env.producao`. Trocar de ambiente é copiar um por
