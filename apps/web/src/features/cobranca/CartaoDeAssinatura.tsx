@@ -20,6 +20,12 @@ import { useRouter } from "next/navigation";
 import { abrirPortalDaStripe, criarSessaoDeCheckout } from "./acoes";
 
 export interface EstadoDaAssinatura {
+  /**
+   * Se este ambiente tem a Stripe configurada. Quando falso, a tela mostra o
+   * plano e o preço, mas não oferece um botão que não levaria a lugar nenhum:
+   * botão que falha é pior do que botão ausente.
+   */
+  cobrancaLigada: boolean;
   plano: "gratuito" | "pago";
   cortesia: boolean;
   assinaturaStatus: "nenhuma" | "ativa" | "atrasada" | "cancelada";
@@ -102,6 +108,43 @@ export function CartaoDeAssinatura({ estado }: { estado: EstadoDaAssinatura }) {
   }
 
   const emEspera = estado.retorno === "processando" && estado.plano === "gratuito";
+
+  // Ambiente sem cobrança: diz o que existe e o que ainda não, sem prometer
+  // botão nenhum.
+  if (!estado.cobrancaLigada && estado.plano === "gratuito") {
+    return (
+      <div style={CAIXA}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Plano gratuito</div>
+            <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.65 }}>
+              1 projeto e 1 mês de janela de consulta.
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            marginTop: 14,
+            border: "1px solid var(--line2)",
+            borderRadius: 9,
+            background: "var(--elev)",
+            padding: "11px 13px",
+            fontSize: 12.5,
+            color: "var(--dim)",
+            lineHeight: 1.65,
+          }}
+        >
+          <strong style={{ color: "var(--text)" }}>O plano pago ainda não está disponível.</strong>{" "}
+          Ele vai custar R$ 50 por mês e dar projetos ilimitados com 12 meses de janela. Quando
+          abrir, o botão aparece aqui — e nada muda para quem já está usando o gratuito.
+        </div>
+        <div style={{ marginTop: 12, fontSize: 11.5, color: "var(--faint)", lineHeight: 1.6 }}>
+          As regras de cobrança já estão escritas em{" "}
+          <Link href="/conta/termos">Termos e privacidade</Link>.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={CAIXA}>

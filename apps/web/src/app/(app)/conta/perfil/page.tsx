@@ -21,6 +21,7 @@ import { NomeDaConta } from "@/features/perfil/NomeDaConta";
 import { ZonaDePerigo } from "@/features/perfil/ZonaDePerigo";
 import { diasAteOExpurgo } from "@/features/perfil/dias";
 import { CartaoDeAssinatura } from "@/features/cobranca/CartaoDeAssinatura";
+import { cobrancaConfigurada } from "@/features/cobranca/stripe";
 import { dataCurta } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -197,6 +198,7 @@ export default async function Perfil({
         </div>
         <CartaoDeAssinatura
           estado={{
+            cobrancaLigada: cobrancaConfigurada(),
             plano: (conta?.plano as "gratuito" | "pago") ?? "gratuito",
             cortesia: Boolean(conta?.cortesia),
             assinaturaStatus:

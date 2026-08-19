@@ -14,12 +14,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { cobrancaConfigurada } from "@/features/cobranca/stripe";
 import { PainelDeAssinatura } from "@/features/cobranca/PainelDeAssinatura";
 import type { DadosDoTomador } from "@/features/cobranca/acoes";
 
 export const dynamic = "force-dynamic";
 
 export default async function Assinar() {
+  // Ambiente sem cobrança não tem o que assinar: a tela some em vez de pedir
+  // CPF para um pagamento que não existe.
+  if (!cobrancaConfigurada()) redirect("/conta/perfil");
+
   const supabase = await clienteDaSessao();
 
   const { data: conta } = await supabase
