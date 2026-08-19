@@ -37,6 +37,9 @@ const ROTAS_PUBLICAS = [
   // Quem chama é a Stripe, que não tem sessão de navegador. Quem autentica o
   // request é a assinatura criptográfica, conferida dentro da própria rota.
   "/api/cobranca/webhook",
+  // Quem chama é o agendador da Vercel, que também não tem sessão. Quem
+  // autentica é o CRON_SECRET, conferido dentro da rota.
+  "/api/cobranca/reconciliar",
 ];
 
 export default async function proxy(request: NextRequest) {

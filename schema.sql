@@ -1,5 +1,5 @@
 -- Esquema do banco de ntdjmdqiqjpnufrekorp, gerado do catálogo do Postgres.
--- Gerado por scripts/gerar-schema.sh em 2026-08-19T01:36:17Z.
+-- Gerado por scripts/gerar-schema.sh em 2026-08-19T01:41:37Z.
 --
 -- NÃO EDITE À MÃO. Quem manda são os arquivos de supabase/migrations/;
 -- este arquivo é o retrato do que eles produziram no banco de verdade.
@@ -96,6 +96,7 @@ create table contas (
   assinatura_id text,
   assinatura_status status_assinatura not null default 'nenhuma'::status_assinatura,
   periodo_fim timestamp with time zone,
+  limite_eventos_mes integer not null default 1000000,
   constraint contas_pkey PRIMARY KEY (id)
 );
 
@@ -969,6 +970,26 @@ AS $function$
    and e.ocorrido_em <  j.fim
   group by j.inicio, j.fim
   order by j.inicio
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_uso_do_teto(p_conta_id uuid)
+ RETURNS TABLE(eventos_no_mes bigint, teto integer, fracao numeric)
+ LANGUAGE sql
+ STABLE
+ SET search_path TO ''
+AS $function$
+  select
+    coalesce(m.eventos_recebidos, 0),
+    c.limite_eventos_mes,
+    case
+      when c.limite_eventos_mes is null or c.limite_eventos_mes = 0 then 0
+      else round(coalesce(m.eventos_recebidos, 0)::numeric / c.limite_eventos_mes, 4)
+    end
+  from public.contas c
+  left join public.uso_mensal m
+    on m.conta_id = c.id and m.competencia = date_trunc('month', now())::date
+  where c.id = p_conta_id
 $function$
 ;
 
