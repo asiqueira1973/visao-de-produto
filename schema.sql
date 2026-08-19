@@ -1,5 +1,5 @@
--- Esquema do banco de glohvqzopiffdghwppor, gerado do catálogo do Postgres.
--- Gerado por scripts/gerar-schema.sh em 2026-08-18T01:04:16Z.
+-- Esquema do banco de ntdjmdqiqjpnufrekorp, gerado do catálogo do Postgres.
+-- Gerado por scripts/gerar-schema.sh em 2026-08-19T01:36:17Z.
 --
 -- NÃO EDITE À MÃO. Quem manda são os arquivos de supabase/migrations/;
 -- este arquivo é o retrato do que eles produziram no banco de verdade.
@@ -17,10 +17,13 @@ create extension if not exists "uuid-ossp" with schema extensions;
 -- ==========================================================================
 -- Enums (seção 7.2)
 
+create type acao_admin as enum ('consultou_contas', 'consultou_conta', 'concedeu_cortesia', 'removeu_cortesia', 'promoveu_admin', 'revogou_admin');
 create type janela_periodo as enum ('7d', '14d', '30d', '90d');
 create type papel_conta as enum ('dono', 'membro', 'leitor');
 create type plano_conta as enum ('gratuito', 'pago');
+create type status_assinatura as enum ('nenhuma', 'ativa', 'atrasada', 'cancelada');
 create type tipo_credencial as enum ('ingestao', 'leitura');
+create type tipo_tomador as enum ('pf', 'pj');
 create type tipo_visualizacao as enum ('serie_temporal', 'total_periodo', 'usuarios_unicos');
 
 -- ==========================================================================
@@ -30,6 +33,27 @@ create role visao_mcp_leitor nologin;
 
 -- ==========================================================================
 -- Tabelas
+
+create table acoes_admin (
+  id uuid not null default gen_random_uuid(),
+  admin_id uuid not null,
+  acao acao_admin not null,
+  conta_alvo uuid,
+  detalhe jsonb not null default '{}'::jsonb,
+  feito_em timestamp with time zone not null default now(),
+  constraint acoes_admin_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  constraint acoes_admin_conta_alvo_fkey FOREIGN KEY (conta_alvo) REFERENCES contas(id) ON DELETE SET NULL,
+  constraint acoes_admin_pkey PRIMARY KEY (id)
+);
+
+create table administradores (
+  usuario_id uuid not null,
+  criado_em timestamp with time zone not null default now(),
+  criado_por uuid,
+  constraint administradores_criado_por_fkey FOREIGN KEY (criado_por) REFERENCES auth.users(id) ON DELETE SET NULL,
+  constraint administradores_pkey PRIMARY KEY (usuario_id),
+  constraint administradores_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
 
 create table clientes_oauth (
   id uuid not null default gen_random_uuid(),
@@ -68,6 +92,10 @@ create table contas (
   stripe_cliente_id text,
   criada_em timestamp with time zone not null default now(),
   cancelada_em timestamp with time zone,
+  cortesia boolean not null default false,
+  assinatura_id text,
+  assinatura_status status_assinatura not null default 'nenhuma'::status_assinatura,
+  periodo_fim timestamp with time zone,
   constraint contas_pkey PRIMARY KEY (id)
 );
 
@@ -86,6 +114,30 @@ create table credenciais (
   constraint credenciais_conta_id_fkey FOREIGN KEY (conta_id) REFERENCES contas(id) ON DELETE CASCADE,
   constraint credenciais_pkey PRIMARY KEY (id),
   constraint credenciais_projeto_id_fkey FOREIGN KEY (projeto_id) REFERENCES projetos(id) ON DELETE CASCADE
+);
+
+create table dados_de_cobranca (
+  id uuid not null default gen_random_uuid(),
+  conta_id uuid not null,
+  tipo tipo_tomador not null,
+  documento text not null,
+  nome text not null,
+  email_nota text,
+  cep text,
+  logradouro text,
+  numero text,
+  complemento text,
+  bairro text,
+  municipio text,
+  uf text,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  constraint chk_documento_digitos CHECK ((documento ~ '^[0-9]+$'::text)),
+  constraint chk_documento_tamanho CHECK ((((tipo = 'pf'::tipo_tomador) AND (length(documento) = 11)) OR ((tipo = 'pj'::tipo_tomador) AND (length(documento) = 14)))),
+  constraint chk_endereco_da_pj CHECK (((tipo = 'pf'::tipo_tomador) OR ((cep IS NOT NULL) AND (logradouro IS NOT NULL) AND (numero IS NOT NULL) AND (bairro IS NOT NULL) AND (municipio IS NOT NULL) AND (uf IS NOT NULL)))),
+  constraint chk_uf CHECK (((uf IS NULL) OR (uf ~ '^[A-Z]{2}$'::text))),
+  constraint dados_de_cobranca_conta_id_fkey FOREIGN KEY (conta_id) REFERENCES contas(id) ON DELETE CASCADE,
+  constraint dados_de_cobranca_pkey PRIMARY KEY (id)
 );
 
 create table definicoes_evento (
@@ -119,6 +171,17 @@ create table eventos (
   constraint eventos_pkey PRIMARY KEY (ocorrido_em, id),
   constraint eventos_projeto_id_fkey FOREIGN KEY (projeto_id) REFERENCES projetos(id) ON DELETE CASCADE
 ) partition by RANGE (ocorrido_em);
+
+create table eventos_stripe (
+  id text not null,
+  tipo text not null,
+  conta_id uuid,
+  carga jsonb,
+  recebido_em timestamp with time zone not null default now(),
+  processado_em timestamp with time zone,
+  constraint eventos_stripe_conta_id_fkey FOREIGN KEY (conta_id) REFERENCES contas(id) ON DELETE SET NULL,
+  constraint eventos_stripe_pkey PRIMARY KEY (id)
+);
 
 create table paineis (
   id uuid not null default gen_random_uuid(),
@@ -196,6 +259,9 @@ create table usuarios_conta (
 -- ==========================================================================
 -- Índices
 
+CREATE INDEX idx_acoes_admin_admin ON public.acoes_admin USING btree (admin_id, feito_em DESC);
+CREATE INDEX idx_acoes_admin_conta ON public.acoes_admin USING btree (conta_alvo);
+CREATE INDEX idx_acoes_admin_feito ON public.acoes_admin USING btree (feito_em DESC);
 CREATE UNIQUE INDEX clientes_oauth_client_id_key ON public.clientes_oauth USING btree (client_id);
 CREATE INDEX idx_codigos_oauth_expira ON public.codigos_oauth USING btree (expira_em);
 CREATE UNIQUE INDEX codigos_oauth_codigo_hash_key ON public.codigos_oauth USING btree (codigo_hash);
@@ -203,12 +269,15 @@ CREATE INDEX idx_credenciais_conta ON public.credenciais USING btree (conta_id);
 CREATE INDEX idx_credenciais_projeto ON public.credenciais USING btree (projeto_id);
 CREATE INDEX idx_credenciais_tipo_ativa ON public.credenciais USING btree (tipo, revogada_em);
 CREATE UNIQUE INDEX uq_credenciais_valor_hash ON public.credenciais USING btree (valor_hash);
+CREATE UNIQUE INDEX uq_dados_de_cobranca_conta ON public.dados_de_cobranca USING btree (conta_id);
 CREATE UNIQUE INDEX uq_definicoes_projeto_nome ON public.definicoes_evento USING btree (projeto_id, nome);
 CREATE INDEX idx_eventos_conta_data ON ONLY public.eventos USING btree (conta_id, ocorrido_em DESC);
 CREATE INDEX idx_eventos_ocorrido_brin ON ONLY public.eventos USING brin (ocorrido_em);
 CREATE INDEX idx_eventos_projeto_data ON ONLY public.eventos USING btree (projeto_id, ocorrido_em DESC);
 CREATE INDEX idx_eventos_projeto_nome_data ON ONLY public.eventos USING btree (projeto_id, nome, ocorrido_em DESC);
 CREATE INDEX idx_eventos_projeto_pessoa_data ON ONLY public.eventos USING btree (projeto_id, distinct_id, ocorrido_em DESC);
+CREATE INDEX idx_eventos_stripe_conta ON public.eventos_stripe USING btree (conta_id);
+CREATE INDEX idx_eventos_stripe_pendentes ON public.eventos_stripe USING btree (recebido_em) WHERE (processado_em IS NULL);
 CREATE INDEX idx_paineis_projeto ON public.paineis USING btree (projeto_id);
 CREATE INDEX idx_paineis_itens_painel ON public.paineis_itens USING btree (painel_id, posicao);
 CREATE UNIQUE INDEX uq_pessoas_projeto_distinct ON public.pessoas USING btree (projeto_id, distinct_id);
@@ -220,6 +289,139 @@ CREATE UNIQUE INDEX uq_usuarios_conta_usuario ON public.usuarios_conta USING btr
 
 -- ==========================================================================
 -- Funções (seção 7.10 e as consultas das telas)
+
+CREATE OR REPLACE FUNCTION public.fn_admin_auditoria(p_limite integer DEFAULT 50)
+ RETURNS TABLE(feito_em timestamp with time zone, email_admin text, acao acao_admin, conta_alvo uuid, nome_alvo text, detalhe jsonb)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  perform public.fn_admin_exige();
+
+  return query
+  select a.feito_em, u.email::text, a.acao, a.conta_alvo, c.nome, a.detalhe
+  from public.acoes_admin a
+  left join auth.users u on u.id = a.admin_id
+  left join public.contas c on c.id = a.conta_alvo
+  order by a.feito_em desc
+  limit least(coalesce(p_limite, 50), 200);
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_admin_contas()
+ RETURNS TABLE(conta_id uuid, nome text, email_do_dono text, plano plano_conta, cortesia boolean, assinatura_status status_assinatura, periodo_fim timestamp with time zone, criada_em timestamp with time zone, cancelada_em timestamp with time zone, projetos bigint, eventos_no_mes bigint, pessoas_no_mes integer, consultas_no_mes integer, tem_dados_de_nota boolean)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_admin uuid := public.fn_admin_exige();
+begin
+  perform public.fn_admin_registra(v_admin, 'consultou_contas', null);
+
+  return query
+  select
+    c.id,
+    c.nome,
+    u.email::text,
+    c.plano,
+    c.cortesia,
+    c.assinatura_status,
+    c.periodo_fim,
+    c.criada_em,
+    c.cancelada_em,
+    (select count(*) from public.projetos p where p.conta_id = c.id and p.arquivado_em is null),
+    coalesce(m.eventos_recebidos, 0),
+    coalesce(m.pessoas_distintas, 0),
+    coalesce(m.consultas_mcp, 0),
+    exists (select 1 from public.dados_de_cobranca d where d.conta_id = c.id)
+  from public.contas c
+  left join public.usuarios_conta uc on uc.conta_id = c.id
+  left join auth.users u on u.id = uc.usuario_id
+  left join public.uso_mensal m
+    on m.conta_id = c.id and m.competencia = date_trunc('month', now())::date
+  order by c.criada_em desc;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_admin_define_cortesia(p_conta_id uuid, p_conceder boolean)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_admin uuid := public.fn_admin_exige();
+  v_antes jsonb;
+begin
+  select to_jsonb(x) into v_antes
+  from (select plano, cortesia, retencao_meses, limite_projetos
+        from public.contas where id = p_conta_id) x;
+
+  if v_antes is null then
+    raise exception 'conta_inexistente: não há conta com este id';
+  end if;
+
+  if p_conceder then
+    update public.contas
+    set cortesia = true, plano = 'pago', retencao_meses = 12, limite_projetos = null
+    where id = p_conta_id;
+  else
+    -- Só volta para o gratuito quem não tem assinatura ativa pagando: tirar a
+    -- cortesia de quem também paga não pode rebaixar quem está em dia.
+    update public.contas
+    set cortesia = false,
+        plano = case when assinatura_status = 'ativa' then plano else 'gratuito' end,
+        retencao_meses = case when assinatura_status = 'ativa' then retencao_meses else 1 end,
+        limite_projetos = case when assinatura_status = 'ativa' then limite_projetos else 1 end
+    where id = p_conta_id;
+  end if;
+
+  perform public.fn_admin_registra(
+    v_admin,
+    case when p_conceder then 'concedeu_cortesia' else 'removeu_cortesia' end,
+    p_conta_id,
+    jsonb_build_object('antes', v_antes)
+  );
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_admin_exige()
+ RETURNS uuid
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_usuario uuid := auth.uid();
+begin
+  if v_usuario is null then
+    raise exception 'sem_sessao: esta função exige alguém autenticado';
+  end if;
+
+  if not exists (select 1 from public.administradores a where a.usuario_id = v_usuario) then
+    raise exception 'nao_autorizado: esta função é só para administradores da plataforma';
+  end if;
+
+  return v_usuario;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_admin_registra(p_admin uuid, p_acao acao_admin, p_conta uuid, p_detalhe jsonb DEFAULT '{}'::jsonb)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  insert into public.acoes_admin (admin_id, acao, conta_alvo, detalhe)
+  values (p_admin, p_acao, p_conta, coalesce(p_detalhe, '{}'::jsonb));
+$function$
+;
 
 CREATE OR REPLACE FUNCTION public.fn_agrega_uso_mensal()
  RETURNS void
@@ -263,6 +465,9 @@ AS $function$
   select
     e.id,
     e.nome,
+    -- O catálogo primeiro: é ele que o dono edita e que vale em todas as telas.
+    -- A descrição do evento é a reserva, para o que chegou antes de existir
+    -- entrada no catálogo.
     coalesce(d.descricao, e.descricao) as descricao,
     e.distinct_id,
     e.tela,
@@ -307,6 +512,8 @@ begin
   )
   on conflict (projeto_id, nome) do update set
     total_ocorrencias = public.definicoes_evento.total_ocorrencias + 1,
+    -- Eventos podem chegar fora de ordem (fila offline), por isso least/greatest
+    -- em vez de atribuição direta.
     primeira_ocorrencia_em = least(
       coalesce(public.definicoes_evento.primeira_ocorrencia_em, excluded.primeira_ocorrencia_em),
       excluded.primeira_ocorrencia_em
@@ -315,6 +522,7 @@ begin
       coalesce(public.definicoes_evento.ultima_ocorrencia_em, excluded.ultima_ocorrencia_em),
       excluded.ultima_ocorrencia_em
     ),
+    -- Regra 11.2: só preenche quando está nula.
     descricao = coalesce(public.definicoes_evento.descricao, excluded.descricao),
     telas = case
               when new.tela is null or new.tela = any (public.definicoes_evento.telas)
@@ -336,6 +544,7 @@ AS $function$
 declare
   v_props_pessoa jsonb;
 begin
+  -- Só faz merge se o app declarou um objeto em propriedades->'pessoa'.
   v_props_pessoa := case
     when jsonb_typeof(new.propriedades -> 'pessoa') = 'object'
       then new.propriedades -> 'pessoa'
@@ -384,11 +593,15 @@ AS $function$
 declare
   v_resultado jsonb;
 begin
+  -- Ponto e vírgula é recusado aqui também, e não só no servidor MCP: sem isso
+  -- o agente poderia emendar uma segunda instrução na mesma string.
   if position(';' in p_sql) > 0 then
     raise exception 'consulta_invalida: a consulta não pode conter ponto e vírgula';
   end if;
 
+  -- Isolamento por conta: é este ajuste que as políticas acima leem.
   perform set_config('visao.conta_id', p_conta_id::text, true);
+  -- Uma consulta do agente não pode prender o banco (requisito 14: p95 < 2 s).
   perform set_config('statement_timeout', '5000', true);
 
   execute format(
@@ -422,6 +635,8 @@ declare
   v_conta_id uuid;
   v_nome     text;
 begin
+  -- Nome vindo do perfil do Google; cai para o e-mail quando o provedor não
+  -- manda nome.
   v_nome := coalesce(
     new.raw_user_meta_data ->> 'full_name',
     new.raw_user_meta_data ->> 'name',
@@ -454,6 +669,16 @@ AS $function$
     when '90d' then 90
     else 30
   end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_eh_admin()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select exists (select 1 from public.administradores a where a.usuario_id = auth.uid())
 $function$
 ;
 
@@ -633,6 +858,32 @@ begin
     execute format('alter table %s enable row level security', v_particao);
     execute format('revoke all on %s from anon, authenticated', v_particao);
   end loop;
+end;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.fn_rebaixa_contas_vencidas()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_quantas integer;
+begin
+  with rebaixadas as (
+    update public.contas
+    set plano = 'gratuito', retencao_meses = 1, limite_projetos = 1
+    where cortesia = false
+      and plano = 'pago'
+      and assinatura_status = 'cancelada'
+      and periodo_fim is not null
+      and periodo_fim < now()
+    returning 1
+  )
+  select count(*) into v_quantas from rebaixadas;
+
+  return v_quantas;
 end;
 $function$
 ;
@@ -869,12 +1120,16 @@ CREATE TRIGGER trg_usuario_criado_cria_conta AFTER INSERT ON auth.users FOR EACH
 -- ==========================================================================
 -- Row Level Security
 
+alter table acoes_admin enable row level security;
+alter table administradores enable row level security;
 alter table clientes_oauth enable row level security;
 alter table codigos_oauth enable row level security;
 alter table contas enable row level security;
 alter table credenciais enable row level security;
+alter table dados_de_cobranca enable row level security;
 alter table definicoes_evento enable row level security;
 alter table eventos enable row level security;
+alter table eventos_stripe enable row level security;
 alter table paineis enable row level security;
 alter table paineis_itens enable row level security;
 alter table pessoas enable row level security;
@@ -895,6 +1150,11 @@ create policy contas_dono_total on contas
   with check ((id IN ( SELECT fn_contas_do_usuario() AS fn_contas_do_usuario)));
 
 create policy credenciais_dono_total on credenciais
+  for all to authenticated
+  using ((conta_id IN ( SELECT fn_contas_do_usuario() AS fn_contas_do_usuario)))
+  with check ((conta_id IN ( SELECT fn_contas_do_usuario() AS fn_contas_do_usuario)));
+
+create policy dados_de_cobranca_dono on dados_de_cobranca
   for all to authenticated
   using ((conta_id IN ( SELECT fn_contas_do_usuario() AS fn_contas_do_usuario)))
   with check ((conta_id IN ( SELECT fn_contas_do_usuario() AS fn_contas_do_usuario)));
@@ -965,6 +1225,20 @@ create policy usuarios_conta_dono_leitura on usuarios_conta
 -- ==========================================================================
 -- Privilégios de tabela
 
+grant delete on acoes_admin to service_role;
+grant insert on acoes_admin to service_role;
+grant references on acoes_admin to service_role;
+grant select on acoes_admin to service_role;
+grant trigger on acoes_admin to service_role;
+grant truncate on acoes_admin to service_role;
+grant update on acoes_admin to service_role;
+grant delete on administradores to service_role;
+grant insert on administradores to service_role;
+grant references on administradores to service_role;
+grant select on administradores to service_role;
+grant trigger on administradores to service_role;
+grant truncate on administradores to service_role;
+grant update on administradores to service_role;
 grant delete on clientes_oauth to service_role;
 grant insert on clientes_oauth to service_role;
 grant references on clientes_oauth to service_role;
@@ -1002,6 +1276,20 @@ grant select on credenciais to service_role;
 grant trigger on credenciais to service_role;
 grant truncate on credenciais to service_role;
 grant update on credenciais to service_role;
+grant delete on dados_de_cobranca to authenticated;
+grant insert on dados_de_cobranca to authenticated;
+grant references on dados_de_cobranca to authenticated;
+grant select on dados_de_cobranca to authenticated;
+grant trigger on dados_de_cobranca to authenticated;
+grant truncate on dados_de_cobranca to authenticated;
+grant update on dados_de_cobranca to authenticated;
+grant delete on dados_de_cobranca to service_role;
+grant insert on dados_de_cobranca to service_role;
+grant references on dados_de_cobranca to service_role;
+grant select on dados_de_cobranca to service_role;
+grant trigger on dados_de_cobranca to service_role;
+grant truncate on dados_de_cobranca to service_role;
+grant update on dados_de_cobranca to service_role;
 grant insert on definicoes_evento to authenticated;
 grant select on definicoes_evento to authenticated;
 grant update on definicoes_evento to authenticated;
@@ -1022,6 +1310,13 @@ grant trigger on eventos to service_role;
 grant truncate on eventos to service_role;
 grant update on eventos to service_role;
 grant select on eventos to visao_mcp_leitor;
+grant delete on eventos_stripe to service_role;
+grant insert on eventos_stripe to service_role;
+grant references on eventos_stripe to service_role;
+grant select on eventos_stripe to service_role;
+grant trigger on eventos_stripe to service_role;
+grant truncate on eventos_stripe to service_role;
+grant update on eventos_stripe to service_role;
 grant delete on paineis to authenticated;
 grant insert on paineis to authenticated;
 grant references on paineis to authenticated;
@@ -1099,6 +1394,7 @@ select cron.schedule('expurga_codigos_oauth', '7 * * * *', 'select public.fn_exp
 select cron.schedule('expurga_contas_canceladas', '30 4 * * *', 'select public.fn_expurga_contas_canceladas()');
 select cron.schedule('manutencao_particoes', '0 3 * * *', 'select public.fn_manutencao_particoes()');
 select cron.schedule('poda_cron_historico', '0 5 * * 0', 'select public.fn_poda_cron_historico()');
+select cron.schedule('rebaixa_contas_vencidas', '15 5 * * *', 'select public.fn_rebaixa_contas_vencidas()');
 
 -- ==========================================================================
 -- Particionamento (pg_partman, regras 11.8 e 11.18)

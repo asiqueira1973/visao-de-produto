@@ -78,9 +78,12 @@ const estiloDoTitulo: React.CSSProperties = {
 export function MenuLateral({
   projetos,
   email,
+  ehAdmin,
 }: {
   projetos: ItemDeProjeto[];
   email: string;
+  /** Quem não administra a plataforma não vê o grupo de administração. */
+  ehAdmin?: boolean;
 }) {
   const caminhoAtual = usePathname();
   // O projeto aberto sai da própria URL (/p/<slug>/...), para o layout não
@@ -175,6 +178,17 @@ export function MenuLateral({
             ))}
           </div>
         </div>
+
+        {ehAdmin && (
+          <div style={estiloDoGrupo}>
+            <div style={estiloDoTitulo}>Plataforma</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Link href="/admin" style={estiloDoItem(caminhoAtual === "/admin")}>
+                Administração
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
       <div
