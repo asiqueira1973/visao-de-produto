@@ -15,6 +15,7 @@
 
 import { revalidatePath } from "next/cache";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { registrar } from "@/lib/instrumentacao";
 
 /**
  * Renomeia a conta.
@@ -73,6 +74,8 @@ export async function cancelarConta(): Promise<{ erro?: string }> {
 
   if (error) return { erro: error.message };
 
+  registrar("visao_conta_cancelada", vinculo.conta_id as string, "Perfil");
+
   revalidatePath("/", "layout");
   return {};
 }
@@ -100,6 +103,8 @@ export async function reativarConta(): Promise<{ erro?: string }> {
     .eq("id", vinculo.conta_id);
 
   if (error) return { erro: error.message };
+
+  registrar("visao_conta_reativada", vinculo.conta_id as string, "Perfil");
 
   revalidatePath("/", "layout");
   return {};

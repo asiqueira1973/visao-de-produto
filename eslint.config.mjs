@@ -25,6 +25,10 @@ const configuracao = [
       // As telas geradas no Claude Design são referência de layout, não código
       // deste produto: elas prevalecem em desenho (regra 4.4) e não são mantidas.
       "visao de produto-telas claude design/**",
+      // O export do Claude Design do site institucional: o support.js é arnês
+      // gerado pelo editor, e o que vai para o ar é a pasta `publico`, que é
+      // HTML estático sem script de terceiro.
+      "site-visao-de-produto/**",
     ],
   },
   js.configs.recommended,

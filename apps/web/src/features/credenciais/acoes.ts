@@ -15,6 +15,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { registrar } from "@/lib/instrumentacao";
 
 /** O que uma geração devolve: ou o valor em claro, ou o motivo da recusa. */
 export interface ResultadoDaGeracao {
@@ -69,6 +70,8 @@ export async function gerarChaveDeIngestao(
 
   if (error) return { erro: error.message };
 
+  registrar("visao_chave_de_ingestao_gerada", projeto.conta_id as string, "Configuracoes");
+
   revalidatePath(`/p/${projeto.slug}/configuracoes`);
   return { valor };
 }
@@ -104,6 +107,8 @@ export async function gerarTokenDeLeitura(nome: string): Promise<ResultadoDaGera
   if (error) return { erro: error.message };
 
   revalidatePath("/conta/credenciais");
+  registrar("visao_token_mcp_gerado", vinculo.conta_id as string, "CredenciaisMcp");
+
   return { valor };
 }
 

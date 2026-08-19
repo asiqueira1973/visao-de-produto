@@ -16,6 +16,7 @@
 
 import { NextResponse } from "next/server";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { registrar } from "@/lib/instrumentacao";
 
 /** Teto da exportação direta (seção 13.4). */
 const LIMITE_DE_EVENTOS = 100_000;
@@ -26,6 +27,10 @@ export async function GET() {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ codigo: "sem_sessao" }, { status: 401 });
+
+  const { data: vinculoParaMedir } = await supabase
+    .from("usuarios_conta").select("conta_id").maybeSingle();
+  registrar("visao_dados_exportados", vinculoParaMedir?.conta_id as string, "Conta", { formato: "json" });
 
   // Tudo aqui passa pela RLS: o que vier é o que é da conta de quem pediu.
   const [{ data: conta }, { data: projetos }, { data: paineis }, { data: itens }] =
