@@ -43,11 +43,21 @@ const SERVIDOR_DE_AUTORIZACAO =
  * A origem pública desta função.
  *
  * Nem `req.url` nem o header `host` servem aqui: dentro do runtime a requisição
- * chega como `http://edge-runtime.supabase.com`, que é o nome interno. Quem
- * sabe o endereço público é a própria plataforma, pela variável `SUPABASE_URL`.
- * Anunciar o host errado num documento de OAuth quebra a conexão do cliente.
+ * chega como `http://edge-runtime.supabase.com`, que é o nome interno.
+ *
+ * E `SUPABASE_URL` sozinha também não serve mais: quando o projeto ganha
+ * domínio próprio, o Supabase **não troca** essa variável — ela continua
+ * devolvendo o endereço `.supabase.co`. Um documento de OAuth que anuncia um
+ * host diferente do que o cliente usou faz a conexão ser recusada, e o conector
+ * do Claude Desktop para de funcionar sem dizer por quê.
+ *
+ * Por isso existe `VISAO_ORIGEM_PUBLICA`: quando definida, ela manda. A queda
+ * para `SUPABASE_URL` mantém o ambiente que ainda não tem domínio próprio
+ * funcionando sem configuração nenhuma.
  */
 function origemPublica(): string {
+  const declarada = Deno.env.get("VISAO_ORIGEM_PUBLICA");
+  if (declarada) return declarada.replace(/\/+$/, "");
   return (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/+$/, "");
 }
 
