@@ -1,0 +1,463 @@
+<html lang="pt-BR"><head><style>
+    .sc-placeholder{background:color-mix(in srgb,currentColor 8%,transparent);
+      border:1px solid color-mix(in srgb,currentColor 50%,transparent);
+      border-radius:2px;box-sizing:border-box;overflow:hidden}
+    @keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+    html.sc-dc-streaming .sc-placeholder,
+    html.sc-dc-streaming .sc-interp.sc-missing{position:relative;
+      background:color-mix(in srgb,currentColor 5%,transparent);
+      border-color:transparent}
+    html.sc-dc-streaming .sc-placeholder::before,
+    html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';
+      position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);
+      background-size:400% 100%;animation:sc-shine 1.4s ease infinite}
+    html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,
+    html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;
+      background:color-mix(in srgb,currentColor 8%,transparent)}
+    .sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;
+      color:color-mix(in srgb,currentColor 70%,transparent);word-break:break-word}
+    .sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;
+      vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);
+      border-radius:2px;box-sizing:border-box;color:transparent;
+      user-select:none}
+    .sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;
+      color:color-mix(in srgb,currentColor 50%,transparent);
+      background:color-mix(in srgb,currentColor 10%,transparent);border-radius:3px;
+      padding:0 3px}
+    .sc-host.sc-has-error{position:relative}
+    .sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;
+      padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;
+      border-radius:4px;white-space:pre-wrap;pointer-events:none}
+    /* Mirrors PRINT_BASELINE_CSS in apps/web deck-stage-export.ts — keep both
+       in sync until dc-runtime regains a build step. */
+    @media print {
+      @page { margin: 0.5cm; }
+      figure, table { break-inside: avoid; }
+      #dc-root, #dc-root > .sc-host { height: auto; }
+      *, *::before, *::after {
+        print-color-adjust: exact; -webkit-print-color-adjust: exact;
+        backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        animation-delay: -99s !important; animation-duration: .001s !important;
+        animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+        animation-play-state: running !important; transition-duration: 0s !important;
+      }
+    }
+  </style>
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #fbfbfc;
+  --line: #e7e8ec;
+  --line2: #d6d8de;
+  --code: #f6f7f9;
+  --text: #17181c;
+  --dim: #63666e;
+  --faint: #8d9098;
+  --pri: #007aff;
+  --ok: #1a7f37;
+  --err: #c9303d;
+  --laranja: #c2490a;
+  --laranjaSoft: #fff3e8;
+  --verdeInk: #3f6212;
+  --verdeSoft: #f2fbe0;
+  --rosaInk: #a3336b;
+  --rosaSoft: #fdeff6;
+  --shadow: 0 10px 30px rgba(15,18,25,0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"]) {
+  --bg: #0b0c0e;
+  --surface: #101115;
+  --line: #23262c;
+  --line2: #2f333a;
+  --code: #0e0f12;
+  --text: #e9eaee;
+  --dim: #9b9ea6;
+  --faint: #6a6d76;
+  --pri: #0a84ff;
+  --ok: #3fb950;
+  --err: #f0616d;
+  --laranja: #ff9f4a;
+  --laranjaSoft: rgba(255,120,20,0.10);
+  --verdeInk: #9ede4a;
+  --verdeSoft: rgba(150,220,60,0.09);
+  --rosaInk: #ff86bd;
+  --rosaSoft: rgba(255,90,160,0.09);
+  --shadow: 0 14px 40px rgba(0,0,0,0.45);
+  }
+}
+:root[data-tema="dark"] {
+  --bg: #0b0c0e;
+  --surface: #101115;
+  --line: #23262c;
+  --line2: #2f333a;
+  --code: #0e0f12;
+  --text: #e9eaee;
+  --dim: #9b9ea6;
+  --faint: #6a6d76;
+  --pri: #0a84ff;
+  --ok: #3fb950;
+  --err: #f0616d;
+  --laranja: #ff9f4a;
+  --laranjaSoft: rgba(255,120,20,0.10);
+  --verdeInk: #9ede4a;
+  --verdeSoft: rgba(150,220,60,0.09);
+  --rosaInk: #ff86bd;
+  --rosaSoft: rgba(255,90,160,0.09);
+  --shadow: 0 14px 40px rgba(0,0,0,0.45);
+}
+html, body { background: var(--bg); color: var(--text); }
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visão de Produto — você lançou. Alguém usou?</title>
+<meta name="description" content="Product analytics deliberadamente pequeno. Seu app envia só os eventos que importam, e as respostas vêm de duas formas iguais: um painel na web e o Claude, em português.">
+<link rel="canonical" href="https://visaodeproduto.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://visaodeproduto.com.br/">
+<meta property="og:title" content="Visão de Produto — você lançou. Alguém usou?">
+<meta property="og:description" content="Nada é capturado automaticamente. Todo evento carrega o que significa. E o evento que não aconteceu aparece, com zero explícito.">
+<meta property="og:image" content="https://visaodeproduto.com.br/assets/painel.png">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#007aff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%230a84ff%22/><rect x=%228%22 y=%2217%22 width=%224.5%22 height=%228%22 rx=%221.5%22 fill=%22white%22 opacity=%220.75%22/><rect x=%2214%22 y=%2210%22 width=%224.5%22 height=%2215%22 rx=%221.5%22 fill=%22white%22/><rect x=%2220%22 y=%2214%22 width=%224.5%22 height=%2211%22 rx=%221.5%22 fill=%22white%22 opacity=%220.75%22/></svg>">
+
+<style>x-dc{display:none!important}</style><style></style><style>html,body{height:100%;margin:0}#dc-root,#dc-root>.sc-host{height:100%}</style><link rel="preconnect" href="https://fonts.googleapis.com" data-dc-tpl="1"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" data-dc-tpl="2"><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" data-dc-tpl="3"><style data-dc-tpl="4">
+html,body{margin:0;padding:0}
+*{box-sizing:border-box}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit}
+a{color:var(--pri);text-decoration:none}
+a:hover{color:var(--text)}
+</style></head>
+<body>
+<div id="dc-root"><div class="sc-host" data-sc-name="index"><div data-dc-tpl="5" style="font-family: Archivo, system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; --line2: #d6d8de;"><header data-dc-tpl="6" style="position: sticky; top: 0px; z-index: 30; background: var(--bg); border-bottom: 1px solid var(--line);">
+  <div data-dc-tpl="7" style="max-width: 1180px; margin: 0px auto; padding: 12px 20px; display: flex; align-items: center; gap: 14px;">
+    <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 9px; flex: 1 1 0%; min-width: 0px;">
+      <span data-dc-tpl="9" style="width: 14px; height: 14px; border-radius: 4px; background: var(--pri); flex: 0 0 auto; display: block;"></span>
+      <span data-dc-tpl="10" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 12.5px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap;">visao-de-produto</span>
+    </div>
+    <button id="tema" data-dc-tpl="11" class="scp0" style="height: 32px; padding: 0px 11px; border-radius: 8px; border: 1px solid var(--line2); background: var(--surface); font-size: 12px; cursor: pointer; white-space: nowrap;"><span class="sc-interp">Modo escuro</span></button>
+    <a data-dc-tpl="12" href="https://app.visaodeproduto.com.br" class="scp1" style="height: 32px; padding: 0px 14px; border-radius: 8px; background: var(--pri); color: rgb(255, 255, 255); font-size: 13px; font-weight: 600; display: flex; align-items: center; white-space: nowrap;">Começar</a>
+  </div></header><main data-dc-tpl="13" style="max-width: 1180px; margin: 0px auto; padding: 0px 20px;">
+
+  
+  <section data-dc-tpl="14" style="padding: 56px 0px 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 44px; align-items: center;">
+    <div data-dc-tpl="15">
+      <div data-dc-tpl="16" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 12px; font-weight: 500; color: var(--pri); letter-spacing: 0.02em;">product analytics deliberadamente pequeno</div>
+      <h1 data-dc-tpl="17" style="margin: 18px 0px 0px; font-size: clamp(44px, 7.4vw, 86px); font-weight: 900; line-height: 0.95; letter-spacing: -0.035em; text-wrap: balance;">Você lançou.<br data-dc-tpl="18">Alguém usou?</h1>
+      <p data-dc-tpl="19" style="margin: 22px 0px 0px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: clamp(13px, 1.5vw, 15.5px); line-height: 1.65; color: var(--dim); max-width: 30em; text-wrap: pretty;">Seu app envia só os eventos que importam. As respostas vêm de duas formas iguais: um painel na web e o Claude, em português.</p>
+      <div data-dc-tpl="20" style="margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <a data-dc-tpl="21" href="https://app.visaodeproduto.com.br" class="scp1" style="height: 50px; padding: 0px 26px; border-radius: 10px; background: var(--pri); color: rgb(255, 255, 255); font-size: 16px; font-weight: 700; display: flex; align-items: center;">Começar</a>
+        <span data-dc-tpl="22" style="font-size: 13px; color: var(--faint);">Grátis para 1 projeto. Sem cartão.</span>
+      </div>
+    </div>
+    <div data-dc-tpl="23" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+      <img data-dc-tpl="24" src="assets/painel.png" alt="Painel do projeto CRM Vendas com três gráficos de barras fixados: tarefas concluídas, leads criados e leads qualificados nos últimos 30 dias">
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="25" style="padding: 64px 0px; border-top: 1px solid var(--line);">
+    <div data-dc-tpl="26" style="max-width: 20em;">
+      <div data-dc-tpl="27" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); letter-spacing: 0.06em;">O PROBLEMA</div>
+    </div>
+    <div data-dc-tpl="28" style="margin-top: 22px; display: flex; flex-direction: column; gap: 14px; max-width: 24em;">
+      <p data-dc-tpl="29" style="margin: 0px; font-size: clamp(24px, 3.4vw, 38px); font-weight: 800; line-height: 1.15; letter-spacing: -0.025em; text-wrap: pretty;">Você entrega feature toda semana e não sabe qual tela é usada.</p>
+      <p data-dc-tpl="30" style="margin: 0px; font-size: clamp(15px, 1.8vw, 18px); line-height: 1.6; color: var(--dim); max-width: 34em; text-wrap: pretty;">Não é falta de ferramenta. É que nenhuma delas foi feita para quem não está procurando ferramenta — quem constrói com o Claude Code, a partir de specs, e não vai passar a tarde comparando tabela de preço.</p>
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="31" style="padding: 8px 0px 64px;">
+    <div data-dc-tpl="32" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px;">
+
+      <div data-dc-tpl="33" style="border: 1px solid var(--line); border-radius: 12px; background: var(--laranjaSoft); padding: 24px 22px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="34" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--laranja); font-weight: 700;">01</div>
+        <h3 data-dc-tpl="35" style="margin: 12px 0px 0px; font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;">Nada é capturado automaticamente</h3>
+        <p data-dc-tpl="36" style="margin: 12px 0px 0px; font-size: 14.5px; line-height: 1.6; color: var(--dim); text-wrap: pretty;">Sem IP, sem geolocalização, sem user-agent, sem pageview implícito. Só existe aqui o que o seu código enviou de propósito. É o contrário do padrão do mercado, e é deliberado.</p>
+      </div>
+
+      <div data-dc-tpl="37" style="border: 1px solid var(--line); border-radius: 12px; background: var(--verdeSoft); padding: 24px 22px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="38" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--verdeInk); font-weight: 700;">02</div>
+        <h3 data-dc-tpl="39" style="margin: 12px 0px 0px; font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;">Todo evento carrega o que significa</h3>
+        <p data-dc-tpl="40" style="margin: 12px 0px 0px; font-size: 14.5px; line-height: 1.6; color: var(--dim); text-wrap: pretty;">A descrição em português é campo de primeira classe. Seis meses depois, <span data-dc-tpl="41" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 13px; color: var(--text);">crm_lead_qualificado</span> continua dizendo “vendedor marcou o lead como qualificado” — para você e para o agente.</p>
+      </div>
+
+      <div data-dc-tpl="42" style="border: 1px solid var(--line); border-radius: 12px; background: var(--rosaSoft); padding: 24px 22px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="43" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--rosaInk); font-weight: 700;">03</div>
+        <h3 data-dc-tpl="44" style="margin: 12px 0px 0px; font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;">O evento que não aconteceu aparece</h3>
+        <p data-dc-tpl="45" style="margin: 12px 0px 0px; font-size: 14.5px; line-height: 1.6; color: var(--dim); text-wrap: pretty;">Com zero explícito. Você subiu uma feature na semana passada; a tela mostra que ela nunca foi usada. É a pergunta que as outras ferramentas escondem.</p>
+        <div data-dc-tpl="46" style="margin-top: 20px; display: flex; align-items: flex-end; gap: 7px; height: 96px;">
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);"><span class="sc-interp">96</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--pri); opacity: 0.85; height: 57px;"></span>
+            </div>
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);"><span class="sc-interp">104</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--pri); opacity: 0.85; height: 62px;"></span>
+            </div>
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);"><span class="sc-interp">72</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--pri); opacity: 0.85; height: 43px;"></span>
+            </div>
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);"><span class="sc-interp">88</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--pri); opacity: 0.85; height: 52px;"></span>
+            </div>
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 10.5px; font-weight: 400; color: var(--faint);"><span class="sc-interp">64</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--pri); opacity: 0.85; height: 38px;"></span>
+            </div>
+          
+            <div data-dc-tpl="48" style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end;">
+              <span data-dc-tpl="49" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 15px; font-weight: 700; color: var(--rosaInk);"><span class="sc-interp">0</span></span>
+              <span data-dc-tpl="50" style="width: 100%; border-radius: 4px 4px 0px 0px; background: var(--rosaInk); opacity: 1; height: 4px;"></span>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <div data-dc-tpl="51" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+      <figure data-dc-tpl="52" style="margin: 0px;">
+        <div data-dc-tpl="53" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+          <img data-dc-tpl="54" src="assets/uso.png" alt="Tela de Uso listando todos os eventos do catálogo com total, usuários únicos e última ocorrência, inclusive eventos com zero ocorrências no período">
+        </div>
+        <figcaption data-dc-tpl="55" style="margin-top: 10px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); line-height: 1.5;">Uso · todos os eventos do catálogo, inclusive os que ficaram em zero</figcaption>
+      </figure>
+      <figure data-dc-tpl="56" style="margin: 0px;">
+        <div data-dc-tpl="57" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+          <img data-dc-tpl="58" src="assets/atividade.png" alt="Tela de Atividade listando eventos recentes, cada um com a descrição em português acima do nome técnico do evento">
+        </div>
+        <figcaption data-dc-tpl="59" style="margin-top: 10px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); line-height: 1.5;">Atividade · a descrição vem primeiro, o nome técnico embaixo</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="60" style="padding: 64px 0px; border-top: 1px solid var(--line);">
+    <div data-dc-tpl="61" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); letter-spacing: 0.06em;">COMO FUNCIONA</div>
+    <h2 data-dc-tpl="62" style="margin: 18px 0px 0px; font-size: clamp(32px, 5vw, 58px); font-weight: 900; line-height: 1; letter-spacing: -0.03em;">Três passos, e um deles<br data-dc-tpl="63">você nem faz.</h2>
+
+    <div data-dc-tpl="64" style="margin-top: 40px; display: flex; flex-direction: column; gap: 28px;">
+
+      <div data-dc-tpl="65" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; align-items: start; padding-top: 26px; border-top: 1px solid var(--line);">
+        <div data-dc-tpl="66">
+          <div data-dc-tpl="67" style="display: flex; align-items: center; gap: 10px;">
+            <span data-dc-tpl="68" style="width: 26px; height: 26px; border-radius: 7px; background: var(--pri); color: rgb(255, 255, 255); font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">1</span>
+            <h3 data-dc-tpl="69" style="margin: 0px; font-size: clamp(20px, 2.6vw, 28px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;">O agente instrumenta enquanto constrói</h3>
+          </div>
+          <p data-dc-tpl="70" style="margin: 14px 0px 0px; font-size: 15.5px; line-height: 1.65; color: var(--dim); max-width: 36em; text-wrap: pretty;">Ao implementar uma tela nova, o Claude adiciona a chamada de evento no código, seguindo a convenção que o projeto já usa e escrevendo a descrição em português. Você revisa o diff como revisa qualquer outro.</p>
+        </div>
+        <div data-dc-tpl="71" style="border: 1px solid var(--line); border-radius: 12px; background: var(--code); padding: 16px 18px; overflow-x: auto;">
+          <div data-dc-tpl="72" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); margin-bottom: 10px;">PacienteNovo.tsx · diff</div>
+          <pre data-dc-tpl="73" style="margin: 0px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 12.5px; line-height: 1.8; color: var(--dim);"><span data-dc-tpl="74" style="color: var(--verdeInk);">+ track("crm_lead_criado", {</span><span data-dc-tpl="75" style="color: var(--verdeInk);">+   descricao: "vendedor cadastrou um lead novo",</span><span data-dc-tpl="76" style="color: var(--verdeInk);">+   tela: "Funil"</span><span data-dc-tpl="77" style="color: var(--verdeInk);">+ });</span></pre>
+        </div>
+      </div>
+
+      <div data-dc-tpl="78" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; align-items: start; padding-top: 26px; border-top: 1px solid var(--line);">
+        <div data-dc-tpl="79">
+          <div data-dc-tpl="80" style="display: flex; align-items: center; gap: 10px;">
+            <span data-dc-tpl="81" style="width: 26px; height: 26px; border-radius: 7px; background: var(--pri); color: rgb(255, 255, 255); font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">2</span>
+            <h3 data-dc-tpl="82" style="margin: 0px; font-size: clamp(20px, 2.6vw, 28px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;">O app envia — pelo SDK ou direto pela API</h3>
+          </div>
+          <p data-dc-tpl="83" style="margin: 14px 0px 0px; font-size: 15.5px; line-height: 1.65; color: var(--dim); max-width: 36em; text-wrap: pretty;">Uma chamada com a chave do projeto. Quem já faz POST não instala pacote nenhum. O SDK dá fila offline, reenvio e lote automático; a chamada direta funciona em qualquer linguagem.</p>
+        </div>
+        <figure data-dc-tpl="84" style="margin: 0px;">
+          <div data-dc-tpl="85" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+            <img data-dc-tpl="86" src="assets/codigo.png" alt="Tela Como usar mostrando as abas Com o SDK e Direto pela API, com um exemplo de chamada curl enviando um evento com nome, descrição, tela e propriedades">
+          </div>
+        </figure>
+      </div>
+
+      <div data-dc-tpl="87" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; align-items: start; padding-top: 26px; border-top: 1px solid var(--line);">
+        <div data-dc-tpl="88">
+          <div data-dc-tpl="89" style="display: flex; align-items: center; gap: 10px;">
+            <span data-dc-tpl="90" style="width: 26px; height: 26px; border-radius: 7px; background: var(--pri); color: rgb(255, 255, 255); font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">3</span>
+            <h3 data-dc-tpl="91" style="margin: 0px; font-size: clamp(20px, 2.6vw, 28px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;">Você pergunta — no painel ou no Claude</h3>
+          </div>
+          <p data-dc-tpl="92" style="margin: 14px 0px 0px; font-size: 15.5px; line-height: 1.65; color: var(--dim); max-width: 36em; text-wrap: pretty;">Pelas telas, quando você quer olhar. Pelo Claude, quando a pergunta aparece no meio do trabalho e você não quer trocar de janela. As duas formas leem os mesmos dados.</p>
+        </div>
+        <div data-dc-tpl="93" style="display: flex; flex-direction: column; gap: 10px;">
+          <div data-dc-tpl="94" style="border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+            <span data-dc-tpl="95" style="width: 8px; height: 8px; border-radius: 50%; background: var(--pri); flex: 0 0 auto;"></span>
+            <span data-dc-tpl="96" style="font-size: 14.5px; font-weight: 600;">No painel</span>
+            <span data-dc-tpl="97" style="font-size: 13.5px; color: var(--dim);">Atividade, Uso, Painel, Pessoas, Catálogo</span>
+          </div>
+          <div data-dc-tpl="98" style="border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+            <span data-dc-tpl="99" style="width: 8px; height: 8px; border-radius: 50%; background: var(--pri); flex: 0 0 auto;"></span>
+            <span data-dc-tpl="100" style="font-size: 14.5px; font-weight: 600;">No Claude</span>
+            <span data-dc-tpl="101" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 12.5px; color: var(--dim);">via MCP, com token de leitura</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="102" style="padding: 64px 0px; border-top: 1px solid var(--line);">
+    <div data-dc-tpl="103" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: end;">
+      <div data-dc-tpl="104">
+        <div data-dc-tpl="105" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); letter-spacing: 0.06em;">PERGUNTE EM PORTUGUÊS</div>
+        <h2 data-dc-tpl="106" style="margin: 18px 0px 0px; font-size: clamp(34px, 5.6vw, 64px); font-weight: 900; line-height: 0.98; letter-spacing: -0.035em; text-wrap: balance;">Sem citar nome de evento nenhum.</h2>
+      </div>
+      <div data-dc-tpl="107" style="border-left: 3px solid var(--pri); padding-left: 16px;">
+        <p data-dc-tpl="108" style="margin: 0px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: clamp(14px, 1.7vw, 17px); line-height: 1.6; color: var(--text); text-wrap: pretty;">“usando o visão de produto, me dá um panorama do CRM Vendas nos últimos 30 dias. O que chama atenção?”</p>
+        <p data-dc-tpl="109" style="margin: 14px 0px 0px; font-size: 14.5px; line-height: 1.6; color: var(--dim); text-wrap: pretty;">O Claude lê o catálogo sozinho, entende o que cada evento significa pela descrição, cruza os projetos e responde com números.</p>
+      </div>
+    </div>
+
+    <div data-dc-tpl="110" style="margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 20px; align-items: start;">
+      <figure data-dc-tpl="111" style="margin: 0px;">
+        <div data-dc-tpl="112" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+          <img data-dc-tpl="113" src="assets/claude-conversa.png" alt="Conversa no Claude Desktop: a pergunta pede um panorama do CRM Vendas nos últimos 30 dias e a resposta traz o funil completo, receita, ticket médio e os pontos que chamam atenção">
+        </div>
+        <figcaption data-dc-tpl="114" style="margin-top: 10px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); line-height: 1.5;">A pergunta em português. A resposta cita os eventos em mono.</figcaption>
+      </figure>
+      <div data-dc-tpl="115" style="display: flex; flex-direction: column; gap: 20px;">
+        <figure data-dc-tpl="116" style="margin: 0px;">
+          <div data-dc-tpl="117" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+            <img data-dc-tpl="118" src="assets/claude-resposta.png" alt="Relatório gerado pelo Claude com o panorama de 30 dias do CRM Vendas: três alertas do que exige decisão e os números da janela em cartões">
+          </div>
+        </figure>
+        <figure data-dc-tpl="119" style="margin: 0px;">
+          <div data-dc-tpl="120" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow);">
+            <img data-dc-tpl="121" src="assets/claude-funil.png" alt="Gráfico de funil gerado pelo Claude, do lead criado ao negócio ganho, com o volume de cada etapa e o percentual de passagem">
+          </div>
+          <figcaption data-dc-tpl="122" style="margin-top: 10px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); line-height: 1.5;">O gráfico sai da conversa, não do produto.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="123" style="padding: 64px 0px; border-top: 1px solid var(--line);">
+    <div data-dc-tpl="124" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: start;">
+      <div data-dc-tpl="125">
+        <div data-dc-tpl="126" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); letter-spacing: 0.06em;">O QUE ELA NÃO É</div>
+        <h2 data-dc-tpl="127" style="margin: 18px 0px 0px; font-size: clamp(30px, 4.6vw, 52px); font-weight: 900; line-height: 1; letter-spacing: -0.03em; text-wrap: balance;">Quatro coisas que outra ferramenta faz melhor.</h2>
+      </div>
+      <div data-dc-tpl="128" style="display: flex; flex-direction: column;">
+        
+          <div data-dc-tpl="130" style="display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 16px 0px; border-bottom: 1px solid var(--line); align-items: baseline;">
+            <span data-dc-tpl="131" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 15px; color: var(--rosaInk); font-weight: 700;">não</span>
+            <div data-dc-tpl="132">
+              <div data-dc-tpl="133" style="font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em;"><span class="sc-interp">web analytics</span></div>
+              <div data-dc-tpl="134" style="margin-top: 4px; font-size: 14px; color: var(--dim); line-height: 1.55;"><span class="sc-interp">Não conta visita, sessão nem origem de tráfego. Para isso, use um analytics de site.</span></div>
+            </div>
+          </div>
+        
+          <div data-dc-tpl="130" style="display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 16px 0px; border-bottom: 1px solid var(--line); align-items: baseline;">
+            <span data-dc-tpl="131" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 15px; color: var(--rosaInk); font-weight: 700;">não</span>
+            <div data-dc-tpl="132">
+              <div data-dc-tpl="133" style="font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em;"><span class="sc-interp">funil</span></div>
+              <div data-dc-tpl="134" style="margin-top: 4px; font-size: 14px; color: var(--dim); line-height: 1.55;"><span class="sc-interp">Não monta etapa nem calcula passagem entre elas dentro do produto. O Claude monta quando você pede.</span></div>
+            </div>
+          </div>
+        
+          <div data-dc-tpl="130" style="display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 16px 0px; border-bottom: 1px solid var(--line); align-items: baseline;">
+            <span data-dc-tpl="131" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 15px; color: var(--rosaInk); font-weight: 700;">não</span>
+            <div data-dc-tpl="132">
+              <div data-dc-tpl="133" style="font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em;"><span class="sc-interp">teste A/B</span></div>
+              <div data-dc-tpl="134" style="margin-top: 4px; font-size: 14px; color: var(--dim); line-height: 1.55;"><span class="sc-interp">Não sorteia variante nem calcula significância. Uma ferramenta de experimento faz melhor.</span></div>
+            </div>
+          </div>
+        
+          <div data-dc-tpl="130" style="display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 16px 0px; border-bottom: 1px solid var(--line); align-items: baseline;">
+            <span data-dc-tpl="131" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 15px; color: var(--rosaInk); font-weight: 700;">não</span>
+            <div data-dc-tpl="132">
+              <div data-dc-tpl="133" style="font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em;"><span class="sc-interp">session replay</span></div>
+              <div data-dc-tpl="134" style="margin-top: 4px; font-size: 14px; color: var(--dim); line-height: 1.55;"><span class="sc-interp">Não grava tela, clique nem movimento de mouse. Nada é capturado sem ser declarado.</span></div>
+            </div>
+          </div>
+        
+      </div>
+    </div>
+  </section>
+
+  
+  <section data-dc-tpl="135" style="padding: 64px 0px; border-top: 1px solid var(--line);">
+    <div data-dc-tpl="136" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); letter-spacing: 0.06em;">PREÇO</div>
+    <h2 data-dc-tpl="137" style="margin: 18px 0px 0px; font-size: clamp(32px, 5vw, 58px); font-weight: 900; line-height: 1; letter-spacing: -0.03em; text-wrap: balance;">Mandar mais evento não aumenta a conta.</h2>
+    <p data-dc-tpl="138" style="margin: 16px 0px 0px; font-size: 16px; line-height: 1.6; color: var(--dim); max-width: 34em; text-wrap: pretty;">Não se cobra por volume de evento. Instrumentar bem é exatamente o que a plataforma quer que você faça — cobrar por isso seria trabalhar contra o produto.</p>
+
+    <div data-dc-tpl="139" style="margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+      <div data-dc-tpl="140" style="border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 24px 22px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="141" style="font-size: 14px; font-weight: 700;">Grátis</div>
+        <div data-dc-tpl="142" style="margin-top: 14px; display: flex; align-items: baseline; gap: 8px;">
+          <span data-dc-tpl="143" style="font-size: clamp(38px, 5vw, 54px); font-weight: 900; letter-spacing: -0.04em; line-height: 1;">R$ 0</span>
+        </div>
+        <div data-dc-tpl="144" style="margin-top: 18px; display: flex; flex-direction: column; gap: 9px; font-size: 14.5px; color: var(--dim);">
+          <div data-dc-tpl="145">1 projeto</div>
+          <div data-dc-tpl="146">1 mês de histórico</div>
+          <div data-dc-tpl="147">Painel e Claude, os dois</div>
+        </div>
+      </div>
+      <div data-dc-tpl="148" style="border: 2px solid var(--pri); border-radius: 12px; background: var(--surface); padding: 23px 21px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="149" style="font-size: 14px; font-weight: 700; color: var(--pri);">Pago</div>
+        <div data-dc-tpl="150" style="margin-top: 14px; display: flex; align-items: baseline; gap: 8px;">
+          <span data-dc-tpl="151" style="font-size: clamp(38px, 5vw, 54px); font-weight: 900; letter-spacing: -0.04em; line-height: 1;">R$ 50</span>
+          <span data-dc-tpl="152" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 14px; color: var(--dim);">/mês</span>
+        </div>
+        <div data-dc-tpl="153" style="margin-top: 18px; display: flex; flex-direction: column; gap: 9px; font-size: 14.5px; color: var(--dim);">
+          <div data-dc-tpl="154">Projetos ilimitados</div>
+          <div data-dc-tpl="155">12 meses de histórico</div>
+          <div data-dc-tpl="156">Eventos ilimitados, sempre</div>
+        </div>
+        <a data-dc-tpl="157" href="https://app.visaodeproduto.com.br" class="scp1" style="margin-top: 22px; height: 44px; border-radius: 9px; background: var(--pri); color: rgb(255, 255, 255); font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;">Começar</a>
+      </div>
+    </div>
+  </section></main><footer data-dc-tpl="158" style="border-top: 1px solid var(--line); background: var(--surface);">
+  <div data-dc-tpl="159" style="max-width: 1180px; margin: 0px auto; padding: 36px 20px 44px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; align-items: end;">
+    <div data-dc-tpl="160">
+      <div data-dc-tpl="161" style="display: flex; align-items: center; gap: 9px;">
+        <span data-dc-tpl="162" style="width: 14px; height: 14px; border-radius: 4px; background: var(--pri); display: block;"></span>
+        <span data-dc-tpl="163" style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 12.5px; font-weight: 500;">visao-de-produto</span>
+      </div>
+      <div data-dc-tpl="164" style="margin-top: 12px; font-size: 13px; color: var(--dim); line-height: 1.6;">Dab Lab · visaodeproduto.com.br</div>
+      <div data-dc-tpl="165" style="margin-top: 8px; font-size: 13px;"><a data-dc-tpl="166" href="https://app.visaodeproduto.com.br/termos">Termos e privacidade</a></div>
+      <div data-dc-tpl="167" style="margin-top: 12px; font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 11.5px; color: var(--faint); line-height: 1.6; max-width: 30em;">Este site não usa cookie de rastreamento, não tem formulário e não captura seu e-mail.</div>
+    </div>
+    <div data-dc-tpl="168" style="display: flex; justify-content: flex-start;">
+      <a data-dc-tpl="169" href="https://app.visaodeproduto.com.br" class="scp1" style="height: 46px; padding: 0px 24px; border-radius: 10px; background: var(--pri); color: rgb(255, 255, 255); font-size: 15px; font-weight: 700; display: flex; align-items: center;">Começar</a>
+    </div>
+  </div></footer></div></div></div>
+<script>
+// Alterna claro e escuro. O tema mora num atributo do <html> e no
+// localStorage — assim a primeira pintura não espera JavaScript, e a escolha
+// da pessoa sobrevive ao recarregar.
+(function () {
+  var raiz = document.documentElement;
+  var salvo = null;
+  try { salvo = localStorage.getItem("tema"); } catch (e) {}
+  if (salvo) raiz.setAttribute("data-tema", salvo);
+
+  function atual() {
+    var marcado = raiz.getAttribute("data-tema");
+    if (marcado) return marcado;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  var botao = document.getElementById("tema");
+  if (!botao) return;
+
+  function rotula() { botao.textContent = atual() === "dark" ? "Modo claro" : "Modo escuro"; }
+  rotula();
+
+  botao.addEventListener("click", function () {
+    var novo = atual() === "dark" ? "light" : "dark";
+    raiz.setAttribute("data-tema", novo);
+    try { localStorage.setItem("tema", novo); } catch (e) {}
+    rotula();
+  });
+})();
+</script>
+</body></html>

@@ -206,6 +206,20 @@ const PRIVACIDADE: Bloco[] = [
         Da sua conta, guardamos o e-mail e o nome que vêm do login com Google, os projetos que você
         criou, e o hash das credenciais que você gerou.
       </>,
+      <>
+        <strong>E medimos o uso da própria plataforma</strong>, com a mesma ferramenta que você está
+        usando — seria estranho pregar o contrário. Registramos um punhado de acontecimentos:
+        conta criada, projeto criado, chave gerada, Claude conectado, dados exportados, assinatura
+        iniciada, conta encerrada. Cada um deles está declarado no código, um por um; não existe
+        captura automática aqui também.
+      </>,
+      <>
+        Nessas medições, <strong>você é identificado pelo número da sua conta, e não pelo seu
+        e-mail</strong> — de propósito. Assim conseguimos responder quantas contas conectaram o
+        Claude sem espalhar dado pessoal por milhares de linhas. E <strong>nada do conteúdo dos
+        seus aplicativos</strong> entra aí: nem nome de projeto, nem nome de evento seu, nem
+        propriedade nenhuma. Instrumentar a nós mesmos não é desculpa para olhar o seu dado.
+      </>,
     ],
   },
   {

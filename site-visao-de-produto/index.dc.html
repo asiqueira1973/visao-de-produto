@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0}
+*{box-sizing:border-box}
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit}
+a{color:var(--pri);text-decoration:none}
+a:hover{color:var(--text)}
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+<header style="position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line)">
+  <div style="max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px">
+    <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
+      <span style="width:14px;height:14px;border-radius:4px;background:var(--pri);flex:none;display:block"></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;letter-spacing:-0.01em;white-space:nowrap">visao-de-produto</span>
+    </div>
+    <button onClick="{{ toggleTheme }}" style="height:32px;padding:0 11px;border-radius:8px;border:1px solid var(--line2);background:var(--surface);font-size:12px;cursor:pointer;white-space:nowrap" style-hover="border-color:var(--pri);color:var(--pri)">{{ themeLabel }}</button>
+    <a href="https://app.visaodeproduto.com.br" style="height:32px;padding:0 14px;border-radius:8px;background:var(--pri);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;white-space:nowrap" style-hover="color:#fff;opacity:0.9">Começar</a>
+  </div>
+</header>
+
+<main style="max-width:1180px;margin:0 auto;padding:0 20px">
+
+  <!-- TOPO -->
+  <section style="padding:56px 0 64px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:44px;align-items:center">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--pri);letter-spacing:0.02em">product analytics deliberadamente pequeno</div>
+      <h1 style="margin:18px 0 0;font-size:clamp(44px,7.4vw,86px);font-weight:900;line-height:0.95;letter-spacing:-0.035em;text-wrap:balance">Você lançou.<br>Alguém usou?</h1>
+      <p style="margin:22px 0 0;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.5vw,15.5px);line-height:1.65;color:var(--dim);max-width:30em;text-wrap:pretty">Seu app envia só os eventos que importam. As respostas vêm de duas formas iguais: um painel na web e o Claude, em português.</p>
+      <div style="margin-top:30px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <a href="https://app.visaodeproduto.com.br" style="height:50px;padding:0 26px;border-radius:10px;background:var(--pri);color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center" style-hover="color:#fff;opacity:0.9">Começar</a>
+        <span style="font-size:13px;color:var(--faint)">Grátis para 1 projeto. Sem cartão.</span>
+      </div>
+    </div>
+    <div style="{{ frameStyle }}">
+      <img src="assets/painel.png" alt="Painel do projeto CRM Vendas com três gráficos de barras fixados: tarefas concluídas, leads criados e leads qualificados nos últimos 30 dias">
+    </div>
+  </section>
+
+  <!-- O PROBLEMA -->
+  <section style="padding:64px 0;border-top:1px solid var(--line)">
+    <div style="max-width:20em">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:0.06em">O PROBLEMA</div>
+    </div>
+    <div style="margin-top:22px;display:flex;flex-direction:column;gap:14px;max-width:24em">
+      <p style="margin:0;font-size:clamp(24px,3.4vw,38px);font-weight:800;line-height:1.15;letter-spacing:-0.025em;text-wrap:pretty">Você entrega feature toda semana e não sabe qual tela é usada.</p>
+      <p style="margin:0;font-size:clamp(15px,1.8vw,18px);line-height:1.6;color:var(--dim);max-width:34em;text-wrap:pretty">Não é falta de ferramenta. É que nenhuma delas foi feita para quem não está procurando ferramenta — quem constrói com o Claude Code, a partir de specs, e não vai passar a tarde comparando tabela de preço.</p>
+    </div>
+  </section>
+
+  <!-- AS TRÊS IDEIAS -->
+  <section style="padding:8px 0 64px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px">
+
+      <div style="border:1px solid var(--line);border-radius:12px;background:var(--laranjaSoft);padding:24px 22px;display:flex;flex-direction:column">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--laranja);font-weight:700">01</div>
+        <h3 style="margin:12px 0 0;font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.02em">Nada é capturado automaticamente</h3>
+        <p style="margin:12px 0 0;font-size:14.5px;line-height:1.6;color:var(--dim);text-wrap:pretty">Sem IP, sem geolocalização, sem user-agent, sem pageview implícito. Só existe aqui o que o seu código enviou de propósito. É o contrário do padrão do mercado, e é deliberado.</p>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:12px;background:var(--verdeSoft);padding:24px 22px;display:flex;flex-direction:column">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--verdeInk);font-weight:700">02</div>
+        <h3 style="margin:12px 0 0;font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.02em">Todo evento carrega o que significa</h3>
+        <p style="margin:12px 0 0;font-size:14.5px;line-height:1.6;color:var(--dim);text-wrap:pretty">A descrição em português é campo de primeira classe. Seis meses depois, <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text)">crm_lead_qualificado</span> continua dizendo “vendedor marcou o lead como qualificado” — para você e para o agente.</p>
+      </div>
+
+      <div style="border:1px solid var(--line);border-radius:12px;background:var(--rosaSoft);padding:24px 22px;display:flex;flex-direction:column">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--rosaInk);font-weight:700">03</div>
+        <h3 style="margin:12px 0 0;font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.02em">O evento que não aconteceu aparece</h3>
+        <p style="margin:12px 0 0;font-size:14.5px;line-height:1.6;color:var(--dim);text-wrap:pretty">Com zero explícito. Você subiu uma feature na semana passada; a tela mostra que ela nunca foi usada. É a pergunta que as outras ferramentas escondem.</p>
+        <div style="margin-top:20px;display:flex;align-items:flex-end;gap:7px;height:96px">
+          <sc-for list="{{ zeroBars }}" as="b" hint-placeholder-count="6">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end">
+              <span style="{{ b.labelStyle }}">{{ b.label }}</span>
+              <span style="{{ b.barStyle }}"></span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px">
+      <figure style="margin:0">
+        <div style="{{ frameStyle }}">
+          <img src="assets/uso.png" alt="Tela de Uso listando todos os eventos do catálogo com total, usuários únicos e última ocorrência, inclusive eventos com zero ocorrências no período">
+        </div>
+        <figcaption style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);line-height:1.5">Uso · todos os eventos do catálogo, inclusive os que ficaram em zero</figcaption>
+      </figure>
+      <figure style="margin:0">
+        <div style="{{ frameStyle }}">
+          <img src="assets/atividade.png" alt="Tela de Atividade listando eventos recentes, cada um com a descrição em português acima do nome técnico do evento">
+        </div>
+        <figcaption style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);line-height:1.5">Atividade · a descrição vem primeiro, o nome técnico embaixo</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section style="padding:64px 0;border-top:1px solid var(--line)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:0.06em">COMO FUNCIONA</div>
+    <h2 style="margin:18px 0 0;font-size:clamp(32px,5vw,58px);font-weight:900;line-height:1;letter-spacing:-0.03em">Três passos, e um deles<br>você nem faz.</h2>
+
+    <div style="margin-top:40px;display:flex;flex-direction:column;gap:28px">
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:start;padding-top:26px;border-top:1px solid var(--line)">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:7px;background:var(--pri);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">1</span>
+            <h3 style="margin:0;font-size:clamp(20px,2.6vw,28px);font-weight:800;letter-spacing:-0.02em;line-height:1.15">O agente instrumenta enquanto constrói</h3>
+          </div>
+          <p style="margin:14px 0 0;font-size:15.5px;line-height:1.65;color:var(--dim);max-width:36em;text-wrap:pretty">Ao implementar uma tela nova, o Claude adiciona a chamada de evento no código, seguindo a convenção que o projeto já usa e escrevendo a descrição em português. Você revisa o diff como revisa qualquer outro.</p>
+        </div>
+        <div style="border:1px solid var(--line);border-radius:12px;background:var(--code);padding:16px 18px;overflow-x:auto">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);margin-bottom:10px">PacienteNovo.tsx · diff</div>
+          <pre style="margin:0;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;color:var(--dim)"><span style="color:var(--verdeInk)">+ track("crm_lead_criado", {</span>
+<span style="color:var(--verdeInk)">+   descricao: "vendedor cadastrou um lead novo",</span>
+<span style="color:var(--verdeInk)">+   tela: "Funil"</span>
+<span style="color:var(--verdeInk)">+ });</span></pre>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:start;padding-top:26px;border-top:1px solid var(--line)">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:7px;background:var(--pri);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">2</span>
+            <h3 style="margin:0;font-size:clamp(20px,2.6vw,28px);font-weight:800;letter-spacing:-0.02em;line-height:1.15">O app envia — pelo SDK ou direto pela API</h3>
+          </div>
+          <p style="margin:14px 0 0;font-size:15.5px;line-height:1.65;color:var(--dim);max-width:36em;text-wrap:pretty">Uma chamada com a chave do projeto. Quem já faz POST não instala pacote nenhum. O SDK dá fila offline, reenvio e lote automático; a chamada direta funciona em qualquer linguagem.</p>
+        </div>
+        <figure style="margin:0">
+          <div style="{{ frameStyle }}">
+            <img src="assets/codigo.png" alt="Tela Como usar mostrando as abas Com o SDK e Direto pela API, com um exemplo de chamada curl enviando um evento com nome, descrição, tela e propriedades">
+          </div>
+        </figure>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:start;padding-top:26px;border-top:1px solid var(--line)">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:7px;background:var(--pri);color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">3</span>
+            <h3 style="margin:0;font-size:clamp(20px,2.6vw,28px);font-weight:800;letter-spacing:-0.02em;line-height:1.15">Você pergunta — no painel ou no Claude</h3>
+          </div>
+          <p style="margin:14px 0 0;font-size:15.5px;line-height:1.65;color:var(--dim);max-width:36em;text-wrap:pretty">Pelas telas, quando você quer olhar. Pelo Claude, quando a pergunta aparece no meio do trabalho e você não quer trocar de janela. As duas formas leem os mesmos dados.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--pri);flex:none"></span>
+            <span style="font-size:14.5px;font-weight:600">No painel</span>
+            <span style="font-size:13.5px;color:var(--dim)">Atividade, Uso, Painel, Pessoas, Catálogo</span>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--pri);flex:none"></span>
+            <span style="font-size:14.5px;font-weight:600">No Claude</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim)">via MCP, com token de leitura</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERGUNTE EM PORTUGUÊS -->
+  <section style="padding:64px 0;border-top:1px solid var(--line)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;align-items:end">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:0.06em">PERGUNTE EM PORTUGUÊS</div>
+        <h2 style="margin:18px 0 0;font-size:clamp(34px,5.6vw,64px);font-weight:900;line-height:0.98;letter-spacing:-0.035em;text-wrap:balance">Sem citar nome de evento nenhum.</h2>
+      </div>
+      <div style="border-left:3px solid var(--pri);padding-left:16px">
+        <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(14px,1.7vw,17px);line-height:1.6;color:var(--text);text-wrap:pretty">“usando o visão de produto, me dá um panorama do CRM Vendas nos últimos 30 dias. O que chama atenção?”</p>
+        <p style="margin:14px 0 0;font-size:14.5px;line-height:1.6;color:var(--dim);text-wrap:pretty">O Claude lê o catálogo sozinho, entende o que cada evento significa pela descrição, cruza os projetos e responde com números.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:20px;align-items:start">
+      <figure style="margin:0">
+        <div style="{{ frameStyle }}">
+          <img src="assets/claude-conversa.png" alt="Conversa no Claude Desktop: a pergunta pede um panorama do CRM Vendas nos últimos 30 dias e a resposta traz o funil completo, receita, ticket médio e os pontos que chamam atenção">
+        </div>
+        <figcaption style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);line-height:1.5">A pergunta em português. A resposta cita os eventos em mono.</figcaption>
+      </figure>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <figure style="margin:0">
+          <div style="{{ frameStyle }}">
+            <img src="assets/claude-resposta.png" alt="Relatório gerado pelo Claude com o panorama de 30 dias do CRM Vendas: três alertas do que exige decisão e os números da janela em cartões">
+          </div>
+        </figure>
+        <figure style="margin:0">
+          <div style="{{ frameStyle }}">
+            <img src="assets/claude-funil.png" alt="Gráfico de funil gerado pelo Claude, do lead criado ao negócio ganho, com o volume de cada etapa e o percentual de passagem">
+          </div>
+          <figcaption style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);line-height:1.5">O gráfico sai da conversa, não do produto.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- O QUE ELA NÃO É -->
+  <section style="padding:64px 0;border-top:1px solid var(--line)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;align-items:start">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:0.06em">O QUE ELA NÃO É</div>
+        <h2 style="margin:18px 0 0;font-size:clamp(30px,4.6vw,52px);font-weight:900;line-height:1;letter-spacing:-0.03em;text-wrap:balance">Quatro coisas que outra ferramenta faz melhor.</h2>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ nots }}" as="n" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:baseline">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--rosaInk);font-weight:700">não</span>
+            <div>
+              <div style="font-size:16.5px;font-weight:700;letter-spacing:-0.01em">{{ n.title }}</div>
+              <div style="margin-top:4px;font-size:14px;color:var(--dim);line-height:1.55">{{ n.body }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREÇO -->
+  <section style="padding:64px 0;border-top:1px solid var(--line)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:0.06em">PREÇO</div>
+    <h2 style="margin:18px 0 0;font-size:clamp(32px,5vw,58px);font-weight:900;line-height:1;letter-spacing:-0.03em;text-wrap:balance">Mandar mais evento não aumenta a conta.</h2>
+    <p style="margin:16px 0 0;font-size:16px;line-height:1.6;color:var(--dim);max-width:34em;text-wrap:pretty">Não se cobra por volume de evento. Instrumentar bem é exatamente o que a plataforma quer que você faça — cobrar por isso seria trabalhar contra o produto.</p>
+
+    <div style="margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+      <div style="border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:24px 22px;display:flex;flex-direction:column">
+        <div style="font-size:14px;font-weight:700">Grátis</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:clamp(38px,5vw,54px);font-weight:900;letter-spacing:-0.04em;line-height:1">R$ 0</span>
+        </div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:9px;font-size:14.5px;color:var(--dim)">
+          <div>1 projeto</div>
+          <div>1 mês de histórico</div>
+          <div>Painel e Claude, os dois</div>
+        </div>
+      </div>
+      <div style="border:2px solid var(--pri);border-radius:12px;background:var(--surface);padding:23px 21px;display:flex;flex-direction:column">
+        <div style="font-size:14px;font-weight:700;color:var(--pri)">Pago</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:clamp(38px,5vw,54px);font-weight:900;letter-spacing:-0.04em;line-height:1">R$ 50</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--dim)">/mês</span>
+        </div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:9px;font-size:14.5px;color:var(--dim)">
+          <div>Projetos ilimitados</div>
+          <div>12 meses de histórico</div>
+          <div>Eventos ilimitados, sempre</div>
+        </div>
+        <a href="https://app.visaodeproduto.com.br" style="margin-top:22px;height:44px;border-radius:9px;background:var(--pri);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center" style-hover="color:#fff;opacity:0.9">Começar</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer style="border-top:1px solid var(--line);background:var(--surface)">
+  <div style="max-width:1180px;margin:0 auto;padding:36px 20px 44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;align-items:end">
+    <div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="width:14px;height:14px;border-radius:4px;background:var(--pri);display:block"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">visao-de-produto</span>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--dim);line-height:1.6">Dab Lab · visaodeproduto.com.br</div>
+      <div style="margin-top:8px;font-size:13px"><a href="https://app.visaodeproduto.com.br/termos">Termos e privacidade</a></div>
+      <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--faint);line-height:1.6;max-width:30em">Este site não usa cookie de rastreamento, não tem formulário e não captura seu e-mail.</div>
+    </div>
+    <div style="display:flex;justify-content:flex-start">
+      <a href="https://app.visaodeproduto.com.br" style="height:46px;padding:0 24px;border-radius:10px;background:var(--pri);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center" style-hover="color:#fff;opacity:0.9">Começar</a>
+    </div>
+  </div>
+</footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:null,&quot;tsType&quot;:&quot;'light'|'dark'|null&quot;,&quot;section&quot;:&quot;Aparência&quot;},&quot;corPrimaria&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#007aff&quot;,&quot;options&quot;:[&quot;#007aff&quot;,&quot;#0a84ff&quot;,&quot;#0064d2&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Aparência&quot;}}">
+const LIGHT = {
+  '--bg':'#ffffff','--surface':'#fbfbfc','--line':'#e7e8ec','--line2':'#d6d8de','--code':'#f6f7f9',
+  '--text':'#17181c','--dim':'#63666e','--faint':'#8d9098','--pri':'#007aff',
+  '--ok':'#1a7f37','--err':'#c9303d',
+  '--laranja':'#c2490a','--laranjaSoft':'#fff3e8',
+  '--verdeInk':'#3f6212','--verdeSoft':'#f2fbe0',
+  '--rosaInk':'#a3336b','--rosaSoft':'#fdeff6',
+  '--shadow':'0 10px 30px rgba(15,18,25,0.10)'
+};
+const DARK = {
+  '--bg':'#0b0c0e','--surface':'#101115','--line':'#23262c','--line2':'#2f333a','--code':'#0e0f12',
+  '--text':'#e9eaee','--dim':'#9b9ea6','--faint':'#6a6d76','--pri':'#0a84ff',
+  '--ok':'#3fb950','--err':'#f0616d',
+  '--laranja':'#ff9f4a','--laranjaSoft':'rgba(255,120,20,0.10)',
+  '--verdeInk':'#9ede4a','--verdeSoft':'rgba(150,220,60,0.09)',
+  '--rosaInk':'#ff86bd','--rosaSoft':'rgba(255,90,160,0.09)',
+  '--shadow':'0 14px 40px rgba(0,0,0,0.45)'
+};
+
+const NOTS = [
+  { title:'web analytics', body:'Não conta visita, sessão nem origem de tráfego. Para isso, use um analytics de site.' },
+  { title:'funil', body:'Não monta etapa nem calcula passagem entre elas dentro do produto. O Claude monta quando você pede.' },
+  { title:'teste A/B', body:'Não sorteia variante nem calcula significância. Uma ferramenta de experimento faz melhor.' },
+  { title:'session replay', body:'Não grava tela, clique nem movimento de mouse. Nada é capturado sem ser declarado.' }
+];
+
+const ZERO = [
+  { label:'96', v:96 }, { label:'104', v:104 }, { label:'72', v:72 },
+  { label:'88', v:88 }, { label:'64', v:64 }, { label:'0', v:0 }
+];
+
+class Component extends DCLogic {
+  state = { theme: null };
+
+  theme() { return this.state.theme || this.props.tema || 'light'; }
+
+  renderVals() {
+    const dark = this.theme() === 'dark';
+    const vars = Object.assign({}, dark ? DARK : LIGHT);
+    if (this.props.corPrimaria) vars['--pri'] = this.props.corPrimaria;
+
+    const max = 104;
+    return {
+      rootStyle: Object.assign({
+        fontFamily: "Archivo, system-ui, sans-serif", background: 'var(--bg)', color: 'var(--text)',
+        minHeight: '100vh', WebkitFontSmoothing: 'antialiased'
+      }, vars),
+      frameStyle: {
+        borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--line)',
+        background: 'var(--surface)', boxShadow: 'var(--shadow)'
+      },
+      themeLabel: dark ? 'Modo claro' : 'Modo escuro',
+      toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      nots: NOTS,
+      zeroBars: ZERO.map(b => ({
+        label: b.label,
+        labelStyle: {
+          fontFamily: "'JetBrains Mono',monospace", fontSize: b.v === 0 ? '15px' : '10.5px',
+          fontWeight: b.v === 0 ? 700 : 400,
+          color: b.v === 0 ? 'var(--rosaInk)' : 'var(--faint)'
+        },
+        barStyle: {
+          width: '100%', borderRadius: '4px 4px 0 0',
+          background: b.v === 0 ? 'var(--rosaInk)' : 'var(--pri)',
+          opacity: b.v === 0 ? 1 : 0.85,
+          height: (b.v === 0 ? 4 : Math.max(8, Math.round(b.v / max * 62))) + 'px'
+        }
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

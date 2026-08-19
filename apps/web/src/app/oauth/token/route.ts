@@ -13,6 +13,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { clienteDeServico } from "@/lib/supabase/server";
+import { registrar } from "@/lib/instrumentacao";
 import {
   acharCliente,
   desafioS256,
@@ -115,6 +116,12 @@ export async function POST(request: NextRequest) {
     console.error("falha ao emitir token OAuth", erroToken);
     return erroOauth("server_error", "Não consegui emitir o token.", 500);
   }
+
+  // O momento em que o Claude passa a enxergar os dados de alguém — o evento
+  // mais importante do produto depois do primeiro evento recebido.
+  registrar("visao_claude_conectado", registro.conta_id as string, "AutorizacaoOauth", {
+    cliente: cliente.nome,
+  });
 
   // Sem `expires_in`: o token vale até ser revogado na tela, que é o modelo de
   // credencial que o produto já tem (seção 6.3). Sem prazo, sem refresh token.

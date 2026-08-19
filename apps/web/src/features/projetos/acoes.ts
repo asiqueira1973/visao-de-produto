@@ -14,6 +14,7 @@
 
 import { revalidatePath } from "next/cache";
 import { clienteDaSessao } from "@/lib/supabase/server";
+import { registrar } from "@/lib/instrumentacao";
 
 /** Transforma o nome digitado em slug, no formato que o banco exige. */
 export async function paraSlug(nome: string): Promise<string> {
@@ -61,6 +62,13 @@ export async function criarProjetoComSlugLivre(
 
     if (!error && data) return { projeto: data };
 
+    // O limite do plano (regra 11.15) é imposto por trigger no banco, e a
+    // mensagem dele já explica o que fazer. Repassamos sem o prefixo técnico —
+    // quem lê a tela não precisa saber o nome da exceção.
+    if (error?.message?.includes("limite_de_projetos")) {
+      return { erro: error.message.replace(/^.*limite_de_projetos:\s*/, "") };
+    }
+
     // 23505 é violação de unicidade: o slug já é de alguém. Qualquer outro erro
     // é problema de verdade e não melhora tentando de novo.
     if (error?.code !== "23505") {
@@ -100,6 +108,8 @@ export async function criarProjeto(nome: string): Promise<{ slug?: string; erro?
   );
 
   if (erro || !projeto) return { erro: erro ?? "Não consegui criar o projeto." };
+
+  registrar("visao_projeto_criado", vinculo.conta_id as string, "Projetos");
 
   revalidatePath("/projetos");
   return { slug: projeto.slug };
