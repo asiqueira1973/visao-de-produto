@@ -20,6 +20,7 @@ import { clienteDaSessao } from "@/lib/supabase/server";
 import { NomeDaConta } from "@/features/perfil/NomeDaConta";
 import { ZonaDePerigo } from "@/features/perfil/ZonaDePerigo";
 import { diasAteOExpurgo } from "@/features/perfil/dias";
+import { CartaoDeAssinatura } from "@/features/cobranca/CartaoDeAssinatura";
 import { dataCurta } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,12 @@ function Linha({
   );
 }
 
-export default async function Perfil() {
+export default async function Perfil({
+  searchParams,
+}: {
+  searchParams: Promise<{ assinatura?: string }>;
+}) {
+  const { assinatura } = await searchParams;
   const supabase = await clienteDaSessao();
 
   const {
@@ -65,7 +71,9 @@ export default async function Perfil() {
 
   const { data: conta } = await supabase
     .from("contas")
-    .select("id, nome, plano, retencao_meses, limite_projetos, criada_em, cancelada_em")
+    .select(
+      "id, nome, plano, retencao_meses, limite_projetos, criada_em, cancelada_em, cortesia, assinatura_status, periodo_fim",
+    )
     .maybeSingle();
 
   const { count: projetos } = await supabase
@@ -76,6 +84,12 @@ export default async function Perfil() {
   const { count: eventos } = await supabase
     .from("eventos")
     .select("id", { count: "exact", head: true });
+
+  // Se os dados da nota já existem, "Assinar" vai direto para o pagamento.
+  const { data: tomador } = await supabase
+    .from("dados_de_cobranca")
+    .select("id")
+    .maybeSingle();
 
   // Competência é o primeiro dia do mês corrente, em UTC — o mesmo recorte que
   // `fn_agrega_uso_mensal` usa para gravar.
@@ -176,6 +190,23 @@ export default async function Perfil() {
             </span>
           </Linha>
         </div>
+
+        {/* Assinatura */}
+        <div style={{ marginTop: 26, fontSize: 12.5, fontWeight: 600, marginBottom: 10 }}>
+          Assinatura
+        </div>
+        <CartaoDeAssinatura
+          estado={{
+            plano: (conta?.plano as "gratuito" | "pago") ?? "gratuito",
+            cortesia: Boolean(conta?.cortesia),
+            assinaturaStatus:
+              (conta?.assinatura_status as "nenhuma" | "ativa" | "atrasada" | "cancelada") ??
+              "nenhuma",
+            periodoFim: conta?.periodo_fim ?? null,
+            temDadosDeCobranca: Boolean(tomador),
+            retorno: assinatura,
+          }}
+        />
 
         {/* Medição do mês */}
         <div style={{ marginTop: 26, fontSize: 12.5, fontWeight: 600, marginBottom: 10 }}>
