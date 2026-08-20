@@ -310,8 +310,30 @@ Os registros:
 | `send` | CNAME | `us1.bounce.bird.com.` |
 | `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:dmarc-agg@dmarc.bird.com;` |
 
-**Nenhum e-mail é enviado ainda: não existe código que chame o Bird.** O que falta é a
-função de envio e os quatro textos abaixo.
+**O envio existe e foi provado.** `apps/web/src/lib/email/bird.ts` é o transporte e
+`mensagens.ts` traz os quatro textos. Em 19/08/2026 os quatro foram enviados de verdade
+para uma caixa do Gmail e a API do Bird reportou `delivered` nos quatro.
+
+Rodar o teste de novo:
+
+```
+node --experimental-strip-types --env-file=.env \
+  scripts/enviar-emails-de-teste.ts alguem@exemplo.com
+```
+
+**Quatro detalhes da API do Bird que custaram tempo e não estão na primeira página da
+documentação:**
+
+- **O host é regional e sai da própria chave.** `bk_us1_…` fala com
+  `https://us1.platform.bird.com`. O `api.bird.com` dos exemplos de Channels devolve 404 em
+  tudo — inclusive sem chave nenhuma, o que faz parecer erro de credencial quando é
+  endereço errado.
+- **A autenticação é `Bearer`**, não `AccessKey`. `AccessKey` é da API de Channels, que é
+  outro produto dentro do mesmo painel.
+- **`to` é lista de strings**; só `from` é objeto.
+- **Sucesso é 202**, com id `em_…`. O status vira `delivered` em `GET /v1/email/messages`.
+
+**O que falta é ligar cada e-mail no seu gatilho** — nenhum dispara sozinho ainda.
 
 Duas armadilhas que custaram tempo e vão se repetir em qualquer outro domínio:
 

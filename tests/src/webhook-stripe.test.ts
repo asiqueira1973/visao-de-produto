@@ -73,7 +73,7 @@ beforeAll(async () => {
  */
 describe("pré-requisito", () => {
   it("o site está no ar — esta suíte fala com ele, não só com o banco", async () => {
-    let respondeu = false;
+    let respondeu: boolean;
     try {
       const r = await fetch(`${SITE}/api/saude`, { signal: AbortSignal.timeout(4_000) });
       respondeu = r.ok;
