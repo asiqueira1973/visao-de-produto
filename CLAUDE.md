@@ -292,6 +292,23 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
+**Manutenção de partições — consertada em 20/08/2026, e vale saber por quê.** O job
+`manutencao_particoes` **nunca rodou com sucesso**: `fn_manutencao_particoes()` era uma
+função chamando `partman.run_maintenance_proc()`, que faz `COMMIT` — ilegal dentro de
+função. As partições cobriam até 12/10/2026 e, depois disso, todo INSERT em `eventos`
+falharia sem aviso prévio.
+
+Virar procedure não basta: **procedure com `SECURITY DEFINER` ou com cláusula `SET`
+também não pode dar `COMMIT`**, e a primeira tentativa de conserto falhou com o mesmo
+erro. `pr_manutencao_particoes()` não tem nenhum dos dois, e por isso qualifica todo nome
+pelo esquema — o `function_search_path_mutable` que o advisor reporta nela é aceito de
+propósito, com essa mitigação.
+
+Provado nos dois bancos com execução real do cron, e no dev subindo o `premake` para 9:
+criou duas partições novas, já com RLS ligada.
+
+
+
 **E-mail transacional (Bird) — domínio verificado, código não escrito.** O dono criou a
 conta no Bird, adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em
 19/08/2026. Os três registros de DNS foram criados no registro.br no mesmo dia e
@@ -333,7 +350,38 @@ documentação:**
 - **`to` é lista de strings**; só `from` é objeto.
 - **Sucesso é 202**, com id `em_…`. O status vira `delivered` em `GET /v1/email/messages`.
 
-**O que falta é ligar cada e-mail no seu gatilho** — nenhum dispara sozinho ainda.
+**Três dos quatro estão ligados** (20/08/2026):
+
+| E-mail | Gatilho | Onde |
+|---|---|---|
+| Boas-vindas | entrada pelo Google | `app/auth/callback/route.ts` |
+| Cancelamento, 30 dias | a própria tela de cancelar | `features/perfil/acoes.ts` |
+| Cancelamento, 7 e 1 dia | job diário, 12:00 UTC | `api/avisos/diario` |
+| Perto do teto | job diário, 12:00 UTC | `api/avisos/diario` |
+| Pagamento recusado | **sem chamador** | entra com a cobrança |
+
+O envio é idempotente pela chave única `(conta, tipo, referência)` de
+`avisos_enviados`: o job pode rodar duas vezes no mesmo dia sem escrever duas vezes para
+ninguém. A ordem das escritas é reservar-depois-mandar, e a reserva é apagada se o envio
+falhar — mandar primeiro abriria janela para duplicidade, e não desfazer perderia o aviso
+para sempre. Reativar a conta esquece os avisos daquele cancelamento, senão a segunda vez
+ficaria muda.
+
+Provado ponta a ponta no dev em 20/08/2026: uma conta cancelada há 23 dias fez o job
+mandar o lembrete de 7 dias, a segunda execução devolveu zero, e o cenário de 9 eventos
+para um teto de 10 fez sair o aviso de 90%.
+
+**DUAS ARMADILHAS QUE ESTE ÉPICO DEIXOU, e valem para qualquer função nova:**
+
+- **`revoke ... from anon, authenticated` não fecha nada.** O Postgres concede EXECUTE a
+  `public` por padrão, e `public` inclui os dois papéis. As duas funções de aviso, que
+  devolvem o **e-mail** do dono de cada conta, ficaram chamáveis por `/rest/v1/rpc/…` com
+  a chave anônima — a que vai no bundle do navegador. Quem pegou foi o `get_advisors`, não
+  a revisão. O que fecha é `revoke all on function … from public`.
+- **O aviso de teto conta ao vivo, e não por `uso_mensal`.** Aquela tabela é escrita uma
+  vez por dia; o teto existe para conter loop, e loop enche o teto em horas. Usar a foto
+  de ontem faria a pessoa ser bloqueada antes de ser avisada — falharia exatamente no
+  único caso em que o aviso serve.
 
 Duas armadilhas que custaram tempo e vão se repetir em qualquer outro domínio:
 
