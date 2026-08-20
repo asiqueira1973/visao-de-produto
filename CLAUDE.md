@@ -373,11 +373,35 @@ para um teto de 10 fez sair o aviso de 90%.
 
 **DUAS ARMADILHAS QUE ESTE ÉPICO DEIXOU, e valem para qualquer função nova:**
 
-- **`revoke ... from anon, authenticated` não fecha nada.** O Postgres concede EXECUTE a
-  `public` por padrão, e `public` inclui os dois papéis. As duas funções de aviso, que
-  devolvem o **e-mail** do dono de cada conta, ficaram chamáveis por `/rest/v1/rpc/…` com
-  a chave anônima — a que vai no bundle do navegador. Quem pegou foi o `get_advisors`, não
-  a revisão. O que fecha é `revoke all on function … from public`.
+- **Função nova nasce aberta ao `anon`, e fechar exige DOIS revokes.** Existem duas
+  concessões independentes, e cada uma sozinha basta para deixar a porta aberta:
+  o PostgreSQL concede EXECUTE a `PUBLIC` em toda função nova, **e** o Supabase mantém um
+  `ALTER DEFAULT PRIVILEGES` que concede EXECUTE a `anon`, `authenticated` e
+  `service_role` em toda função nova do schema `public` (veja `pg_default_acl`).
+
+  Revogar só de `public` deixa a concessão explícita de pé; revogar só de
+  `anon, authenticated` deixa a herança de pé. **O fecho é revogar dos três:**
+
+  ```sql
+  revoke all on function public.fn_x(...) from public;
+  revoke all on function public.fn_x(...) from anon, authenticated;
+  ```
+
+  Isso custou duas tentativas erradas em 20/08/2026, com funções que devolvem o **e-mail**
+  do dono de cada conta expostas à chave anônima — a que vai no bundle do navegador. Nas
+  duas vezes quem pegou foi um POST de verdade, não a leitura do código.
+
+  **Confira sempre por consulta, nunca por leitura:**
+
+  ```sql
+  select p.proname, has_function_privilege('anon', p.oid, 'EXECUTE') as anon
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.prokind = 'f'
+    and has_function_privilege('anon', p.oid, 'EXECUTE');
+  ```
+
+  Hoje essa consulta devolve só `fn_valida_nome_evento`, que é validação pura de string e
+  não toca em dado nenhum.
 - **O aviso de teto conta ao vivo, e não por `uso_mensal`.** Aquela tabela é escrita uma
   vez por dia; o teto existe para conter loop, e loop enche o teto em horas. Usar a foto
   de ontem faria a pessoa ser bloqueada antes de ser avisada — falharia exatamente no
