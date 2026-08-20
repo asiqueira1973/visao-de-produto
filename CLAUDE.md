@@ -292,10 +292,17 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
-**E-mail transacional (Bird) — DNS pronto, código não escrito.** O dono criou a conta no
-Bird, adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em 19/08/2026. Os
-três registros de DNS foram criados no registro.br em 19/08/2026 e conferidos direto nos
-servidores autoritativos da zona (`b.sec.dns.br` e `c.sec.dns.br`):
+**E-mail transacional (Bird) — domínio verificado, código não escrito.** O dono criou a
+conta no Bird, adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em
+19/08/2026. Os três registros de DNS foram criados no registro.br no mesmo dia e
+conferidos direto nos servidores autoritativos da zona (`b.sec.dns.br` e `c.sec.dns.br`).
+**O painel do Bird marcou Sending e Return path como Verified em 19/08/2026.**
+
+`Tracking` fica em *Pending* e `Receiving` em *Not configured* para sempre — é a decisão
+registrada abaixo, não pendência. Desligar as chaves Open e Click na seção Tracking do
+Bird tira o aviso amarelo do painel, se incomodar.
+
+Os registros:
 
 | Nome | Tipo | Valor |
 |---|---|---|
