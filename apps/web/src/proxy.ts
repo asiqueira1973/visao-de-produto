@@ -40,6 +40,7 @@ const ROTAS_PUBLICAS = [
   // Quem chama é o agendador da Vercel, que também não tem sessão. Quem
   // autentica é o CRON_SECRET, conferido dentro da rota.
   "/api/cobranca/reconciliar",
+  "/api/avisos/diario",
 ];
 
 export default async function proxy(request: NextRequest) {
