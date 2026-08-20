@@ -292,17 +292,62 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
-**E-mail transacional (Bird) — configurado pela metade.** O dono criou a conta no Bird,
-adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em 19/08/2026. **Os
-registros de DNS ainda não foram criados**, então nada é enviado.
+**E-mail transacional (Bird) — domínio verificado, código não escrito.** O dono criou a
+conta no Bird, adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em
+19/08/2026. Os três registros de DNS foram criados no registro.br no mesmo dia e
+conferidos direto nos servidores autoritativos da zona (`b.sec.dns.br` e `c.sec.dns.br`).
+**O painel do Bird marcou Sending e Return path como Verified em 19/08/2026.**
 
-Para ligar, criar no registro.br:
+`Tracking` fica em *Pending* e `Receiving` em *Not configured* para sempre — é a decisão
+registrada abaixo, não pendência. Desligar as chaves Open e Click na seção Tracking do
+Bird tira o aviso amarelo do painel, se incomodar.
+
+Os registros:
 
 | Nome | Tipo | Valor |
 |---|---|---|
-| `bird-726-0826._domainkey` | TXT | a chave DKIM que o painel do Bird mostra |
+| `bird-726-0826._domainkey` | TXT | chave DKIM RSA de 2048 bits, 294 bytes, decodifica |
 | `send` | CNAME | `us1.bounce.bird.com.` |
 | `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:dmarc-agg@dmarc.bird.com;` |
+
+**O envio existe e foi provado.** `apps/web/src/lib/email/bird.ts` é o transporte e
+`mensagens.ts` traz os quatro textos. Em 19/08/2026 os quatro foram enviados de verdade
+para uma caixa do Gmail e a API do Bird reportou `delivered` nos quatro.
+
+Rodar o teste de novo:
+
+```
+node --experimental-strip-types --env-file=.env \
+  scripts/enviar-emails-de-teste.ts alguem@exemplo.com
+```
+
+**Quatro detalhes da API do Bird que custaram tempo e não estão na primeira página da
+documentação:**
+
+- **O host é regional e sai da própria chave.** `bk_us1_…` fala com
+  `https://us1.platform.bird.com`. O `api.bird.com` dos exemplos de Channels devolve 404 em
+  tudo — inclusive sem chave nenhuma, o que faz parecer erro de credencial quando é
+  endereço errado.
+- **A autenticação é `Bearer`**, não `AccessKey`. `AccessKey` é da API de Channels, que é
+  outro produto dentro do mesmo painel.
+- **`to` é lista de strings**; só `from` é objeto.
+- **Sucesso é 202**, com id `em_…`. O status vira `delivered` em `GET /v1/email/messages`.
+
+**O que falta é ligar cada e-mail no seu gatilho** — nenhum dispara sozinho ainda.
+
+Duas armadilhas que custaram tempo e vão se repetir em qualquer outro domínio:
+
+- **O botão "Copy for AI" do Bird copia os três registros juntos.** Colado no campo do
+  DKIM, ele produz um registro com dois `p=` e com `.` e `_` dentro da chave — inválido, e
+  o painel só diz "Pending", sem explicar. Conferir sempre decodificando a base64, não
+  olhando a tela.
+- **A chave DKIM passa de 255 caracteres**, o limite de um pedaço de TXT. O registro.br
+  parte sozinho em duas strings entre aspas e o DNS junta na leitura. Isso é o certo; não
+  é para "consertar".
+
+Não existe registro SPF, e é deliberado: o SPF é verificado no envelope de retorno, que
+passa a ser `send.visaodeproduto.com.br` — o CNAME leva ao SPF do próprio Bird. O TXT da
+raiz continua vazio de propósito.
 
 **Dois blocos do painel do Bird ficam de fora, e não por esquecimento:**
 
