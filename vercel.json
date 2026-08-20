@@ -4,6 +4,10 @@
     {
       "path": "/api/cobranca/reconciliar",
       "schedule": "40 5 * * *"
+    },
+    {
+      "path": "/api/avisos/diario",
+      "schedule": "0 12 * * *"
     }
   ]
 }
