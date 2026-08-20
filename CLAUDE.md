@@ -292,17 +292,33 @@ Termos e privacidade. As três últimas são texto, e texto aqui **descreve o qu
 
 ## 10. Backlog conhecido
 
-**E-mail transacional (Bird) — configurado pela metade.** O dono criou a conta no Bird,
-adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em 19/08/2026. **Os
-registros de DNS ainda não foram criados**, então nada é enviado.
-
-Para ligar, criar no registro.br:
+**E-mail transacional (Bird) — DNS pronto, código não escrito.** O dono criou a conta no
+Bird, adicionou o domínio `visaodeproduto.com.br` e gerou uma API key em 19/08/2026. Os
+três registros de DNS foram criados no registro.br em 19/08/2026 e conferidos direto nos
+servidores autoritativos da zona (`b.sec.dns.br` e `c.sec.dns.br`):
 
 | Nome | Tipo | Valor |
 |---|---|---|
-| `bird-726-0826._domainkey` | TXT | a chave DKIM que o painel do Bird mostra |
+| `bird-726-0826._domainkey` | TXT | chave DKIM RSA de 2048 bits, 294 bytes, decodifica |
 | `send` | CNAME | `us1.bounce.bird.com.` |
 | `_dmarc` | TXT | `v=DMARC1; p=none; rua=mailto:dmarc-agg@dmarc.bird.com;` |
+
+**Nenhum e-mail é enviado ainda: não existe código que chame o Bird.** O que falta é a
+função de envio e os quatro textos abaixo.
+
+Duas armadilhas que custaram tempo e vão se repetir em qualquer outro domínio:
+
+- **O botão "Copy for AI" do Bird copia os três registros juntos.** Colado no campo do
+  DKIM, ele produz um registro com dois `p=` e com `.` e `_` dentro da chave — inválido, e
+  o painel só diz "Pending", sem explicar. Conferir sempre decodificando a base64, não
+  olhando a tela.
+- **A chave DKIM passa de 255 caracteres**, o limite de um pedaço de TXT. O registro.br
+  parte sozinho em duas strings entre aspas e o DNS junta na leitura. Isso é o certo; não
+  é para "consertar".
+
+Não existe registro SPF, e é deliberado: o SPF é verificado no envelope de retorno, que
+passa a ser `send.visaodeproduto.com.br` — o CNAME leva ao SPF do próprio Bird. O TXT da
+raiz continua vazio de propósito.
 
 **Dois blocos do painel do Bird ficam de fora, e não por esquecimento:**
 
