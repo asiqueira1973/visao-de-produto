@@ -19,6 +19,7 @@
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PLANOS } from "./stripe";
+import { avisarPagamentoFalhou } from "@/lib/email/avisos";
 
 /** O que a assinatura da Stripe vira no nosso enum. */
 function traduzirStatus(status: Stripe.Subscription.Status): string {
@@ -162,6 +163,33 @@ export async function aplicarEvento(
         .from("contas")
         .update({ assinatura_status: "atrasada" })
         .eq("id", contaId);
+
+      // Sem este aviso a pessoa descobre que parou de pagar pelo efeito, dias
+      // depois, sem ligar uma coisa à outra. A referência é a fatura, então as
+      // retentativas da mesma cobrança não viram uma enxurrada de e-mail.
+      //
+      // Falhar aqui não pode derrubar o webhook: erro devolvido à Stripe vira
+      // reentrega, e reentrega de um evento já aplicado é ruído sem fim.
+      try {
+        const { data: email } = await supabase.rpc("fn_email_do_dono", {
+          p_conta_id: contaId,
+        });
+
+        if (typeof email === "string" && email) {
+          await avisarPagamentoFalhou({
+            contaId,
+            email,
+            faturaId: fatura.id ?? evento.id,
+            tentativaEm: new Date(evento.created * 1000).toLocaleDateString("pt-BR", {
+              day: "numeric",
+              month: "long",
+              timeZone: "America/Sao_Paulo",
+            }),
+          });
+        }
+      } catch (erro) {
+        console.error(`aviso de pagamento recusado não saiu para ${contaId}:`, erro);
+      }
 
       return { contaId, efeito: "pagamento falhou; assinatura marcada como atrasada" };
     }
