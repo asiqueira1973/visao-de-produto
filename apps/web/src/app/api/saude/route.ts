@@ -45,5 +45,18 @@ export function GET() {
     branch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
     // Só a presença. O valor nunca sai daqui.
     service_role_configurada: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    // Se a cobrança está ligada neste deploy, e em qual modo. Sem isto, a única
+    // forma de saber se as variáveis da Stripe chegaram era entrar na tela de
+    // assinatura com uma sessão — e conferir configuração pela interface é o
+    // caminho mais lento para descobrir que ela não foi aplicada.
+    cobranca: {
+      ligada: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
+      modo: process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_")
+        ? "producao"
+        : process.env.STRIPE_SECRET_KEY
+          ? "teste"
+          : null,
+      webhook_configurado: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+    },
   });
 }
