@@ -1,86 +1,57 @@
-# Ligar a cobrança — o que falta, e é rápido
+# Cobrança — ligada em 20/08/2026
 
-Tudo que não dependia de você está pronto e verificado. Sobra **um item seu**, e depois
-três comandos que eu rodo.
+Produção está cobrando de verdade. Este documento passou de roteiro a registro do que foi
+feito e do que ficou faltando.
 
 ---
 
-## O que já está feito
+## O que foi ligado
 
 | | |
 |---|---|
-| Conta Stripe | **Ativada de verdade.** `charges_enabled`, `payouts_enabled`, `details_submitted`, sem pendências. Brasil, BRL |
-| Código da cobrança | Checkout, portal, webhook e reconciliação — escritos e testados com um pagamento real de R$ 50 |
-| E-mail de pagamento recusado | **Ligado.** Provado no dev com webhook assinado: a conta virou `atrasada` e o e-mail chegou |
-| Retentativa da mesma fatura | Não vira segundo e-mail. Provado disparando o mesmo `in_…` duas vezes |
-| Nota fiscal | Roteiro em [`NOTA-FISCAL.md`](NOTA-FISCAL.md) e o script que lista quem pagou |
-| Produção | No ar, saudável, **com a cobrança desligada** — como estava |
+| Conta Stripe | `acct_1SKfAnAp9lgD48tZ` — **Dab Lab**, BR/BRL, cobra e recebe repasse, zero pendências |
+| Produto | `prod_V6thonXKwKR3gX` — *Visão de Produto — Plano pago* |
+| Preço | `price_1U6ftoAp9lgD48tZzvc4q7lc` — R$ 50,00/mês |
+| Webhook | `we_1U6ftoAp9lgD48tZFTSnhELB` → `app.visaodeproduto.com.br/api/cobranca/webhook`, 6 eventos, `enabled` |
+| Vercel Production | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` |
 
----
+`GET /api/saude` agora responde `cobranca: { ligada, modo, webhook_configurado }`. Em
+produção diz `modo: "producao"`; em dev, `modo: "teste"`. É a forma mais rápida de saber se
+um deploy leu as variáveis.
 
-## O que depende de você — 2 minutos
+## O que foi provado, e como
 
-**Me passe a chave secreta de produção da Stripe.**
+- **Sessão de checkout real** criada contra o preço de produção: R$ 50,00 em BRL,
+  `livemode: true`, e expirada em seguida sem cobrar ninguém.
+- **Assinatura do webhook**: um evento assinado com o segredo de produção foi aceito com
+  200; o mesmo evento assinado com segredo errado foi recusado com 400. O evento de prova
+  usava um cliente inexistente, então não tocou em conta nenhuma, e a linha foi apagada.
+- **E-mail de pagamento recusado**, provado antes no dev com webhook assinado: a conta
+  virou `atrasada` e o e-mail chegou. A retentativa da mesma fatura não gerou segundo
+  e-mail.
 
-Stripe → canto superior direito, sair do **modo de teste** → Developers → API keys →
-**Secret key**, a que começa com `sk_live_`. Clique em *Reveal* e cole aqui no chat.
+## As duas contas Stripe
 
-É só isso. Com ela eu faço o resto.
+A chave de teste do `.env` pertence a `acct_1SKfAxAPksbqEmZZ`, que é um **Sandbox** — conta
+separada, com id próprio. A conta real é `acct_1SKfAnAp9lgD48tZ`. Não confunda: o produto
+e o preço de teste vivem no sandbox e não têm relação com os de produção.
 
-> Se preferir não colar a chave inteira, dá para criar uma **restricted key** com escrita em
-> Products, Prices, Checkout Sessions, Customers, Subscriptions, Invoices e Webhook
-> Endpoints. Funciona igual e é mais fácil de revogar depois. A chave completa é mais
-> simples; a decisão é sua.
+## O que ainda não foi provado
 
----
+**Ninguém pagou de verdade ainda.** O caminho completo — cartão real, dinheiro entrando,
+webhook chegando pela Stripe, conta promovida — só se prova com uma assinatura de verdade.
 
-## O que eu faço com ela
+E há um obstáculo: **a conta do dono é cortesia**, então a tela mostra *"Plano pago, por
+cortesia"* e não oferece o botão de assinar. Para testar existem dois caminhos:
 
-**1. Crio produto, preço e webhook em produção.**
+1. Tirar a cortesia da conta dele por alguns minutos, assinar com cartão real (R$ 50
+   cobrados de verdade), conferir a promoção, cancelar e devolver a cortesia.
+2. Criar uma conta nova com outro Google e assinar por ela.
 
-```bash
-node --experimental-strip-types scripts/ligar-cobranca-em-producao.ts sk_live_...
-```
+O segundo é mais limpo, porque não mexe no estado da conta principal.
 
-O script é idempotente: procura antes de criar, então rodar duas vezes não duplica nada —
-foi escrito assim porque em modo de teste já nasceram dois produtos iguais. Ele confere a
-conta, cria o produto *Visão de Produto — Plano pago* a R$ 50/mês em BRL, registra o
-webhook em `app.visaodeproduto.com.br/api/cobranca/webhook` com os seis eventos que o
-código sabe tratar, e grava tudo no `.env.producao`, que fica fora do git.
+## O que falta para a primeira nota fiscal
 
-Já rodei em modo `--ensaio` contra o ambiente de teste: encontrou o produto e o preço que
-existem, e apontou corretamente que o webhook de produção ainda não existe.
-
-**2. Empurro as três variáveis para a Vercel**, ambiente Production: `STRIPE_SECRET_KEY`,
-`STRIPE_PRICE_ID` e `STRIPE_WEBHOOK_SECRET`.
-
-**3. Publico e confiro** que `cobrancaConfigurada()` passou a devolver verdadeiro e que a
-tela de assinatura mudou de estado.
-
----
-
-## Depois disso, o teste que importa
-
-Uma assinatura de verdade, com cartão de verdade, na sua própria conta — que é cortesia,
-então dá para cancelar em seguida sem consequência. É o que prova que o dinheiro entra, o
-webhook chega e a conta é promovida.
-
-**Isso custa R$ 50 reais seus**, cobrados no seu cartão e recebidos na sua conta Stripe,
-menos a taxa. Vale a pena: é a diferença entre achar que funciona e saber.
-
-Se preferir não gastar, a alternativa é confiar no teste que já foi feito em modo de
-teste — que exercitou o mesmo código, com os mesmos webhooks, mudando só a chave.
-
----
-
-## O que ainda vai faltar depois de ligado
-
-**A primeira nota fiscal.** Duas coisas em [`NOTA-FISCAL.md`](NOTA-FISCAL.md) estão
-marcadas como *a confirmar com a Contabilizei*, e só você pode responder:
-
-1. O **prazo municipal** de emissão da NFS-e.
-2. O **código de serviço municipal** e a **alíquota do ISS** para software como serviço no
-   seu município.
-
-Nenhuma das duas bloqueia ligar a cobrança. Elas bloqueiam a primeira nota — e a primeira
-nota só existe depois do primeiro cliente.
+Duas perguntas em [`NOTA-FISCAL.md`](NOTA-FISCAL.md) seguem marcadas como *a confirmar com
+a Contabilizei*: o prazo municipal de emissão, e o código de serviço municipal com a
+alíquota do ISS. Nenhuma bloqueia cobrar; as duas bloqueiam emitir.
