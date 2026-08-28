@@ -460,11 +460,10 @@ advogado por ora e autorizou a redação do texto de Termos, que já fala de cob
 configuração para quem usa terminal (e a CLI escreve sozinha), e OAuth para quem só tem o
 app do Claude Desktop.
 
-**A palavra "tile" na tela de Painel não comunica.** O termo vem do mock e do spec
-(regra 11.9, seção 7.7), mas para quem chega não diz nada — "Adicionar tile", "Tiles
-fixados do catálogo". A seção 13.3 deixa a copy livre, então dá para trocar por algo como
-"gráfico fixado" ou "cartão" sem violar nada; o nome da tabela `paineis_itens` continua
-como está. **Pendente de decisão do dono.**
+**~~A palavra "tile" na tela de Painel~~ — resolvido.** A tela diz "Adicionar gráfico" e
+"Gráficos fixados do catálogo"; não sobrou nenhum "tile" visível ao usuário. O nome do
+componente `GradeDeTiles` e o da tabela `paineis_itens` continuam como estão, porque são
+código, não interface.
 
 **O Painel poderia ter filtro.** Hoje só existe o seletor de período, que vale para o
 painel inteiro. Filtrar por pessoa ou por tela dentro do painel é possível — as funções de
