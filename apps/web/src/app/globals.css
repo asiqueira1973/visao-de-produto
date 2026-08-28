@@ -92,6 +92,18 @@ a:hover {
   to { transform: rotate(360deg); }
 }
 
+/* A seta do botão de atualizar, enquanto os dados não voltam. Fica em classe, e
+   não em estilo embutido, para o respeito a prefers-reduced-motion caber numa
+   media query — o que estilo embutido não permite. */
+.girando {
+  animation: spin 0.8s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .girando { animation: none; }
+}
+
 /* Acessibilidade: navegação por teclado precisa ser visível (seção 14). */
 :focus-visible {
   outline: 2px solid var(--pri);

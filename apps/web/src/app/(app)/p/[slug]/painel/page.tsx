@@ -15,6 +15,7 @@
 import { notFound } from "next/navigation";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { SeletorDePeriodo } from "@/features/uso/SeletorDePeriodo";
+import { BotaoDeAtualizar } from "@/features/shell/BotaoDeAtualizar";
 import { GradeDeTiles, type TileDoPainel } from "@/features/painel/GradeDeTiles";
 
 export const dynamic = "force-dynamic";
@@ -113,7 +114,10 @@ export default async function Painel({
               Gráficos fixados do catálogo. O período vale para o painel inteiro.
             </div>
           </div>
-          <SeletorDePeriodo janelaAtual={janelaAtual} />
+          <div style={{ display: "flex", gap: 9, alignItems: "center", flexWrap: "wrap" }}>
+            <SeletorDePeriodo janelaAtual={janelaAtual} />
+            <BotaoDeAtualizar />
+          </div>
         </div>
 
         <GradeDeTiles

@@ -15,6 +15,7 @@ import { notFound } from "next/navigation";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { horarioRelativo } from "@/lib/formato";
 import { SeletorDePeriodo } from "@/features/uso/SeletorDePeriodo";
+import { BotaoDeAtualizar } from "@/features/shell/BotaoDeAtualizar";
 import { LinkDeExportacao } from "@/features/shell/LinkDeExportacao";
 
 export const dynamic = "force-dynamic";
@@ -79,11 +80,14 @@ export default async function Uso({
           }}
         >
           <SeletorDePeriodo janelaAtual={janelaAtual} />
-          <LinkDeExportacao
-            caminho={`/p/${slug}/exportar/uso`}
-            rotulo="Exportar CSV"
-            parametros={["janela"]}
-          />
+          <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
+            <BotaoDeAtualizar />
+            <LinkDeExportacao
+              caminho={`/p/${slug}/exportar/uso`}
+              rotulo="Exportar CSV"
+              parametros={["janela"]}
+            />
+          </div>
         </div>
 
         <div
