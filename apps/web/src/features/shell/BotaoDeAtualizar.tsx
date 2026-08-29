@@ -33,7 +33,11 @@ export function BotaoDeAtualizar() {
     <button
       onClick={() => iniciarTransicao(() => router.refresh())}
       disabled={pendente}
-      aria-label="Atualizar os dados desta tela"
+      // O rótulo visível não muda, mas o nome acessível sim: quem usa leitor de
+      // tela precisa saber que está esperando, e trocar texto aqui não mexe em
+      // largura nenhuma.
+      aria-label={pendente ? "Atualizando os dados desta tela" : "Atualizar os dados desta tela"}
+      aria-busy={pendente}
       style={{
         height: 30,
         padding: "0 11px",
@@ -50,7 +54,12 @@ export function BotaoDeAtualizar() {
       }}
     >
       {/* A seta gira enquanto espera: sem sinal nenhum, quem clica e vê os
-          mesmos números não sabe se atualizou e não mudou nada, ou se travou. */}
+          mesmos números não sabe se atualizou e não mudou nada, ou se travou.
+          É ela que carrega o estado, e não o texto — trocar o rótulo para
+          "Atualizando…" alargava o botão em três caracteres, o suficiente para
+          estourar a linha do cabeçalho do Painel e jogar os controles para a
+          linha de baixo, empurrando a tela inteira. O usuário via isso como
+          um pisca. Largura fixa mata o problema na origem. */}
       <svg
         width="12"
         height="12"
@@ -65,7 +74,7 @@ export function BotaoDeAtualizar() {
         <path d="M21 12a9 9 0 1 1-2.64-6.36" />
         <path d="M21 3v6h-6" />
       </svg>
-      {pendente ? "Atualizando…" : "Atualizar"}
+      Atualizar
     </button>
   );
 }
