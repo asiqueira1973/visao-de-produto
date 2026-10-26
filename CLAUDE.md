@@ -82,6 +82,25 @@ host que a CLI escreve no `.env` de um app ficam lá por anos: se apontassem par
 trocar de hospedagem obrigaria todo mundo que instrumentou a fazer release de app. O
 `api.visaodeproduto.com.br` faz essa troca virar um registro de DNS.
 
+**E essa aposta já se pagou.** Em 26/10/2026 o add-on de Custom Domain do Supabase — 10
+dólares por mês — foi desligado, e o endereço continuou existindo: hoje ele é servido por um
+**proxy na Vercel**, em [`proxy-api/`](proxy-api/), que repassa qualquer caminho para
+`glohvqzopiffdghwppor.supabase.co`. Nenhum app precisou de versão nova. O Agenda Psi, que tem
+o endereço compilado no binário e está nas duas lojas, não percebeu.
+
+Três coisas desse dia que vale saber:
+
+- **A Vercel não emite o certificado sozinha** depois que o DNS passa a apontar para ela. O
+  domínio ficou minutos com DNS certo e TLS falhando. Foi preciso pedir a emissão pela API
+  (`POST /v3/certs`). Depois de repontar DNS para a Vercel, **confira o TLS antes de
+  considerar pronto**.
+- **A proteção de deploy da Vercel vem ligada** e devolve uma tela de login no lugar da API.
+  Se a ingestão parar sem erro que explique, é o primeiro lugar a olhar.
+- **O login não precisou de nada**, porque o cliente OAuth do Google já tinha o callback do
+  `.supabase.co` cadastrado ao lado do do domínio próprio. Quando o domínio saiu, o Supabase
+  passou a gerar o `redirect_uri` padrão e o Google já o aceitava. O projeto no Google Cloud é
+  o de número **471747576521** — não é o `DabLab`, e achar isso custou tempo.
+
 A virada de endereço está em [`scripts/virar-para-o-dominio.sh`](scripts/virar-para-o-dominio.sh),
 e **a ordem dos passos dele importa**: a função do MCP precisa saber o endereço novo ANTES de
 o site mudar, senão quem se conectar recebe um documento de OAuth apontando para o lugar
