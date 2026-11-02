@@ -52,11 +52,11 @@ export type EventoDaPlataforma =
 /** O que cada evento significa, em português (princípio 0.2). */
 const DESCRICOES: Record<EventoDaPlataforma, string> = {
   visao_conta_criada: "alguém entrou pela primeira vez e a conta foi criada",
-  visao_projeto_criado: "a pessoa criou um projeto novo",
+  visao_projeto_criado: "a pessoa criou um produto novo",
   visao_chave_de_ingestao_gerada: "a pessoa gerou a chave para o app começar a mandar evento",
   visao_token_mcp_gerado: "a pessoa gerou um token de leitura para o Claude",
   visao_claude_conectado: "a pessoa autorizou o Claude a ler os dados dela",
-  visao_primeiro_evento_recebido: "o primeiro evento de um projeto chegou",
+  visao_primeiro_evento_recebido: "o primeiro evento de um produto chegou",
   visao_dados_exportados: "a pessoa baixou os próprios dados",
   visao_assinatura_iniciada: "a pessoa foi para o pagamento do plano pago",
   visao_conta_cancelada: "a pessoa pediu o encerramento da conta",

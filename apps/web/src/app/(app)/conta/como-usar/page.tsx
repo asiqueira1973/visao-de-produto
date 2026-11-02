@@ -22,7 +22,7 @@ const CAMPOS_DO_EVENTO = [
   {
     campo: "id",
     obrigatorio: true,
-    texto: "Um UUID, novo a cada evento, gerado por você. Número ou texto solto é recusado. É a proteção contra duplicata: reenviar o mesmo id nunca conta duas vezes dentro do projeto.",
+    texto: "Um UUID, novo a cada evento, gerado por você. Número ou texto solto é recusado. É a proteção contra duplicata: reenviar o mesmo id nunca conta duas vezes dentro do produto.",
   },
   {
     campo: "nome",
@@ -80,7 +80,7 @@ const RELATORIOS = [
   {
     nome: "Catálogo",
     texto:
-      "O dicionário do projeto. Todo nome de evento que já chegou, com a descrição. Editar a descrição aqui manda em tudo: a partir daí é ela que aparece nas telas e nas respostas do Claude.",
+      "O dicionário do produto. Todo nome de evento que já chegou, com a descrição. Editar a descrição aqui manda em tudo: a partir daí é ela que aparece nas telas e nas respostas do Claude.",
   },
 ];
 
@@ -106,12 +106,12 @@ export default function ComoUsar() {
   const passos: Passo[] = [
     {
       numero: 1,
-      titulo: "Crie o projeto",
+      titulo: "Crie o produto",
       corpo: (
         <>
           <p style={estiloDeParagrafo}>
-            Um projeto é um aplicativo. Vá em <Link href="/projetos">Todos os projetos</Link> e
-            clique em <span style={destaque}>Criar projeto</span>.
+            Um produto é um aplicativo. Vá em <Link href="/projetos">Todos os produtos</Link> e
+            clique em <span style={destaque}>Criar produto</span>.
           </p>
           <p style={estiloDeParagrafo}>
             Você dá o nome — <em>Agenda Psi</em>, por exemplo — e o identificador curto sai dele
@@ -128,7 +128,7 @@ export default function ComoUsar() {
       corpo: (
         <>
           <p style={estiloDeParagrafo}>
-            Abra o projeto e vá em <span style={destaque}>Configurações</span>. Dois campos importam
+            Abra o produto e vá em <span style={destaque}>Configurações</span>. Dois campos importam
             aqui.
           </p>
           <p style={estiloDeParagrafo}>
@@ -136,7 +136,7 @@ export default function ComoUsar() {
             todos os eventos deste app passam a se chamar <code>psi_nova_sessao</code>,{" "}
             <code>psi_novo_paciente</code>, e assim por diante. Serve para você reconhecer de onde
             veio um evento quando tiver vários apps, e é o que o agente de instrumentação lê antes de
-            propor um nome novo. Deixar em branco é uma escolha válida: significa que este projeto
+            propor um nome novo. Deixar em branco é uma escolha válida: significa que este produto
             não adota prefixo.
           </p>
           <p style={estiloDeParagrafo}>
@@ -154,15 +154,15 @@ export default function ComoUsar() {
         <>
           <p style={estiloDeParagrafo}>
             Ainda em <span style={destaque}>Configurações</span>, gere a chave de ingestão — a{" "}
-            <em>API key</em> deste projeto. Ela aparece <span style={destaque}>uma única vez</span>:
+            <em>API key</em> deste produto. Ela aparece <span style={destaque}>uma única vez</span>:
             copie na hora e guarde numa variável de ambiente do seu app, tipicamente{" "}
             <code>VISAO_API_KEY</code>. Se perder, gere outra e revogue a anterior; as duas coisas
             estão na mesma tela.
           </p>
           <p style={estiloDeParagrafo}>
-            A chave <span style={destaque}>só escreve</span>. Ela não lê evento, não lista projeto e
+            A chave <span style={destaque}>só escreve</span>. Ela não lê evento, não lista produto e
             não apaga nada — se vazar, o estrago possível é alguém mandar evento errado para o seu
-            projeto, e você revoga. Ler é o outro tipo de credencial, o do passo 7.
+            produto, e você revoga. Ler é o outro tipo de credencial, o do passo 7.
           </p>
           <p style={{ ...estiloDeParagrafo, marginBottom: 0 }}>
             É a chave que determina o projeto. Não existe campo de projeto no corpo da requisição —
@@ -243,7 +243,7 @@ export default function ComoUsar() {
       corpo: (
         <>
           <p style={estiloDeParagrafo}>
-            Assim que o primeiro evento chega, as cinco telas do projeto param de estar vazias. Cada
+            Assim que o primeiro evento chega, as cinco telas do produto param de estar vazias. Cada
             uma responde uma pergunta diferente:
           </p>
           <div
@@ -286,13 +286,13 @@ export default function ComoUsar() {
       corpo: (
         <>
           <p style={estiloDeParagrafo}>
-            Os dados são seus e saem daqui sem pedir autorização a ninguém. Em cada projeto, o botão
+            Os dados são seus e saem daqui sem pedir autorização a ninguém. Em cada produto, o botão
             de exportação ao lado dos filtros baixa os eventos em{" "}
             <span style={destaque}>CSV</span> — separador ponto e vírgula e acentuação preservada,
             para abrir no Excel sem susto. A tela de Uso exporta a tabela do período do mesmo jeito.
           </p>
           <p style={{ ...estiloDeParagrafo, marginBottom: 0 }}>
-            E pela conta você baixa o <span style={destaque}>JSON completo</span>: projetos, catálogo,
+            E pela conta você baixa o <span style={destaque}>JSON completo</span>: produtos, catálogo,
             pessoas, painéis e eventos, tudo de uma vez.
           </p>
         </>

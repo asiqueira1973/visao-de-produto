@@ -67,14 +67,14 @@ export function ConfirmacaoDoOauth({
     >
       <div style={{ fontSize: 13.5, fontWeight: 600 }}>O que {nomeDoCliente} vai poder fazer</div>
       <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontSize: 12.5, color: "var(--dim)" }}>
-        <li style={item}>Ler os eventos, o catálogo e as pessoas de todos os seus projetos</li>
+        <li style={item}>Ler os eventos, o catálogo e as pessoas de todos os seus produtos</li>
         <li style={item}>Rodar consultas de leitura sobre esses dados</li>
       </ul>
 
       <div style={{ marginTop: 12, fontSize: 13.5, fontWeight: 600 }}>O que ele não pode</div>
       <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontSize: 12.5, color: "var(--dim)" }}>
         <li style={item}>Gravar, alterar ou apagar qualquer coisa</li>
-        <li style={item}>Criar projeto, editar catálogo ou mexer em credenciais</li>
+        <li style={item}>Criar produto, editar catálogo ou mexer em credenciais</li>
       </ul>
 
       {erro && <div style={{ marginTop: 14, fontSize: 12.5, color: "var(--err)" }}>{erro}</div>}

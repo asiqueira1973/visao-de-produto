@@ -94,8 +94,8 @@ export async function atividadeRecente(
 
   if (projetos.length === 0) {
     return args.projeto
-      ? `Não há projeto com o slug "${args.projeto}" nesta conta.`
-      : "Esta conta ainda não tem projeto nenhum.";
+      ? `Não há produto com o slug "${args.projeto}" nesta conta.`
+      : "Esta conta ainda não tem produto nenhum.";
   }
 
   const linhas: string[] = [];
@@ -148,7 +148,7 @@ export async function usoPorEvento(
   args: { projeto: string; janela?: string; evento?: string },
 ): Promise<string> {
   const projeto = await acharProjeto(supabase, contaId, args.projeto);
-  if (!projeto) return `Não há projeto com o slug "${args.projeto}" nesta conta.`;
+  if (!projeto) return `Não há produto com o slug "${args.projeto}" nesta conta.`;
 
   const janela = ["7d", "14d", "30d", "90d"].includes(args.janela ?? "") ? args.janela! : "30d";
 
@@ -200,7 +200,7 @@ export async function perfilDaPessoa(
   args: { projeto: string; distinct_id: string; limite?: number },
 ): Promise<string> {
   const projeto = await acharProjeto(supabase, contaId, args.projeto);
-  if (!projeto) return `Não há projeto com o slug "${args.projeto}" nesta conta.`;
+  if (!projeto) return `Não há produto com o slug "${args.projeto}" nesta conta.`;
 
   const limite = Math.min(Math.max(args.limite ?? 50, 1), 200);
 
@@ -245,7 +245,7 @@ export async function catalogoDoProjeto(
   args: { projeto: string },
 ): Promise<string> {
   const projeto = await acharProjeto(supabase, contaId, args.projeto);
-  if (!projeto) return `Não há projeto com o slug "${args.projeto}" nesta conta.`;
+  if (!projeto) return `Não há produto com o slug "${args.projeto}" nesta conta.`;
 
   const { data } = await supabase.rpc("fn_catalogo", { p_projeto_id: projeto.id });
   const linhas = (data ?? []) as Array<{

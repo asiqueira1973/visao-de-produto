@@ -45,7 +45,7 @@ export default async function Catalogo({ params }: { params: Promise<{ slug: str
       <div style={{ padding: "26px 32px 60px" }}>
         <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>Catálogo</div>
         <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)", maxWidth: 660 }}>
-          Todos os eventos que este projeto já registrou. A descrição é editada aqui e passa a
+          Todos os eventos que este produto já registrou. A descrição é editada aqui e passa a
           aparecer em todas as telas.
         </div>
 

@@ -100,7 +100,7 @@ export function CartaoDeAssinatura({ estado }: { estado: EstadoDaAssinatura }) {
       <div style={CAIXA}>
         <div style={{ fontSize: 13.5, fontWeight: 600 }}>Plano pago, por cortesia</div>
         <div style={{ marginTop: 6, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.7 }}>
-          Esta conta tem projetos ilimitados e 12 meses de janela de consulta, sem cobrança e sem
+          Esta conta tem produtos ilimitados e 12 meses de janela de consulta, sem cobrança e sem
           cadastro na Stripe. Não há nada a pagar nem a gerenciar.
         </div>
       </div>
@@ -118,7 +118,7 @@ export function CartaoDeAssinatura({ estado }: { estado: EstadoDaAssinatura }) {
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 600 }}>Plano gratuito</div>
             <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.65 }}>
-              1 projeto e 1 mês de janela de consulta.
+              1 produto e 1 mês de janela de consulta.
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ export function CartaoDeAssinatura({ estado }: { estado: EstadoDaAssinatura }) {
           }}
         >
           <strong style={{ color: "var(--text)" }}>O plano pago ainda não está disponível.</strong>{" "}
-          Ele vai custar R$ 50 por mês e dar projetos ilimitados com 12 meses de janela. Quando
+          Ele vai custar R$ 50 por mês e dar produtos ilimitados com 12 meses de janela. Quando
           abrir, o botão aparece aqui — e nada muda para quem já está usando o gratuito.
         </div>
         <div style={{ marginTop: 12, fontSize: 11.5, color: "var(--faint)", lineHeight: 1.6 }}>
@@ -155,8 +155,8 @@ export function CartaoDeAssinatura({ estado }: { estado: EstadoDaAssinatura }) {
           </div>
           <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.65 }}>
             {estado.plano === "pago"
-              ? "Projetos ilimitados e 12 meses de janela de consulta."
-              : "1 projeto e 1 mês de janela de consulta."}
+              ? "Produtos ilimitados e 12 meses de janela de consulta."
+              : "1 produto e 1 mês de janela de consulta."}
           </div>
         </div>
 

@@ -40,7 +40,7 @@ export default async function Projetos() {
           }}
         >
           <div>
-            <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>Projetos</div>
+            <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>Produtos</div>
             <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>
               Aplicativos que enviam eventos para esta conta.
             </div>
@@ -70,7 +70,7 @@ export default async function Projetos() {
               }}
             >
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--err)" }} />
-              Não foi possível carregar os projetos
+              Não foi possível carregar os produtos
             </div>
             <div style={{ marginTop: 7, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.55 }}>
               {error.message}
@@ -88,7 +88,7 @@ export default async function Projetos() {
               background: "var(--panel)",
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Nenhum projeto ainda</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Nenhum produto ainda</div>
             <div
               style={{
                 marginTop: 6,
@@ -98,7 +98,7 @@ export default async function Projetos() {
                 maxWidth: 520,
               }}
             >
-              Um projeto é um aplicativo. Crie o primeiro pelo botão acima, gere a chave de
+              Um produto é um aplicativo. Crie o primeiro pelo botão acima, gere a chave de
               ingestão nas Configurações dele, e o seu app começa a mandar evento com uma
               chamada HTTP — sem instalar pacote nenhum.
             </div>
@@ -126,7 +126,7 @@ export default async function Projetos() {
                 color: "var(--faint)",
               }}
             >
-              <div>Projeto</div>
+              <div>Produto</div>
               <div style={{ textAlign: "right" }}>Eventos 24 h</div>
               <div style={{ textAlign: "right" }}>Último evento</div>
               <div />

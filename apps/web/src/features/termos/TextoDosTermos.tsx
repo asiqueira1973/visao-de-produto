@@ -47,10 +47,10 @@ const TERMOS: Bloco[] = [
     titulo: "2. O que você pode fazer",
     paragrafos: [
       <>
-        Você cria projetos, gera chaves de ingestão, envia eventos dos seus aplicativos, consulta o
+        Você cria produtos, gera chaves de ingestão, envia eventos dos seus aplicativos, consulta o
         que enviou pelas telas ou pelo Claude, exporta tudo e encerra a conta. O plano{" "}
-        <strong>gratuito</strong> dá <strong>1 projeto</strong> e <strong>1 mês</strong> de janela
-        de consulta. O plano <strong>pago</strong> dará projetos ilimitados e <strong>12 meses</strong>{" "}
+        <strong>gratuito</strong> dá <strong>1 produto</strong> e <strong>1 mês</strong> de janela
+        de consulta. O plano <strong>pago</strong> dará produtos ilimitados e <strong>12 meses</strong>{" "}
         de janela — <strong>ele ainda não está disponível</strong>, e o item 3 explica o que já
         está definido sobre ele.
       </>,
@@ -66,7 +66,7 @@ const TERMOS: Bloco[] = [
     titulo: "3. Planos, preço e pagamento",
     paragrafos: [
       <>
-        O plano pago custa <strong>R$ 50 por mês</strong> e dá projetos ilimitados e 12 meses de
+        O plano pago custa <strong>R$ 50 por mês</strong> e dá produtos ilimitados e 12 meses de
         janela de consulta. Não há cobrança por volume: mandar mais eventos nunca aumenta o preço,
         porque instrumentar bem é exatamente o que esta plataforma existe para incentivar.
       </>,
@@ -107,12 +107,12 @@ const TERMOS: Bloco[] = [
     paragrafos: [
       <>
         Quando uma conta paga volta a ser gratuita — por cancelamento ou por pagamento que não
-        entrou — <strong>nenhum evento é apagado e nenhum projeto é removido</strong>. Se você
-        tinha quatro projetos, continua com quatro, todos legíveis e todos recebendo evento.
+        entrou — <strong>nenhum evento é apagado e nenhum produto é removido</strong>. Se você
+        tinha quatro produtos, continua com quatro, todos legíveis e todos recebendo evento.
       </>,
       <>
         O que muda é isto, e só isto: você passa a enxergar <strong>1 mês</strong> de histórico em
-        vez de 12, e não consegue criar projeto novo enquanto estiver acima do limite do gratuito.
+        vez de 12, e não consegue criar produto novo enquanto estiver acima do limite do gratuito.
         A exportação continua funcionando integralmente.
       </>,
       <>
@@ -203,13 +203,13 @@ const PRIVACIDADE: Bloco[] = [
         contrário do padrão da maioria das ferramentas de analytics, e é deliberado.
       </>,
       <>
-        Da sua conta, guardamos o e-mail e o nome que vêm do login com Google, os projetos que você
+        Da sua conta, guardamos o e-mail e o nome que vêm do login com Google, os produtos que você
         criou, e o hash das credenciais que você gerou.
       </>,
       <>
         <strong>E medimos o uso da própria plataforma</strong>, com a mesma ferramenta que você está
         usando — seria estranho pregar o contrário. Registramos um punhado de acontecimentos:
-        conta criada, projeto criado, chave gerada, Claude conectado, dados exportados, assinatura
+        conta criada, produto criado, chave gerada, Claude conectado, dados exportados, assinatura
         iniciada, conta encerrada. Cada um deles está declarado no código, um por um; não existe
         captura automática aqui também.
       </>,
@@ -217,7 +217,7 @@ const PRIVACIDADE: Bloco[] = [
         Nessas medições, <strong>você é identificado pelo número da sua conta, e não pelo seu
         e-mail</strong> — de propósito. Assim conseguimos responder quantas contas conectaram o
         Claude sem espalhar dado pessoal por milhares de linhas. E <strong>nada do conteúdo dos
-        seus aplicativos</strong> entra aí: nem nome de projeto, nem nome de evento seu, nem
+        seus aplicativos</strong> entra aí: nem nome de produto, nem nome de evento seu, nem
         propriedade nenhuma. Instrumentar a nós mesmos não é desculpa para olhar o seu dado.
       </>,
     ],
@@ -236,7 +236,7 @@ const PRIVACIDADE: Bloco[] = [
     titulo: "11. Papéis, e por que isso importa",
     paragrafos: [
       <>
-        Sobre os dados <em>da sua conta</em> — seu e-mail, seus projetos — a Dab Lab é{" "}
+        Sobre os dados <em>da sua conta</em> — seu e-mail, seus produtos — a Dab Lab é{" "}
         <strong>controladora</strong>. Sobre os eventos que o seu aplicativo envia, quem decide o
         que é coletado e por quê é você: nesse caso a Dab Lab é <strong>operadora</strong>, e
         processa esses dados apenas para prestar o serviço.
@@ -283,8 +283,8 @@ const PRIVACIDADE: Bloco[] = [
         o botão:
       </>,
       <>
-        <strong>Acesso e portabilidade:</strong> em Configurações de cada projeto você exporta os
-        eventos em CSV, e pela conta você baixa o JSON completo — projetos, catálogo, pessoas,
+        <strong>Acesso e portabilidade:</strong> em Configurações de cada produto você exporta os
+        eventos em CSV, e pela conta você baixa o JSON completo — produtos, catálogo, pessoas,
         painéis e eventos.
         <br />
         <strong>Exclusão de uma pessoa:</strong> a tela de Pessoas apaga todos os eventos de um

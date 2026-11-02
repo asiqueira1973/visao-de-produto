@@ -75,7 +75,7 @@ export function TokensDeLeitura({
             Credenciais MCP
           </div>
           <div style={{ marginTop: 5, fontSize: 13, color: "var(--dim)" }}>
-            Cada linha aqui é um Claude com permissão de ler seus projetos — o do seu
+            Cada linha aqui é um Claude com permissão de ler seus produtos — o do seu
             notebook, o do desktop, o do trabalho. Eles só leem: nunca gravam, nunca apagam.
             Revogar corta o acesso daquele na hora, sem mexer nos outros.
           </div>

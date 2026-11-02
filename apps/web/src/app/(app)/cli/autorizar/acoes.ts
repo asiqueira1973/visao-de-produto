@@ -64,7 +64,7 @@ export async function autorizarInstalacao(
   );
 
   if (erroProjeto || !projeto) {
-    return { erro: erroProjeto ?? "Não consegui criar o projeto." };
+    return { erro: erroProjeto ?? "Não consegui criar o produto." };
   }
 
   const chave = sortear("ing_");

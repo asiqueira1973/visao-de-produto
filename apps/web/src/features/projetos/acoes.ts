@@ -72,7 +72,7 @@ export async function criarProjetoComSlugLivre(
     // 23505 é violação de unicidade: o slug já é de alguém. Qualquer outro erro
     // é problema de verdade e não melhora tentando de novo.
     if (error?.code !== "23505") {
-      return { erro: error?.message ?? "Não consegui criar o projeto." };
+      return { erro: error?.message ?? "Não consegui criar o produto." };
     }
   }
 
@@ -91,7 +91,7 @@ export async function criarProjeto(nome: string): Promise<{ slug?: string; erro?
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { erro: "Sua sessão expirou. Entre de novo." };
 
-  if (!nome.trim()) return { erro: "Dê um nome ao projeto." };
+  if (!nome.trim()) return { erro: "Dê um nome ao produto." };
 
   const { data: vinculo } = await supabase
     .from("usuarios_conta")
@@ -107,7 +107,7 @@ export async function criarProjeto(nome: string): Promise<{ slug?: string; erro?
     await paraSlug(nome),
   );
 
-  if (erro || !projeto) return { erro: erro ?? "Não consegui criar o projeto." };
+  if (erro || !projeto) return { erro: erro ?? "Não consegui criar o produto." };
 
   registrar("visao_projeto_criado", vinculo.conta_id as string, "Projetos");
 

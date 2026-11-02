@@ -84,7 +84,7 @@ export function TabelaDeContas({ contas }: { contas: ContaAdministrada[] }) {
           <div>Conta</div>
           <div>Plano</div>
           <div>Assinatura</div>
-          <div style={{ textAlign: "right" }}>Projetos</div>
+          <div style={{ textAlign: "right" }}>Produtos</div>
           <div style={{ textAlign: "right" }}>Eventos/mês</div>
           <div style={{ textAlign: "right" }}>MCP/mês</div>
           <div />

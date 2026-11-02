@@ -107,7 +107,7 @@ export default async function Configuracoes({ params }: { params: Promise<{ slug
                 alignItems: "center",
               }}
             >
-              Eventos deste projeto em CSV
+              Eventos deste produto em CSV
             </a>
             <a
               href="/conta/exportar"

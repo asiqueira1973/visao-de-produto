@@ -113,12 +113,12 @@ track("${slug.replace(/-/g, "_").slice(0, 20)}_algo_aconteceu", {
             copiá-lo tal qual faz o segundo evento ser tratado como repetição do primeiro.
             <br />
             Ele é a sua proteção contra duplicata: reenviar o mesmo evento, com o mesmo id, nunca
-            conta duas vezes dentro deste projeto. É o que torna seguro tentar de novo quando a
+            conta duas vezes dentro deste produto. É o que torna seguro tentar de novo quando a
             rede falha.
             <br />
             O <code>ocorrido_em</code> é o instante em que a coisa aconteceu, em UTC. Até 100
             eventos por chamada.
-            {!chaveEmClaro && " Troque $VISAO_API_KEY pela chave deste projeto."}
+            {!chaveEmClaro && " Troque $VISAO_API_KEY pela chave deste produto."}
           </div>
         </>
       )}

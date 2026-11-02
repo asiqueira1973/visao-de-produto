@@ -25,7 +25,7 @@ export function BotaoCriarProjeto() {
     iniciarTransicao(async () => {
       const { slug, erro: falha } = await criarProjeto(nome);
       if (falha || !slug) {
-        setErro(falha ?? "Não consegui criar o projeto.");
+        setErro(falha ?? "Não consegui criar o produto.");
         return;
       }
       // Vai direto para as Configurações: é lá que a chave de ingestão nasce,
@@ -48,7 +48,7 @@ export function BotaoCriarProjeto() {
           cursor: "pointer",
         }}
       >
-        Criar projeto
+        Criar produto
       </button>
     );
   }
@@ -65,7 +65,7 @@ export function BotaoCriarProjeto() {
             if (e.key === "Escape") setAbrindo(false);
           }}
           placeholder="Nome do aplicativo"
-          aria-label="Nome do projeto"
+          aria-label="Nome do produto"
           style={{
             height: 32,
             padding: "0 10px",
