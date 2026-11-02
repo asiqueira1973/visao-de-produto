@@ -251,6 +251,30 @@ A CLI do Supabase é devDependency do repo: use `./node_modules/.bin/supabase`, 
 instale global. Migrations são aplicadas pelo **MCP do Supabase** (`apply_migration`), e o
 arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no mesmo commit.
 
+## 6.9 Publicar: três superfícies, três caminhos, nenhum automático
+
+Apurado em 02/11/2026, publicando a renomeação de rótulos.
+
+| O que | Como | Pegadinha |
+|---|---|---|
+| **App** (`app.visaodeproduto.com.br`) | merge `dev` → `main` e push | **O push NÃO promove sozinho.** Ele gera um deployment que fica como preview; alguém precisa promover para Production no painel da Vercel. Não dê o trabalho por encerrado no `git push` |
+| **Site** (`visaodeproduto.com.br`) | `vercel --prod --yes --scope asiqueira1973s-projects`, rodado de dentro de `site-visao-de-produto/publico/` | **Sem o `--scope` dá `Not authorized`**, mesmo com o CLI logado: o projeto pertence ao time, e o escopo padrão é o pessoal. O erro não diz isso |
+| **Edge Functions** | `supabase functions deploy <nome> --project-ref glohvqzopiffdghwppor --no-verify-jwt` | **O `--no-verify-jwt` não é opcional.** `ingest` e `mcp` rodam com `verify_jwt=False`, e o padrão do deploy é `true` — esquecer a flag derruba a autenticação das duas. Confira antes e depois em `GET /v1/projects/{ref}/functions` |
+
+**Migration em produção:** o histórico de `supabase/migrations/` está dessincronizado do
+remoto — vários arquivos locais foram aplicados por outro caminho, com outro carimbo. Por
+isso **`supabase db push` não serve aqui**: ele tentaria reaplicar migration antiga. Aplique
+a sua sozinha por `POST /v1/projects/{ref}/database/query` e insira a versão em
+`supabase_migrations.schema_migrations` no mesmo envio, para o histórico não andar para trás.
+
+O token que alcança produção é o `SUPABASE_ACCESS_TOKEN` do `.env.producao`. O token do
+conector MCP do Supabase **não** alcança: ele responde `You do not have permission`.
+
+**O Python do sistema não valida TLS** (é o do python.org, sem os certificados do macOS):
+`urllib` morre com `CERTIFICATE_VERIFY_FAILED`. Use `curl` para falar com API externa.
+
+---
+
 ## 7. Pegadinhas que não podem ser quebradas
 
 1. **As partições de `eventos` são tabelas de verdade.** RLS no pai não protege
