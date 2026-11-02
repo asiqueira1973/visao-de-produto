@@ -89,7 +89,7 @@ export function contaCancelada(d: {
       `Você pediu o cancelamento da sua conta. ${forte("Nada foi apagado ainda")} — os dados continuam aqui e a exportação continua funcionando.`,
     ) +
     p(
-      `Em ${forte(`${d.dias} ${dia}`)} tudo vai embora de vez: ${forte(`${d.projetos} ${d.projetos === 1 ? "projeto" : "projetos"}`)}, ${forte(`${d.eventos.toLocaleString("pt-BR")} ${d.eventos === 1 ? "evento" : "eventos"}`)}, o catálogo, as pessoas, os painéis e as credenciais. Depois disso não existe recuperação, nem por nós.`,
+      `Em ${forte(`${d.dias} ${dia}`)} tudo vai embora de vez: ${forte(`${d.projetos} ${d.projetos === 1 ? "produto" : "produtos"}`)}, ${forte(`${d.eventos.toLocaleString("pt-BR")} ${d.eventos === 1 ? "evento" : "eventos"}`)}, o catálogo, as pessoas, os painéis e as credenciais. Depois disso não existe recuperação, nem por nós.`,
     ) +
     p(
       `Se mudou de ideia, é um clique — a mesma tela onde você cancelou tem o botão de manter a conta. Se quer mesmo sair, vale baixar seus dados antes.`,
@@ -97,7 +97,7 @@ export function contaCancelada(d: {
 
   const texto = `Você pediu o cancelamento da sua conta no Visão de Produto. Nada foi apagado ainda.
 
-Em ${d.dias} ${dia} tudo vai embora de vez: ${d.projetos} ${d.projetos === 1 ? "projeto" : "projetos"}, ${d.eventos.toLocaleString("pt-BR")} ${d.eventos === 1 ? "evento" : "eventos"}, o catálogo, as pessoas, os painéis e as credenciais. Depois disso não existe recuperação, nem por nós.
+Em ${d.dias} ${dia} tudo vai embora de vez: ${d.projetos} ${d.projetos === 1 ? "produto" : "produtos"}, ${d.eventos.toLocaleString("pt-BR")} ${d.eventos === 1 ? "evento" : "eventos"}, o catálogo, as pessoas, os painéis e as credenciais. Depois disso não existe recuperação, nem por nós.
 
 Mudou de ideia? ${APP}/conta/perfil
 Quer baixar tudo antes? ${APP}/conta/exportar`;
@@ -124,7 +124,7 @@ export function pagamentoFalhou(d: { tentativaEm: string }): Mensagem {
       `A cobrança de ${forte(d.tentativaEm)} foi recusada pelo cartão. Costuma ser cartão vencido, limite, ou compra internacional bloqueada pelo banco.`,
     ) +
     p(
-      `${forte("Nenhum dado seu foi apagado")}, e nada vai ser. Seus projetos continuam recebendo evento normalmente e o Claude continua respondendo. O que trava enquanto a assinatura estiver em atraso é ${forte("criar projeto novo")}.`,
+      `${forte("Nenhum dado seu foi apagado")}, e nada vai ser. Seus produtos continuam recebendo evento normalmente e o Claude continua respondendo. O que trava enquanto a assinatura estiver em atraso é ${forte("criar produto novo")}.`,
     ) +
     p(
       `Para resolver, troque o cartão na tela de assinatura. A cobrança é tentada de novo automaticamente depois disso.`,
@@ -132,7 +132,7 @@ export function pagamentoFalhou(d: { tentativaEm: string }): Mensagem {
 
   const texto = `A cobrança da sua assinatura do Visão de Produto, em ${d.tentativaEm}, foi recusada pelo cartão.
 
-Nenhum dado seu foi apagado, e nada vai ser. Seus projetos continuam recebendo evento e o Claude continua respondendo. O que trava enquanto estiver em atraso é criar projeto novo.
+Nenhum dado seu foi apagado, e nada vai ser. Seus produtos continuam recebendo evento e o Claude continua respondendo. O que trava enquanto estiver em atraso é criar produto novo.
 
 Troque o cartão em ${APP}/conta/perfil`;
 
@@ -198,11 +198,11 @@ export function boasVindas(d: { nome?: string | null }): Mensagem {
 
   const corpo =
     p(
-      `${saudacao}Sua conta está criada e o plano gratuito já vale: ${forte("um projeto")}, um mês de histórico, o painel e o Claude — os dois.`,
+      `${saudacao}Sua conta está criada e o plano gratuito já vale: ${forte("um produto")}, um mês de histórico, o painel e o Claude — os dois.`,
     ) +
     p(`São três passos até o primeiro gráfico, e o primeiro leva um minuto:`) +
     `<ol style="margin:16px 0 0;padding-left:20px">
-      <li style="margin:0 0 8px"><strong>Crie o projeto.</strong> Um projeto é um aplicativo seu.</li>
+      <li style="margin:0 0 8px"><strong>Crie o produto.</strong> Um produto é um aplicativo seu.</li>
       <li style="margin:0 0 8px"><strong>Gere a chave.</strong> Ela aparece uma vez só; guarde na hora.</li>
       <li><strong>Peça ao seu assistente.</strong> Cole a chave na conversa com o Claude ou o Lovable e peça para avisar o Visão de Produto quando a pessoa fizer o que você quer acompanhar.</li>
     </ol>` +
@@ -210,10 +210,10 @@ export function boasVindas(d: { nome?: string | null }): Mensagem {
       `Depois disso, dá para perguntar em português — no painel ou dentro do próprio Claude, pelo conector. A tela ${forte("Como usar")} tem o passo a passo inteiro, com o exemplo pronto para copiar.`,
     );
 
-  const texto = `${saudacao}Sua conta no Visão de Produto está criada. O plano gratuito já vale: um projeto, um mês de histórico, o painel e o Claude.
+  const texto = `${saudacao}Sua conta no Visão de Produto está criada. O plano gratuito já vale: um produto, um mês de histórico, o painel e o Claude.
 
 São três passos:
-1. Crie o projeto — um projeto é um aplicativo seu.
+1. Crie o produto — um produto é um aplicativo seu.
 2. Gere a chave — ela aparece uma vez só.
 3. Cole a chave na conversa com o Claude ou o Lovable e peça para avisar o Visão de Produto quando a pessoa fizer o que você quer acompanhar.
 

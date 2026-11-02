@@ -109,7 +109,7 @@ export default async function Perfil({
 
   const medicoes = [
     { rotulo: "Eventos recebidos", valor: uso?.eventos_recebidos ?? 0 },
-    { rotulo: "Projetos ativos", valor: uso?.projetos_ativos ?? 0 },
+    { rotulo: "Produtos ativos", valor: uso?.projetos_ativos ?? 0 },
     { rotulo: "Pessoas distintas", valor: uso?.pessoas_distintas ?? 0 },
     { rotulo: "Consultas do Claude", valor: uso?.consultas_mcp ?? 0 },
   ];
@@ -171,7 +171,7 @@ export default async function Perfil({
             {plano}
             <span style={{ color: "var(--faint)" }}>
               {" "}
-              — {limite === "ilimitados" ? "projetos ilimitados" : `até ${limite} projeto(s)`},{" "}
+              — {limite === "ilimitados" ? "produtos ilimitados" : `até ${limite} produto(s)`},{" "}
               {conta?.retencao_meses ?? 1}{" "}
               {(conta?.retencao_meses ?? 1) === 1 ? "mês" : "meses"} de janela de consulta.
             </span>
@@ -179,7 +179,7 @@ export default async function Perfil({
           <Linha rotulo="Criada em">
             {conta?.criada_em ? dataCurta(conta.criada_em, "America/Sao_Paulo") : "—"}
           </Linha>
-          <Linha rotulo="Projetos ativos">{projetos ?? 0}</Linha>
+          <Linha rotulo="Produtos ativos">{projetos ?? 0}</Linha>
           <Linha rotulo="Eventos guardados">
             {(eventos ?? 0).toLocaleString("pt-BR")}
           </Linha>
@@ -187,7 +187,7 @@ export default async function Perfil({
             <a href="/conta/exportar">Baixar tudo em JSON</a>
             <span style={{ color: "var(--faint)" }}>
               {" "}
-              — projetos, catálogo, pessoas, painéis e eventos.
+              — produtos, catálogo, pessoas, painéis e eventos.
             </span>
           </Linha>
         </div>

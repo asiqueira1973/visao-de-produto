@@ -123,7 +123,7 @@ export function MenuLateral({
 
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: 8 }}>
         <div style={estiloDoGrupo}>
-          <div style={estiloDoTitulo}>Projetos</div>
+          <div style={estiloDoTitulo}>Produtos</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
             {projetos.length === 0 && (
               <span style={{ fontSize: 12.5, color: "var(--faint)", padding: "6px 10px 6px 14px" }}>
@@ -143,7 +143,7 @@ export function MenuLateral({
               href="/projetos"
               style={estiloDoItem(caminhoAtual === "/projetos")}
             >
-              Todos os projetos
+              Todos os produtos
             </Link>
           </div>
         </div>

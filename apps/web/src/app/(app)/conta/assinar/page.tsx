@@ -52,7 +52,7 @@ export default async function Assinar() {
         </div>
         <div style={{ marginTop: 6, fontSize: 13, color: "var(--dim)", lineHeight: 1.6, maxWidth: 620 }}>
           A assinatura custa <strong style={{ color: "var(--text)" }}>R$ 50 por mês</strong>, em
-          real, e dá projetos ilimitados e 12 meses de janela de consulta. Precisamos destes dados
+          real, e dá produtos ilimitados e 12 meses de janela de consulta. Precisamos destes dados
           para emitir a nota fiscal de serviço — eles não vão para lugar nenhum além dela.
         </div>
 

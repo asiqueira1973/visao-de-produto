@@ -55,7 +55,7 @@ export async function gerarChaveDeIngestao(
     .eq("id", projetoId)
     .maybeSingle();
 
-  if (!projeto) return { erro: "Projeto não encontrado." };
+  if (!projeto) return { erro: "Produto não encontrado." };
 
   const { valor, valorHash, prefixo8 } = sortearCredencial("ing_");
 

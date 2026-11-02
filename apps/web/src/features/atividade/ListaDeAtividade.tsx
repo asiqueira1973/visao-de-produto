@@ -260,7 +260,7 @@ export function ListaDeAtividade({
           <div style={{ maxWidth: 620, marginTop: 8 }}>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Nenhum evento neste filtro</div>
             <div style={{ marginTop: 6, fontSize: 13, color: "var(--dim)", lineHeight: 1.55 }}>
-              O projeto tem eventos, mas nenhum que combine com o que está filtrado. Tente um
+              O produto tem eventos, mas nenhum que combine com o que está filtrado. Tente um
               período maior ou limpe os filtros.
             </div>
           </div>

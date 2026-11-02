@@ -37,7 +37,7 @@ export function ConfirmacaoDaCli({
       const { pacote, erro: falha } = await autorizarInstalacao(nome, slug);
 
       if (falha || !pacote) {
-        setErro(falha ?? "Não consegui criar o projeto.");
+        setErro(falha ?? "Não consegui criar o produto.");
         return;
       }
 
@@ -74,11 +74,11 @@ export function ConfirmacaoDaCli({
         }}
       >
         <li>
-          Criar o projeto <strong style={{ color: "var(--text)" }}>{nome}</strong> com o slug{" "}
+          Criar o produto <strong style={{ color: "var(--text)" }}>{nome}</strong> com o slug{" "}
           <code style={{ fontFamily: "var(--fonte-mono), monospace" }}>{slug}</code>
         </li>
-        <li>Gerar uma chave de ingestão para ele, que só escreve neste projeto</li>
-        <li>Gerar um token de leitura para o Claude consultar seus projetos</li>
+        <li>Gerar uma chave de ingestão para ele, que só escreve neste produto</li>
+        <li>Gerar um token de leitura para o Claude consultar seus produtos</li>
         <li>Devolver os dois para o terminal, que grava o .env e configura o MCP</li>
       </ul>
 
@@ -102,7 +102,7 @@ export function ConfirmacaoDaCli({
           cursor: pendente || pronto ? "default" : "pointer",
         }}
       >
-        {pronto ? "Pronto, volte ao terminal" : pendente ? "Criando…" : "Autorizar e criar projeto"}
+        {pronto ? "Pronto, volte ao terminal" : pendente ? "Criando…" : "Autorizar e criar produto"}
       </button>
 
       <div style={{ marginTop: 12, fontSize: 11.5, color: "var(--faint)", lineHeight: 1.55 }}>

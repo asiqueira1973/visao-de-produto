@@ -96,7 +96,7 @@ export async function EstadoVazio({ projetoId, slug }: { projetoId: string; slug
                 lineHeight: 1.55,
               }}
             >
-              Este projeto ainda não tem chave de ingestão.{" "}
+              Este produto ainda não tem chave de ingestão.{" "}
               <Link href={`/p/${slug}/configuracoes`}>Gere uma nas Configurações</Link> para o app
               conseguir enviar eventos.
             </div>

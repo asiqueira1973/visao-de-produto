@@ -68,14 +68,18 @@ colar uma chave no chat, use e não escreva em lugar nenhum além do `.env`.
 
 ---
 
-## 0.1 Dois ambientes — dev e produção
-
-Existem **dois projetos Supabase**, e eles não se misturam:
+## 0.1 Ambientes — hoje só existe produção
 
 | | Projeto Supabase | Endereço | Para que serve |
 |---|---|---|---|
-| **dev** | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | site `dev.visaodeproduto.com.br`, API no `.supabase.co` | Onde tudo é escrito e verificado primeiro. É onde a suíte da seção 19 roda |
-| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | site `app.visaodeproduto.com.br`, API `api.visaodeproduto.com.br` | Os dados reais do dono. Só recebe o que já passou por dev |
+| **prod** | `Visao de Produto`, ref `glohvqzopiffdghwppor` | site `app.visaodeproduto.com.br`, API `api.visaodeproduto.com.br` | Os dados reais do dono. É o único banco que existe |
+| ~~dev~~ | `Visao de Produto — Dev`, ref `ntdjmdqiqjpnufrekorp` | — | **Descontinuado.** O dono confirmou em 02/11/2026 que não usa mais; a API lista o projeto como `INACTIVE` |
+
+**Consequência prática, e não é pequena:** a suíte de integração da seção 19 (`pnpm test` em
+`tests/`) falha com `TypeError: fetch failed` porque aponta para o banco de dev. **Isso não é
+regressão** — é o ambiente que sumiu. Antes de caçar bug numa falha assim, confirme com
+`git stash` que ela acontece sem as suas mudanças também. O que ainda roda e vale é
+`pnpm typecheck`, `pnpm lint` e os unitários de `packages/cli` e `packages/sdk-js`.
 
 **Os endereços de produção são os próprios, e isso não é enfeite.** A chave de ingestão e o
 host que a CLI escreve no `.env` de um app ficam lá por anos: se apontassem para o Supabase,
@@ -274,6 +278,18 @@ arquivo `.sql` correspondente **sempre** é salvo em `supabase/migrations/` no m
     a ingestão para de funcionar para todos os apps.
 12. **Evento inválido não derruba o lote.** Ele volta em `rejeitados` com `id`, `campo` e
     `motivo`, e os outros 99 entram.
+13. **Na tela a entidade se chama Produto; no banco e no código ela se chama `projeto`.**
+    Em 02/11/2026 o dono renomeou os rótulos — a ferramenta faz gestão de produto, e chamar
+    o objeto de "projeto" confundia. Foi trocado **só o texto lido por gente**: rótulo,
+    botão, instrução, e-mail, termos e a mensagem do `raise exception` em
+    `fn_valida_limite_de_projetos()`. **Não foi trocado, de propósito:** a tabela
+    `projetos`, a coluna `projeto_id`, os parâmetros `p_projeto_id`, os identificadores do
+    TypeScript, a rota `/projetos`, o slug padrão `"projeto"`, o nome de evento
+    `visao_projeto_criado` (já existe como dado histórico) e o parâmetro `projeto` do SDK.
+    O prefixo `limite_de_projetos:` da mensagem de limite também fica: o app casa esse
+    prefixo por regex para extrair o texto, e mexer nele mata o aviso em silêncio.
+    **Não "corrija" essa divergência renomeando o banco** — ela é intencional, e a migração
+    de schema não vale o risco num banco com app publicado nas lojas.
 
 ## 8. Decisões tomadas com o dono nesta v1
 

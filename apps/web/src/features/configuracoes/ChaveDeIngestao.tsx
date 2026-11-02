@@ -86,7 +86,7 @@ export function ChaveDeIngestao({
         <div>
           <div style={{ fontSize: 13.5, fontWeight: 600 }}>Chave de ingestão (API key)</div>
           <div style={{ marginTop: 5, fontSize: 12.5, color: "var(--dim)", lineHeight: 1.5 }}>
-            É a API key deste projeto: vai no header{" "}
+            É a API key deste produto: vai no header{" "}
             <code style={{ fontFamily: "var(--fonte-mono), monospace" }}>x-api-key</code> e na
             variável{" "}
             <code style={{ fontFamily: "var(--fonte-mono), monospace" }}>VISAO_API_KEY</code>. Ela
@@ -157,7 +157,7 @@ export function ChaveDeIngestao({
         </div>
       ) : (
         <div style={{ marginTop: 14, fontSize: 12.5, color: "var(--dim)" }}>
-          Este projeto não tem chave ativa. Gere uma para o app conseguir enviar eventos.
+          Este produto não tem chave ativa. Gere uma para o app conseguir enviar eventos.
         </div>
       )}
 

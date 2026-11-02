@@ -150,7 +150,7 @@ export function ZonaDePerigo({
           >
             Apagar a conta remove{" "}
             <strong style={{ color: "var(--text)" }}>
-              {projetos} {projetos === 1 ? "projeto" : "projetos"}
+              {projetos} {projetos === 1 ? "produto" : "produtos"}
             </strong>
             ,{" "}
             <strong style={{ color: "var(--text)" }}>

@@ -41,13 +41,13 @@ const COMO_SE_USA = [
     numero: "1",
     titulo: "O agente instrumenta enquanto constrói",
     texto:
-      "Ao implementar uma tela nova, o Claude adiciona a chamada de evento no código, seguindo a convenção de nomes que o projeto já usa e escrevendo a descrição em português. Você não precisa parar para pensar em analytics.",
+      "Ao implementar uma tela nova, o Claude adiciona a chamada de evento no código, seguindo a convenção de nomes que o produto já usa e escrevendo a descrição em português. Você não precisa parar para pensar em analytics.",
   },
   {
     numero: "2",
     titulo: "O app envia, por uma chamada de API",
     texto:
-      "Uma chamada de rede com a chave de ingestão do projeto, em qualquer linguagem que saiba fazer POST. Não há pacote para instalar: o contrato é o REST, e é ele que não muda.",
+      "Uma chamada de rede com a chave de ingestão do produto, em qualquer linguagem que saiba fazer POST. Não há pacote para instalar: o contrato é o REST, e é ele que não muda.",
   },
   {
     numero: "3",
@@ -135,7 +135,7 @@ export default function SobreOProduto() {
               Para quem constrói software com IA — sozinho ou em time pequeno, com o Claude Code, a
               partir de specs — e entrega feature rápido sem fazer ideia do que está sendo usado. É
               gente que não procura ferramenta de analytics, não compara tabela de preço e desiste
-              no primeiro muro de onboarding: criar conta, criar organização, criar projeto,
+              no primeiro muro de onboarding: criar conta, criar organização, criar produto,
               escolher entre mil opções.
             </p>
             <p style={{ margin: "12px 0 0" }}>
@@ -210,7 +210,7 @@ export default function SobreOProduto() {
           </div>
           <div style={{ marginTop: 10, fontSize: 12, color: "var(--faint)", lineHeight: 1.6 }}>
             A chave de ingestão e os trechos prontos de código ficam em{" "}
-            <strong style={{ color: "var(--dim)" }}>Configurações</strong>, dentro de cada projeto.
+            <strong style={{ color: "var(--dim)" }}>Configurações</strong>, dentro de cada produto.
             Para ligar o Claude a esta conta, veja{" "}
             <Link href="/conta/credenciais">Credenciais MCP</Link>.
           </div>
