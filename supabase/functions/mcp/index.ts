@@ -101,9 +101,9 @@ function criarServidor(supabase: ReturnType<typeof createClient>, contaId: strin
     {
       title: "Atividade recente",
       description:
-        "Os últimos eventos recebidos, do mais recente para o mais antigo, com a descrição de cada um. Sem o parâmetro `projeto`, varre todos os projetos da conta.",
+        "Os últimos eventos recebidos, do mais recente para o mais antigo, com a descrição de cada um. Sem o parâmetro `projeto`, varre todos os produtos da conta.",
       inputSchema: z.object({
-        projeto: z.string().optional().describe("slug do projeto, ex. agenda-psi"),
+        projeto: z.string().optional().describe("slug do produto, ex. agenda-psi"),
         limite: z.number().int().min(1).max(200).optional().describe("padrão 50, máximo 200"),
         desde: z.string().optional().describe("data ISO 8601: só eventos a partir dela"),
         evento: z.string().optional().describe("nome exato do evento"),
@@ -120,7 +120,7 @@ function criarServidor(supabase: ReturnType<typeof createClient>, contaId: strin
       description:
         "Quanto cada evento do catálogo ocorreu no período, com quantas pessoas distintas e quando foi a última vez. Inclui os eventos que não ocorreram nenhuma vez.",
       inputSchema: z.object({
-        projeto: z.string().describe("slug do projeto"),
+        projeto: z.string().describe("slug do produto"),
         janela: z.enum(["7d", "14d", "30d", "90d"]).optional().describe("padrão 30d"),
         evento: z.string().optional().describe("para olhar um evento só"),
       }),
@@ -133,9 +133,9 @@ function criarServidor(supabase: ReturnType<typeof createClient>, contaId: strin
     {
       title: "Perfil de uma pessoa",
       description:
-        "O perfil e a linha do tempo de um identificador dentro de um projeto, com a descrição de cada evento.",
+        "O perfil e a linha do tempo de um identificador dentro de um produto, com a descrição de cada evento.",
       inputSchema: z.object({
-        projeto: z.string().describe("slug do projeto"),
+        projeto: z.string().describe("slug do produto"),
         distinct_id: z.string().describe("identificador da pessoa no app"),
         limite: z.number().int().min(1).max(200).optional().describe("padrão 50"),
       }),
@@ -148,9 +148,9 @@ function criarServidor(supabase: ReturnType<typeof createClient>, contaId: strin
     {
       title: "Catálogo de eventos",
       description:
-        "Todos os eventos que o projeto já registrou, com descrição, telas, total acumulado e datas, mais o prefixo de nome adotado pelo projeto. É o que se lê antes de propor um evento novo.",
+        "Todos os eventos que o produto já registrou, com descrição, telas, total acumulado e datas, mais o prefixo de nome adotado pelo produto. É o que se lê antes de propor um evento novo.",
       inputSchema: z.object({
-        projeto: z.string().describe("slug do projeto"),
+        projeto: z.string().describe("slug do produto"),
       }),
     },
     async (args) => texto(await catalogoDoProjeto(supabase, contaId, args)),
