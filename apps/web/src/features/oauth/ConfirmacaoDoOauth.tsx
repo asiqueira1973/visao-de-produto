@@ -15,6 +15,7 @@
 
 import { useState, useTransition } from "react";
 import { aprovarConexao } from "./acoes";
+import { ESQUEMAS_PERIGOSOS } from "./esquemas";
 
 export function ConfirmacaoDoOauth({
   nomeDoCliente,
@@ -48,6 +49,12 @@ export function ConfirmacaoDoOauth({
         return;
       }
 
+      // Segunda barreira: mesmo que um cliente antigo tenha sido registrado com
+      // um esquema perigoso, o navegador nunca é mandado para ele.
+      if (ESQUEMAS_PERIGOSOS.includes(new URL(destino).protocol)) {
+        setErro("Endereço de retorno inválido.");
+        return;
+      }
       setPronto(true);
       window.location.href = destino;
     });

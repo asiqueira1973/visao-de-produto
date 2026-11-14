@@ -16,6 +16,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { clienteDeServico } from "@/lib/supabase/server";
+import { ESQUEMAS_PERIGOSOS } from "./esquemas";
 
 /** Quanto tempo um código de autorização vive. Curto de propósito. */
 export const VALIDADE_DO_CODIGO_MS = 10 * 60 * 1000;
@@ -110,8 +111,11 @@ export function motivoDeRecusaDaUri(uri: string): string | null {
   if (url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)) {
     return null;
   }
-  // Esquema próprio de aplicativo, como claude://
-  if (!["http:", "https:"].includes(url.protocol)) return null;
+  // Esquema próprio de aplicativo, como claude://. Esquemas que executam código
+  // ou carregam conteúdo no navegador (javascript:, data: etc.) nunca são aceitos.
+  if (!["http:", "https:"].includes(url.protocol) && !ESQUEMAS_PERIGOSOS.includes(url.protocol)) {
+    return null;
+  }
 
   return `"${uri}" precisa ser https, localhost ou um esquema de aplicativo.`;
 }

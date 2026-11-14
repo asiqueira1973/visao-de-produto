@@ -122,6 +122,38 @@ describe("isolamento entre contas", () => {
   }, 60_000);
 });
 
+describe("o dono não mexe no próprio plano", () => {
+  it("edita o nome, mas não plano, cortesia nem limites", async () => {
+    const comoDono = createClient(URL_DO_PROJETO, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: { persistSession: false },
+    });
+    const { error: erroLogin } = await comoDono.auth.signInWithPassword({
+      email: dono.email,
+      password: dono.senha,
+    });
+    expect(erroLogin).toBeNull();
+
+    const { error: erroNome } = await comoDono
+      .from("contas")
+      .update({ nome: "Conta do dono" })
+      .eq("id", dono.contaId);
+    expect(erroNome, "o dono pode editar o nome").toBeNull();
+
+    const { error: erroPlano } = await comoDono
+      .from("contas")
+      .update({ plano: "pago", cortesia: true, limite_eventos_mes: null, limite_eventos_minuto: null })
+      .eq("id", dono.contaId);
+    expect(erroPlano, "plano, cortesia e limites só mudam por service_role").not.toBeNull();
+
+    const { data: conta } = await servico
+      .from("contas")
+      .select("plano, cortesia")
+      .eq("id", dono.contaId)
+      .single();
+    expect(conta?.cortesia).not.toBe(true);
+  }, 60_000);
+});
+
 describe("particionamento e retenção — seção 7.4", () => {
   it("eventos é particionada por 7 dias, com partições futuras pré-criadas", async () => {
     const { data } = await servico.rpc("fn_consulta_leitura", {
