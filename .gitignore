@@ -34,3 +34,15 @@ _to_delete/
 .env*
 # o exemplo é o único que vai para o git: ele não tem valor nenhum dentro
 !.env.example
+
+# --- Segredos e credenciais (nunca versionar) ---
+GoogleService-Info.plist
+google-services.json
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+key.properties
+local.properties
+secrets/
