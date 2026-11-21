@@ -75,6 +75,23 @@ Além dessas, cada produto tem **Painel** (os gráficos que você fixou do catá
 (o histórico de cada identificador), **Catálogo** e **Configurações**, onde ficam a chave de
 ingestão, o prefixo dos nomes de evento e o fuso de exibição.
 
+## Arquitetura
+
+<p align="center">
+  <img src="docs/images/arquitetura.jpg" alt="Desenho da arquitetura. À esquerda, o app instrumentado em uso: alguém toca um botão e a ação dispara um POST para /functions/v1/ingest com a chave de ingestão. No meio, o app Visão de Produto na Vercel, com catálogo, atividade, uso, painel, pessoas, configurações e credenciais MCP. À direita, o dono lendo de dois jeitos, cada um num monitor: o painel no navegador e a mesma conta dentro do Claude, pelo conector MCP. Embaixo, api.visaodeproduto.com.br como porta única, o Supabase com Postgres e as duas Edge Functions, o Stripe e o Bird">
+</p>
+
+Três coisas que o desenho explica melhor do que um parágrafo:
+
+- **A ingestão não passa pelo app web.** O evento vai do seu aplicativo para
+  `api.visaodeproduto.com.br` e daí para a Edge Function, direto. O site é só a leitura.
+- **O endereço público é uma indireção de propósito.** Quem instrumenta grava esse host no
+  binário do app e fica com ele por anos; atrás dele dá para trocar de hospedagem com um
+  registro de DNS. Foi o que permitiu desligar o Custom Domain do Supabase sem ninguém
+  publicar versão nova.
+- **As duas leituras são a mesma leitura.** Painel e MCP batem no mesmo banco, com as mesmas
+  permissões. O que a tela responde, o assistente responde.
+
 ## O que ele não é
 
 Quatro coisas que outra ferramenta faz melhor, e que este produto não tenta fazer:
