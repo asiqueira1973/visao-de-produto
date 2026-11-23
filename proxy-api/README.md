@@ -24,6 +24,18 @@ intactos — inclusive o `x-api-key`, que é o que autentica a ingestão.
 Medido antes de valer: a latência pelo proxy é igual à do domínio próprio do
 Supabase, e a deduplicação por `id` continua funcionando.
 
+## O endereço curto do MCP
+
+Antes do repasse genérico há duas regras específicas, e **a ordem importa** (a Vercel
+usa a primeira que casar):
+
+- `/mcp` → `/functions/v1/mcp/mcp?endereco=curto`
+- `/.well-known/oauth-protected-resource/mcp` → o documento RFC 9728 da função, com o
+  mesmo marcador
+
+O `?endereco=curto` é o que avisa a função de que o cliente entrou pelo endereço curto,
+para ela anunciar esse mesmo endereço no OAuth. Sem ele, a conexão é recusada.
+
 ## O que não pode acontecer aqui
 
 **A proteção de deploy da Vercel precisa ficar desligada.** Com ela ligada,

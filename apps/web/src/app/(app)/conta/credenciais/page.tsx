@@ -14,6 +14,7 @@
 
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { TokensDeLeitura } from "@/features/credenciais/TokensDeLeitura";
+import { urlDoMcp } from "@/features/oauth/servidor";
 import type { Credencial } from "@/lib/data/tipos";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export default async function CredenciaisMcp() {
       <div style={{ padding: "26px 32px 60px", maxWidth: 800 }}>
         <TokensDeLeitura
           tokens={(data ?? []) as Credencial[]}
-          urlDoMcp={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/mcp/mcp`}
+          urlDoMcp={urlDoMcp()}
         />
       </div>
     </div>

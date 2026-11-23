@@ -348,7 +348,20 @@ instalação, de abertura de app ou de tela (assunção 21.8, confirmada com o d
 saber quantas pessoas abriram o app, instrumenta-se `app_aberto` como qualquer outro
 evento — e é isso que a skill de instrumentação sugere por padrão.
 
-### 5.3 — Servidor MCP (`POST /functions/v1/mcp/mcp`)
+### 5.3 — Servidor MCP (`POST /mcp`, ou `POST /functions/v1/mcp/mcp`)
+
+**Dois endereços, desde 22/11/2026.** O que a plataforma ensina é o curto,
+`https://api.visaodeproduto.com.br/mcp`; o longo continua respondendo, para ninguém ter que
+reconectar. Divergência registrada com o spec (seção 12 / critério do 8.6), que fala só em
+`/functions/v1/mcp/mcp`: o caminho longo continua existindo, o curto é um apelido.
+
+Como funciona: o proxy da Vercel (`proxy-api/vercel.json`) repassa `/mcp` e
+`/.well-known/oauth-protected-resource/mcp` para a função **acrescentando `?endereco=curto`**.
+A função usa esse marcador para anunciar, no documento RFC 9728 e no `www-authenticate`,
+o mesmo endereço por onde o cliente entrou — a spec do MCP manda o cliente conferir que o
+`resource` bate com a URL em que ele se conectou, e anunciar o curto para quem entrou pelo
+longo derrubaria conexões existentes. No site, `urlDoMcp()` em `features/oauth/servidor.ts`
+é a única fonte do endereço: tela de credenciais, CLI (`url_do_mcp`) e `recursoProtegido()`.
 
 Edge Function com `verify_jwt` desligado: quem autentica é ela, pelo token de leitura no
 header `Authorization: Bearer mcp_…`. Sem token ou com token revogado, **401**.

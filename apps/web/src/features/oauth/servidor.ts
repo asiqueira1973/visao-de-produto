@@ -50,9 +50,24 @@ export function emissor(): string {
   return "http://localhost:3000";
 }
 
+/**
+ * O endereço do servidor MCP que a plataforma ensina a usar.
+ * Não recebe nada; devolve a URL completa.
+ *
+ * No domínio próprio é o curto, `api.visaodeproduto.com.br/mcp`, que o proxy
+ * da Vercel (`proxy-api/`) repassa para a Edge Function. Fora dele não existe
+ * proxy, e só o caminho longo do Supabase responde. O longo continua valendo
+ * no domínio próprio também: quem já conectou por ele não precisa mudar nada.
+ */
+export function urlDoMcp(): string {
+  const host = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+  if (host.endsWith(".visaodeproduto.com.br")) return `${host}/mcp`;
+  return `${host}/functions/v1/mcp/mcp`;
+}
+
 /** O recurso protegido: o endpoint do servidor MCP. */
 export function recursoProtegido(): string {
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/mcp/mcp`;
+  return urlDoMcp();
 }
 
 /** Um cliente registrado. */

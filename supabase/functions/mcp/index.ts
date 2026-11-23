@@ -1,5 +1,6 @@
 /**
  * Servidor MCP — POST /functions/v1/mcp/mcp
+ *                (ou POST /mcp, pelo endereço curto do proxy)
  *
  * O que faz: expõe as cinco tools de leitura da seção 12.2 por Streamable HTTP,
  *            autenticado por token de leitura no header Authorization.
@@ -61,13 +62,33 @@ function origemPublica(): string {
   return (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/+$/, "");
 }
 
-/** Endereço deste recurso protegido, como o cliente o conhece. */
-function urlDoRecurso(): string {
+/**
+ * Diz se o cliente chegou pelo endereço curto, `api.visaodeproduto.com.br/mcp`.
+ *
+ * O proxy da Vercel (`proxy-api/vercel.json`) repassa `/mcp` para esta função
+ * acrescentando `?endereco=curto`. É o único jeito de a função saber por qual
+ * porta o cliente entrou: o caminho que chega aqui é sempre o longo.
+ */
+function chegouPeloCurto(req: Request): boolean {
+  return new URL(req.url).searchParams.get("endereco") === "curto";
+}
+
+/**
+ * Endereço deste recurso protegido, como o cliente o conhece.
+ *
+ * Os dois endereços valem ao mesmo tempo, e cada cliente recebe de volta o que
+ * usou: a spec do MCP manda o cliente conferir que o `resource` anunciado é o
+ * endereço em que ele se conectou. Anunciar o curto para quem entrou pelo longo
+ * derrubaria as conexões que já existem.
+ */
+function urlDoRecurso(req: Request): string {
+  if (chegouPeloCurto(req)) return `${origemPublica()}/mcp`;
   return `${origemPublica()}/functions/v1/mcp/mcp`;
 }
 
 /** Endereço do documento que descreve este recurso (RFC 9728). */
-function urlDoMetadata(): string {
+function urlDoMetadata(req: Request): string {
+  if (chegouPeloCurto(req)) return `${origemPublica()}/.well-known/oauth-protected-resource/mcp`;
   return `${origemPublica()}/functions/v1/mcp/.well-known/oauth-protected-resource`;
 }
 
@@ -191,7 +212,7 @@ Deno.serve(async (req: Request) => {
   if (new URL(req.url).pathname.endsWith("/.well-known/oauth-protected-resource")) {
     return new Response(
       JSON.stringify({
-        resource: urlDoRecurso(),
+        resource: urlDoRecurso(req),
         authorization_servers: [SERVIDOR_DE_AUTORIZACAO],
         bearer_methods_supported: ["header"],
         scopes_supported: ["leitura"],
@@ -213,7 +234,7 @@ Deno.serve(async (req: Request) => {
       status: 401,
       headers: {
         "content-type": "application/json",
-        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata()}"`,
+        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata(req)}"`,
         ...cabecalhosCors,
       },
     });
@@ -242,7 +263,7 @@ Deno.serve(async (req: Request) => {
       status: 401,
       headers: {
         "content-type": "application/json",
-        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata()}"`,
+        "www-authenticate": `Bearer resource_metadata="${urlDoMetadata(req)}"`,
         ...cabecalhosCors,
       },
     });

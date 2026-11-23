@@ -15,6 +15,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import { clienteDaSessao } from "@/lib/supabase/server";
 import { criarProjetoComSlugLivre } from "@/features/projetos/acoes";
+import { urlDoMcp } from "@/features/oauth/servidor";
 
 /** O que a CLI recebe de volta. */
 export interface PacoteDaCli {
@@ -97,7 +98,7 @@ export async function autorizarInstalacao(
       nome: projeto.nome,
       chave_de_ingestao: chave.valor,
       token_de_leitura: token.valor,
-      url_do_mcp: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/mcp/mcp`,
+      url_do_mcp: urlDoMcp(),
     },
   };
 }
